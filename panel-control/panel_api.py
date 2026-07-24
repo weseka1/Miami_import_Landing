@@ -521,7 +521,8 @@ async def create_product(
 
 
 @router.post("/products/{pid}/images")
-async def upload_image(pid: int, file: UploadFile = File(...), position: int = Form(99),
+async def upload_image(pid: int, file: UploadFile = File(...),
+                       position: Optional[int] = Form(None),
                        db: Session = Depends(get_db)):
     p = db.get(Product, pid)
     if not p:
@@ -529,6 +530,11 @@ async def upload_image(pid: int, file: UploadFile = File(...), position: int = F
     content = await file.read()
     safe_name = validate_image(file.filename or "", file.content_type or "", content)
     src, local_path = store_image_bytes(content, file.content_type or "", p.handle, safe_name)
+    # Sin posición explícita, la foto va al final de la galería. Antes entraban
+    # todas con 99: al subir varias de una quedaban empatadas y el orden que
+    # veía el cliente en la tienda salía al azar.
+    if position is None:
+        position = (max((im.position or 0) for im in p.images) + 1) if p.images else 1
     db.add(ProductImage(product_id=p.id, src=src, local_path=local_path,
                         position=position, alt=p.name))
     db.commit()

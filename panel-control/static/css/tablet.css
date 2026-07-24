@@ -71,6 +71,12 @@
   }
   .talle{ font-size:16px; font-weight:600; min-width:52px; }
   .size-chip{ min-height:48px; padding:0 18px; font-size:15px; border-radius:10px; }
+  /* Talle libre y "agregar fotos": tamaño de dedo, y el input a 16px para que
+     el navegador no haga zoom automático al enfocarlo. */
+  .size-custom-input{ min-height:52px; font-size:16px; }
+  .size-custom .btn-ghost{ min-height:52px; padding:0 20px; font-size:15px; }
+  .modal-addphotos .btn-ghost{ min-height:52px; padding:0 20px; font-size:15px; }
+  .modal-addphotos-hint{ font-size:13px; }
 
   /* Pedidos: en pantalla angosta la tabla se lee mejor apilada */
   .order-row{ gap:10px; padding:16px 0; font-size:15px; }

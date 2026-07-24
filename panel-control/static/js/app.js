@@ -295,31 +295,32 @@ function renderProductModal(p) {
     `;
   }).join('');
 
-  // ¿El producto usa el atributo "Talle"? Solo en ese caso ofrecemos agregar talles.
-  const attrs = p.attributes || [];
-  const usaTalle = attrs.some(a => {
-    const n = (typeof a === 'object' ? (a.es || '') : a) || '';
-    return n.trim().toLowerCase() === 'talle';
-  });
-
-  let addSizesHtml = '';
-  if (usaTalle) {
-    const present = new Set((p.variants || []).map(v => {
-      const vals = v.values || [];
-      return ((vals[0]?.es || vals[0]?.value || '') + '').trim().toUpperCase();
-    }));
-    const chips = STANDARD_SIZES.map(sz => {
-      if (present.has(sz)) {
-        return `<span class="size-chip present" title="Ya cargado">${esc(sz)}</span>`;
-      }
-      return `<button class="size-chip add" data-add-variant="${Number(p.id)}" data-size="${esc(sz)}" title="Agregar talle ${esc(sz)} (stock 0)">+ ${esc(sz)}</button>`;
-    }).join('');
-    addSizesHtml = `
-      <h2 style="margin-top:24px; font-size:14px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-mute)">Agregar talle</h2>
-      <p style="color:var(--ink-mute); font-size:12px; margin:4px 0 12px">Los talles en gris ya están cargados. Tocá uno para agregarlo (se crea con stock 0 y después le ponés unidades).</p>
-      <div class="size-chips">${chips}</div>
-    `;
-  }
+  // Agregar talles: disponible SIEMPRE, en todos los productos. Antes esta
+  // sección solo aparecía si el producto traía el atributo "Talle", así que a
+  // la mayoría del catálogo no se le podía sumar ninguno. Además de los atajos
+  // con los talles comunes hay un campo libre: cualquier talle vale (números
+  // como 38/42, "ÚNICO", "44 EU", lo que se use).
+  const present = new Set((p.variants || []).map(v => {
+    const vals = v.values || [];
+    return ((vals[0]?.es || vals[0]?.value || '') + '').trim().toUpperCase();
+  }));
+  const chips = STANDARD_SIZES.map(sz => {
+    if (present.has(sz)) {
+      return `<span class="size-chip present" title="Ya cargado">${esc(sz)}</span>`;
+    }
+    return `<button class="size-chip add" data-add-variant="${Number(p.id)}" data-size="${esc(sz)}" title="Agregar talle ${esc(sz)} (stock 0)">+ ${esc(sz)}</button>`;
+  }).join('');
+  const addSizesHtml = `
+    <h2 style="margin-top:24px; font-size:14px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-mute)">Agregar talle</h2>
+    <p style="color:var(--ink-mute); font-size:12px; margin:4px 0 12px">Tocá uno de los rápidos o escribí el que quieras. Se agrega con stock 0 y después le cargás las unidades.</p>
+    <div class="size-chips">${chips}</div>
+    <div class="size-custom">
+      <input id="modal-new-size" class="size-custom-input" type="text" maxlength="20"
+             autocomplete="off" placeholder="Otro talle: 38, 42, ÚNICO…"
+             data-new-size-for="${Number(p.id)}" />
+      <button class="btn-ghost" type="button" data-add-custom-size="${Number(p.id)}">Agregar talle</button>
+    </div>
+  `;
 
   // Galería de fotos: cada una se puede girar (preview) y actualizar en la tienda
   const imagesHtml = (p.images || []).length
@@ -329,7 +330,19 @@ function renderProductModal(p) {
           <button class="modal-photo-rotate" type="button" data-rotate-preview="${Number(im.id)}" title="Girar 90°">↻</button>
           <button class="modal-photo-apply" type="button" data-apply-rotate="${Number(im.id)}" data-pid="${Number(p.id)}">Actualizar</button>
         </div>`).join('')}</div>`
-    : '';
+    : '<p style="color:var(--ink-mute); font-size:13px">Este producto todavía no tiene fotos.</p>';
+
+  // Sumar fotos a un producto ya cargado. El <input file> va fuera de pantalla
+  // y se dispara desde el botón: en tablet el botón es mucho más confiable que
+  // el input nativo, que se toca chiquito y a veces no abre la galería.
+  const addPhotosHtml = `
+    <div class="modal-addphotos">
+      <button class="btn-ghost" type="button" data-pick-photos="${Number(p.id)}">📷 Agregar fotos</button>
+      <input type="file" accept="image/*" multiple id="modal-add-photos"
+             class="file-offscreen" data-upload-photos="${Number(p.id)}" />
+      <span class="modal-addphotos-hint" id="modal-addphotos-hint">Podés elegir varias de una. Se suman al final y después las girás si hace falta.</span>
+    </div>
+  `;
 
   $('#modal-body').innerHTML = `
     <div class="modal-brand-row">
@@ -342,6 +355,7 @@ function renderProductModal(p) {
     </div>
     <p style="color:var(--ink-mute); font-size:13px"><a href="${esc(url)}" target="_blank">${esc(url)} ↗</a></p>
     ${imagesHtml}
+    ${addPhotosHtml}
 
     <h2 style="margin-top:20px; font-size:14px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-mute)">Variantes y stock</h2>
     ${variants}
@@ -450,6 +464,49 @@ async function addVariant(pid, talle) {
   } catch (e) {
     toast('Error al agregar talle: ' + e.message, 'error');
   }
+}
+
+// Talle escrito a mano en el modal (cualquier valor, no solo los estándar).
+function addCustomSize(pid) {
+  const input = document.getElementById('modal-new-size');
+  const talle = ((input && input.value) || '').trim();
+  if (!talle) {
+    toast('Escribí el talle que querés agregar', 'error');
+    if (input) input.focus();
+    return;
+  }
+  return addVariant(pid, talle);
+}
+
+// Suma fotos a un producto ya cargado. El endpoint recibe un archivo por vez,
+// así que van de a una y se avisa el progreso: con fotos de celular y conexión
+// del local, subir 5 puede tardar y sin feedback parece colgado.
+async function uploadPhotos(pid, files) {
+  const lista = Array.from(files || []);
+  if (!lista.length) return;
+  const hint = document.getElementById('modal-addphotos-hint');
+  let ok = 0, fail = 0, ultimoError = '';
+  for (let i = 0; i < lista.length; i++) {
+    if (hint) hint.textContent = `Subiendo ${i + 1} de ${lista.length}…`;
+    const fd = new FormData();
+    fd.append('file', lista[i]);
+    try {
+      // Sin headers: el navegador pone el Content-Type con el boundary del
+      // multipart. Si lo forzamos a mano, el backend no puede leer el archivo.
+      await api(`/api/products/${pid}/images`, { method: 'POST', body: fd });
+      ok++;
+    } catch (e) {
+      fail++;
+      ultimoError = e.message;
+    }
+  }
+  if (fail) {
+    toast(`Subidas ${ok}, fallaron ${fail}. ${ultimoError}`.trim(), 'error');
+  } else {
+    toast(`✓ ${ok} foto${ok === 1 ? '' : 's'} agregada${ok === 1 ? '' : 's'}`, 'success');
+  }
+  PRODUCTS_CACHE = [];   // que la grilla tome la portada nueva
+  openProduct(pid);      // recargar la galería (ya se pueden girar)
 }
 
 async function deleteVariant(pid, vid) {
@@ -1026,6 +1083,17 @@ document.addEventListener('click', ev => {
   const addv = t.closest('[data-add-variant]');
   if (addv) return addVariant(Number(addv.dataset.addVariant), addv.dataset.size);
 
+  const addc = t.closest('[data-add-custom-size]');
+  if (addc) return addCustomSize(Number(addc.dataset.addCustomSize));
+
+  // El input de archivos está fuera de pantalla: lo abre este botón.
+  const pick = t.closest('[data-pick-photos]');
+  if (pick) {
+    const inp = document.getElementById('modal-add-photos');
+    if (inp) inp.click();
+    return;
+  }
+
   const delv = t.closest('[data-del-variant]');
   if (delv) return deleteVariant(Number(delv.dataset.pid), Number(delv.dataset.delVariant));
 
@@ -1055,6 +1123,26 @@ document.addEventListener('click', ev => {
       `[data-order-detail="${CSS.escape(fila.dataset.orderToggle)}"]`);
     if (det) det.hidden = !det.hidden;
   }
+});
+
+// Elegir fotos para un producto ya cargado (el input se re-crea con el modal,
+// por eso también va delegado: `change` burbujea hasta document).
+document.addEventListener('change', ev => {
+  const up = ev.target.closest && ev.target.closest('[data-upload-photos]');
+  if (!up) return;
+  const pid = Number(up.dataset.uploadPhotos);
+  const files = up.files;
+  up.value = '';   // permite volver a elegir la misma foto si algo falló
+  uploadPhotos(pid, files);
+});
+
+// Enter en el campo de talle libre = tocar "Agregar talle".
+document.addEventListener('keydown', ev => {
+  if (ev.key !== 'Enter') return;
+  const inp = ev.target.closest && ev.target.closest('[data-new-size-for]');
+  if (!inp) return;
+  ev.preventDefault();
+  addCustomSize(Number(inp.dataset.newSizeFor));
 });
 
 // ============ Vender en el local (punto de venta) ============
