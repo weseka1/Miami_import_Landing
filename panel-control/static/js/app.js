@@ -331,6 +331,8 @@ function renderProductModal(p) {
           <img src="${esc(im.src)}" alt="">
           <span class="modal-photo-pos">${i === 0 ? '★ Principal' : i + 1 + '°'}</span>
           <div class="modal-photo-tools">
+            <button class="modal-photo-del" type="button" data-del-img="${Number(im.id)}"
+                    data-pid="${Number(p.id)}" title="Eliminar foto">✕</button>
             <button class="modal-photo-rotate" type="button" data-rotate-preview="${Number(im.id)}" title="Girar 90°">↻</button>
             <button class="modal-photo-move" type="button" data-move-img="${Number(im.id)}"
                     data-pid="${Number(p.id)}" data-dir="-1" title="Mover antes"
@@ -505,6 +507,18 @@ function makeCover(pid, imageId) {
   const resto = idsDeFotos().filter(i => i !== imageId);
   return guardarOrdenFotos(pid, [imageId].concat(resto),
                            '✓ Es la foto principal del producto');
+}
+
+async function deleteImage(pid, imageId) {
+  if (!confirm('¿Eliminar esta foto? No se puede deshacer.')) return;
+  try {
+    await api(`/api/products/${pid}/images/${imageId}`, { method: 'DELETE' });
+    toast('✓ Foto eliminada', 'success');
+    PRODUCTS_CACHE = [];   // la grilla puede haber cambiado de portada
+    openProduct(pid);      // refrescar la galería
+  } catch (e) {
+    toast('No se pudo eliminar la foto: ' + e.message, 'error');
+  }
 }
 
 function moveImage(pid, imageId, dir) {
@@ -1159,6 +1173,9 @@ document.addEventListener('click', ev => {
   const mov = t.closest('[data-move-img]');
   if (mov) return moveImage(Number(mov.dataset.pid), Number(mov.dataset.moveImg),
                             Number(mov.dataset.dir));
+
+  const dimg = t.closest('[data-del-img]');
+  if (dimg) return deleteImage(Number(dimg.dataset.pid), Number(dimg.dataset.delImg));
 
   const info = t.closest('[data-save-info]');
   if (info) return saveProductInfo(Number(info.dataset.saveInfo));

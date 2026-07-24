@@ -430,6 +430,14 @@ h2{ font-size:18px; font-weight:600; letter-spacing:-.01em; margin:0 0 16px }
 .modal-photo-move{ font-size:13px; }
 .modal-photo-rotate:hover, .modal-photo-move:hover:not(:disabled){ background:var(--ink); }
 .modal-photo-move:disabled{ opacity:.28; cursor:default; }
+.modal-photo-del{
+  width:32px; height:32px; border-radius:7px;
+  background:rgba(180,30,30,.9); color:#fff;
+  font-size:15px; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  transition:background .15s var(--ease);
+}
+.modal-photo-del:hover{ background:#c0392b; }
 
 /* Cuál es la portada y en qué orden va cada foto */
 .modal-photo-pos{

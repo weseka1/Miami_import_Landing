@@ -341,6 +341,38 @@ def reorder_images(pid: int, body: dict, db: Session = Depends(get_db)):
     return product_to_tn(p)
 
 
+@router.delete("/products/{pid}/images/{image_id}")
+def delete_product_image(pid: int, image_id: int, db: Session = Depends(get_db)):
+    """Borra una foto del producto.
+
+    Se renumeran las posiciones de las que quedan (1..N) para no dejar huecos
+    ni empates: con posiciones repetidas el orden en la tienda sale al azar.
+    Si se borra la portada, la que quedó primera pasa a ser la principal.
+    El archivo del bucket se elimina DESPUÉS del commit, y si falla no se
+    aborta: peor caso queda un archivo huérfano, no una foto fantasma.
+    """
+    p = db.get(Product, pid)
+    img = db.get(ProductImage, image_id)
+    if not p or not img or img.product_id != pid:
+        raise HTTPException(404, "Imagen no encontrada")
+
+    old_path = storage.path_from_url(img.src)
+    db.delete(img)
+    db.flush()
+    db.refresh(p)
+    for pos, im in enumerate(sorted(p.images, key=lambda x: x.position or 0), 1):
+        im.position = pos
+    db.commit()
+
+    if old_path:
+        try:
+            storage.delete_path(old_path)
+        except Exception:  # noqa: BLE001
+            pass
+    db.refresh(p)
+    return product_to_tn(p)
+
+
 @router.post("/products/{pid}/images/{image_id}/rotate")
 def rotate_product_image(pid: int, image_id: int, body: dict, db: Session = Depends(get_db)):
     """Rota una imagen ya subida y la reemplaza en el mismo lugar.
