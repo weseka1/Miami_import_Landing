@@ -322,12 +322,25 @@ function renderProductModal(p) {
     </div>
   `;
 
-  // Galería de fotos: cada una se puede girar (preview) y actualizar en la tienda
-  const imagesHtml = (p.images || []).length
-    ? `<div class="modal-photos">${(p.images || []).map(im => `
-        <div class="modal-photo" data-img-id="${Number(im.id)}" data-rot="0">
+  // Galería de fotos. Cada una se puede girar (preview + "Actualizar") y
+  // reordenar: la PRIMERA es la portada, la que ve el cliente en el listado.
+  const imgs = p.images || [];
+  const imagesHtml = imgs.length
+    ? `<div class="modal-photos">${imgs.map((im, i) => `
+        <div class="modal-photo${i === 0 ? ' is-cover' : ''}" data-img-id="${Number(im.id)}" data-rot="0">
           <img src="${esc(im.src)}" alt="">
-          <button class="modal-photo-rotate" type="button" data-rotate-preview="${Number(im.id)}" title="Girar 90°">↻</button>
+          <span class="modal-photo-pos">${i === 0 ? '★ Principal' : i + 1 + '°'}</span>
+          <div class="modal-photo-tools">
+            <button class="modal-photo-rotate" type="button" data-rotate-preview="${Number(im.id)}" title="Girar 90°">↻</button>
+            <button class="modal-photo-move" type="button" data-move-img="${Number(im.id)}"
+                    data-pid="${Number(p.id)}" data-dir="-1" title="Mover antes"
+                    ${i === 0 ? 'disabled' : ''}>◀</button>
+            <button class="modal-photo-move" type="button" data-move-img="${Number(im.id)}"
+                    data-pid="${Number(p.id)}" data-dir="1" title="Mover después"
+                    ${i === imgs.length - 1 ? 'disabled' : ''}>▶</button>
+          </div>
+          ${i === 0 ? '' : `<button class="modal-photo-cover" type="button"
+                    data-make-cover="${Number(im.id)}" data-pid="${Number(p.id)}">Hacer principal</button>`}
           <button class="modal-photo-apply" type="button" data-apply-rotate="${Number(im.id)}" data-pid="${Number(p.id)}">Actualizar</button>
         </div>`).join('')}</div>`
     : '<p style="color:var(--ink-mute); font-size:13px">Este producto todavía no tiene fotos.</p>';
@@ -464,6 +477,43 @@ async function addVariant(pid, talle) {
   } catch (e) {
     toast('Error al agregar talle: ' + e.message, 'error');
   }
+}
+
+// ---- Orden de las fotos (la primera es la portada) ----
+// El orden que se manda es el que se ve en pantalla, así que se lee del DOM:
+// no hace falta llevar estado aparte ni volver a pedir el producto.
+function idsDeFotos() {
+  return Array.from(document.querySelectorAll('.modal-photo'))
+              .map(el => Number(el.dataset.imgId));
+}
+
+async function guardarOrdenFotos(pid, ids, aviso) {
+  try {
+    await api(`/api/products/${pid}/images/orden`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids }),
+    });
+    toast(aviso, 'success');
+    PRODUCTS_CACHE = [];   // la grilla muestra la portada nueva
+    openProduct(pid);      // refrescar numeración y flechas
+  } catch (e) {
+    toast('No se pudo cambiar el orden: ' + e.message, 'error');
+  }
+}
+
+function makeCover(pid, imageId) {
+  const resto = idsDeFotos().filter(i => i !== imageId);
+  return guardarOrdenFotos(pid, [imageId].concat(resto),
+                           '✓ Es la foto principal del producto');
+}
+
+function moveImage(pid, imageId, dir) {
+  const ids = idsDeFotos();
+  const i = ids.indexOf(imageId);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= ids.length) return;
+  const tmp = ids[i]; ids[i] = ids[j]; ids[j] = tmp;
+  return guardarOrdenFotos(pid, ids, '✓ Orden de fotos actualizado');
 }
 
 // Talle escrito a mano en el modal (cualquier valor, no solo los estándar).
@@ -1103,6 +1153,13 @@ document.addEventListener('click', ev => {
   const app = t.closest('[data-apply-rotate]');
   if (app) return applyRotate(Number(app.dataset.pid), Number(app.dataset.applyRotate));
 
+  const cover = t.closest('[data-make-cover]');
+  if (cover) return makeCover(Number(cover.dataset.pid), Number(cover.dataset.makeCover));
+
+  const mov = t.closest('[data-move-img]');
+  if (mov) return moveImage(Number(mov.dataset.pid), Number(mov.dataset.moveImg),
+                            Number(mov.dataset.dir));
+
   const info = t.closest('[data-save-info]');
   if (info) return saveProductInfo(Number(info.dataset.saveInfo));
 
@@ -1131,8 +1188,12 @@ document.addEventListener('change', ev => {
   const up = ev.target.closest && ev.target.closest('[data-upload-photos]');
   if (!up) return;
   const pid = Number(up.dataset.uploadPhotos);
-  const files = up.files;
-  up.value = '';   // permite volver a elegir la misma foto si algo falló
+  // Copiar la lista ANTES de limpiar el input: `up.files` es una lista viva y
+  // al hacer `value = ''` se vacía, así que la subida se quedaba sin archivos
+  // y no pasaba nada. El input se limpia igual para poder volver a elegir la
+  // misma foto si alguna falló.
+  const files = Array.from(up.files || []);
+  up.value = '';
   uploadPhotos(pid, files);
 });
 

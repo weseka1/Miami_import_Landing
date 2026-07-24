@@ -415,15 +415,39 @@ h2{ font-size:18px; font-weight:600; letter-spacing:-.01em; margin:0 0 16px }
 .modal-photo img.rot-90{ transform:rotate(90deg); }
 .modal-photo img.rot-180{ transform:rotate(180deg); }
 .modal-photo img.rot-270{ transform:rotate(270deg); }
-.modal-photo-rotate{
+/* Barra de herramientas sobre la foto: girar + mover en la galería */
+.modal-photo-tools{
   position:absolute; top:6px; right:6px;
+  display:flex; gap:4px;
+}
+.modal-photo-rotate, .modal-photo-move{
   width:32px; height:32px; border-radius:7px;
   background:rgba(10,10,10,.82); color:#fff;
   font-size:16px; line-height:1;
   display:flex; align-items:center; justify-content:center;
   transition:background .15s var(--ease);
 }
-.modal-photo-rotate:hover{ background:var(--ink); }
+.modal-photo-move{ font-size:13px; }
+.modal-photo-rotate:hover, .modal-photo-move:hover:not(:disabled){ background:var(--ink); }
+.modal-photo-move:disabled{ opacity:.28; cursor:default; }
+
+/* Cuál es la portada y en qué orden va cada foto */
+.modal-photo-pos{
+  position:absolute; top:6px; left:6px;
+  padding:3px 8px; border-radius:6px;
+  background:rgba(10,10,10,.82); color:#fff;
+  font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+}
+.modal-photo.is-cover img{ border-color:var(--ink); border-width:2px; }
+.modal-photo.is-cover .modal-photo-pos{ background:var(--ink); }
+.modal-photo-cover{
+  display:block; width:150px; margin-top:6px; padding:7px;
+  border:1px solid var(--rule-strong); border-radius:7px;
+  font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+  background:#fff; color:var(--ink);
+  transition:all .15s var(--ease);
+}
+.modal-photo-cover:hover{ background:var(--ink); color:#fff; border-color:var(--ink); }
 .modal-photo-apply{
   display:block; width:150px; margin-top:6px; padding:7px;
   border:1px solid var(--rule-strong); border-radius:7px;

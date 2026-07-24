@@ -309,6 +309,38 @@ def delete_variant(pid: int, vid: int, db: Session = Depends(get_db)):
     return product_to_tn(p)
 
 
+@router.put("/products/{pid}/images/orden")
+def reorder_images(pid: int, body: dict, db: Session = Depends(get_db)):
+    """Reordena la galería del producto.
+
+    `ids` viene con el orden nuevo, de la portada a la última. La primera es la
+    que se ve en el listado de la tienda y como foto principal del producto.
+    Se exige la lista COMPLETA para no dejar posiciones repetidas: la relación
+    ordena por `position` y con empates el orden que ve el cliente es al azar.
+    """
+    p = db.get(Product, pid)
+    if not p:
+        raise HTTPException(404, "Producto no encontrado")
+
+    ids = body.get("ids")
+    if not isinstance(ids, list) or not ids:
+        raise HTTPException(400, "Falta el orden de las fotos")
+    try:
+        ids = [int(i) for i in ids]
+    except (TypeError, ValueError):
+        raise HTTPException(400, "Orden inválido")
+
+    actuales = {im.id: im for im in p.images}
+    if set(ids) != set(actuales) or len(ids) != len(actuales):
+        raise HTTPException(400, "El orden no coincide con las fotos del producto")
+
+    for pos, iid in enumerate(ids, 1):
+        actuales[iid].position = pos
+    db.commit()
+    db.refresh(p)
+    return product_to_tn(p)
+
+
 @router.post("/products/{pid}/images/{image_id}/rotate")
 def rotate_product_image(pid: int, image_id: int, body: dict, db: Session = Depends(get_db)):
     """Rota una imagen ya subida y la reemplaza en el mismo lugar.

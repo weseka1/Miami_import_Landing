@@ -338,8 +338,10 @@
   .modal .stock-input{
     width:84px; min-height:52px; font-size:20px;
   }
-  /* Miniaturas de fotos del modal: girar/actualizar tocables */
-  .modal-photo-rotate, .modal-photo-apply{ min-height:48px; font-size:15px; padding:0 16px; }
+  /* Miniaturas de fotos del modal: girar/mover/actualizar tocables */
+  .modal-photo-apply, .modal-photo-cover{ min-height:48px; font-size:13px; padding:0 12px; }
+  .modal-photo-rotate, .modal-photo-move{ width:44px; height:44px; font-size:17px; }
+  .modal-photo-tools{ gap:6px; }
 }
 
 /* --------------------------------------------------------------------------
