@@ -343,6 +343,14 @@
   .modal-photo-rotate, .modal-photo-move{ width:44px; height:44px; font-size:17px; }
   .modal-photo-del{ width:36px; height:36px; top:-12px; left:-12px; font-size:16px; }
   .modal-photo-tools{ gap:6px; }
+
+  /* Reservar: una columna, campos e input a 16px (sin zoom) y grande al tacto */
+  .reserva-form{ grid-template-columns:1fr; gap:14px; }
+  .reserva-input{ min-height:52px; font-size:16px; }
+  .reserva-estado-btn, .reserva-del-btn, .wa-link{ min-height:46px; font-size:14px; padding:0 16px; }
+  .reserva-row{ padding:18px; }
+  .reserva-acciones{ align-items:stretch; width:100%; }
+  .reserva-estados, .reserva-botones{ justify-content:flex-start; }
 }
 
 /* --------------------------------------------------------------------------

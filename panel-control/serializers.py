@@ -8,7 +8,7 @@ forma. Así el panel sigue funcionando casi sin tocar el JS.
 """
 from __future__ import annotations
 
-from core.models import Order, Product, Variant
+from core.models import Order, Product, Reserva, Variant
 
 
 def _money(d) -> str | None:
@@ -59,6 +59,7 @@ def product_to_tn(p: Product, *, full: bool = True) -> dict:
         "handle": {"es": p.handle},
         "brand": p.brand,
         "published": p.published,
+        "a_pedido": bool(p.a_pedido),
         "free_shipping": p.free_shipping,
         "variants": [variant_to_tn(v) for v in p.variants],
         "images": [image_to_tn(i) for i in p.images],
@@ -76,6 +77,21 @@ def product_to_tn(p: Product, *, full: bool = True) -> dict:
             "updated_at": p.updated_at.isoformat() if p.updated_at else None,
         })
     return data
+
+
+def reserva_to_dict(r: Reserva) -> dict:
+    return {
+        "id": r.id,
+        "product_id": r.product_id,
+        "variant_id": r.variant_id,
+        "product_name": r.product_name,
+        "talle": r.talle,
+        "customer_name": r.customer_name,
+        "customer_phone": r.customer_phone,
+        "notes": r.notes,
+        "status": r.status,
+        "created_at": r.created_at.isoformat() if r.created_at else None,
+    }
 
 
 def order_to_tn(o: Order) -> dict:

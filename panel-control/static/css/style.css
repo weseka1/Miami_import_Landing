@@ -617,3 +617,49 @@ h2{ font-size:18px; font-weight:600; letter-spacing:-.01em; margin:0 0 16px }
 .entrante-actions{ display:flex; gap:8px; margin-top:4px; }
 .entrante-actions .btn-primary{ flex:1; }
 .entrante-status{ font-size:12px; color:var(--ink-soft); min-height:14px; }
+
+/* ===== Reservas de productos "a pedido" ===== */
+/* Formulario de reserva dentro del modal del producto */
+.reserva-form{
+  display:grid; grid-template-columns:1fr 1fr; gap:12px;
+  margin-top:12px; padding:16px;
+  border:1px solid var(--rule-strong); border-radius:10px; background:var(--bg-soft);
+}
+.reserva-form .pos-label{ display:flex; flex-direction:column; gap:5px; font-size:12px; color:var(--ink-mute); }
+.reserva-input{
+  padding:9px 12px; border:1px solid var(--rule-strong); border-radius:8px;
+  font-size:14px; color:var(--ink); background:#fff; width:100%;
+}
+.reserva-input:focus{ outline:2px solid var(--ink); outline-offset:1px; }
+.reserva-form > button{ grid-column:1 / -1; }
+
+/* Lista de reservas */
+.reserva-row{
+  display:flex; gap:16px; justify-content:space-between; align-items:flex-start;
+  background:var(--bg-card); border:1px solid var(--rule);
+  border-left:4px solid var(--rule-strong);
+  border-radius:10px; padding:16px 18px; margin-bottom:12px; flex-wrap:wrap;
+}
+.reserva-row.estado-borde-pendiente{ border-left-color:#e0a300; }
+.reserva-row.estado-borde-avisado{ border-left-color:#2d7de0; }
+.reserva-row.estado-borde-entregado{ border-left-color:#2e9e5b; }
+.reserva-row.estado-borde-cancelado{ border-left-color:#c0392b; opacity:.7; }
+.reserva-main{ flex:1; min-width:220px; }
+.reserva-prod{ font-size:16px; font-weight:700; color:var(--ink); }
+.reserva-cli{ font-size:14px; color:var(--ink); margin-top:3px; }
+.reserva-nota{ font-size:13px; color:var(--ink-mute); margin-top:4px; font-style:italic; }
+.reserva-fecha{ font-size:12px; color:var(--ink-mute); margin-top:6px; }
+.reserva-acciones{ display:flex; flex-direction:column; gap:10px; align-items:flex-end; }
+.reserva-estados{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+.reserva-botones{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+.reserva-estado-btn{ font-size:12px; padding:6px 10px; }
+.reserva-del-btn{ font-size:12px; padding:6px 10px; }
+.wa-link{ font-size:12px; padding:6px 10px; text-decoration:none; }
+.reserva-badge{
+  font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+  padding:6px 12px; border-radius:20px; color:#fff; display:inline-block;
+}
+.reserva-badge.estado-pendiente{ background:#e0a300; }
+.reserva-badge.estado-avisado{ background:#2d7de0; }
+.reserva-badge.estado-entregado{ background:#2e9e5b; }
+.reserva-badge.estado-cancelado{ background:#c0392b; }

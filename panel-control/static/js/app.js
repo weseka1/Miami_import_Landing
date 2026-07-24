@@ -86,13 +86,15 @@ async function api(path, opts = {}) {
 // Cada pestaña tiene su propia URL (#dashboard, #venta, etc.) para
 // poder entrar directo, compartir el link y usar atrás/adelante del navegador.
 const VALID_TABS = [
-  'dashboard', 'productos', 'alta', 'venta', 'pedidos',
+  'dashboard', 'productos', 'alta', 'venta', 'a-pedido', 'reservas', 'pedidos',
   'estadisticas', 'precios-usd', 'whatsapp', 'acciones',
 ];
 const TAB_LOADERS = {
   dashboard: loadDashboard,
   productos: () => { if (PRODUCTS_CACHE.length === 0) loadProducts(); },
   venta: () => posBuscar($('#pos-buscar')?.value || ''),
+  'a-pedido': loadAPedido,
+  reservas: loadReservas,
   pedidos: loadOrders,
   estadisticas: loadStatsDetail,
   'precios-usd': loadUsdPrices,
@@ -258,6 +260,154 @@ $('#search').addEventListener('input', e => {
   renderProducts(filt);
 });
 
+// ============ A pedido (productos que no son stock) ============
+let APEDIDO_CACHE = [];
+
+async function loadAPedido() {
+  const grid = $('#apedido-grid');
+  if (APEDIDO_CACHE.length) { renderAPedido(APEDIDO_CACHE); return; }
+  grid.innerHTML = '<div class="loading">Cargando…</div>';
+  try {
+    const prods = await api('/api/products/a_pedido');
+    APEDIDO_CACHE = prods;
+    renderAPedido(prods);
+  } catch (e) {
+    grid.innerHTML = '<div class="loading">Error: ' + esc(e.message) + '</div>';
+  }
+}
+
+function renderAPedido(prods) {
+  const grid = $('#apedido-grid');
+  if (!prods.length) {
+    grid.innerHTML = '<div class="loading">Todavía no cargaste productos a pedido. Usá el formulario de arriba.</div>';
+    return;
+  }
+  grid.innerHTML = prods.map(p => {
+    const nm = (p.name && p.name.es) || p.name || '—';
+    const brand = p.brand || '';
+    const img = p.images && p.images[0] ? p.images[0].src : '';
+    const precios = (p.variants || []).map(v => parseFloat(v.price)).filter(n => !isNaN(n));
+    const minPrice = precios.length ? Math.min(...precios) : null;
+    return `
+      <div class="product-card" data-product-id="${Number(p.id)}">
+        <div class="img">
+          ${img ? `<img src="${esc(img)}" alt="${esc(nm)}" loading="lazy">` : '<div class="no-img">Sin imagen</div>'}
+        </div>
+        <div class="meta">
+          <div class="brand">${esc(brand)}</div>
+          <div class="name">${esc(nm)}</div>
+          <div class="footline">
+            <span class="price">${minPrice !== null ? fmtMoney(minPrice) : 'A confirmar'}</span>
+            <span class="stock-pill low">A pedido</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  grid.querySelectorAll('.product-card').forEach(card => {
+    card.addEventListener('click', () => openProduct(Number(card.dataset.productId)));
+  });
+}
+
+$('#apedido-search').addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  if (!q) return renderAPedido(APEDIDO_CACHE);
+  const filt = APEDIDO_CACHE.filter(p => {
+    const nm = ((p.name && p.name.es) || p.name || '').toLowerCase();
+    const brand = (p.brand || '').toLowerCase();
+    return nm.includes(q) || brand.includes(q);
+  });
+  renderAPedido(filt);
+});
+
+// ============ Reservas ============
+let RESERVAS_CACHE = null;   // null = todavía no cargado
+
+const RES_ESTADOS = [
+  ['pendiente', 'Pendiente'],
+  ['avisado', 'Avisado'],
+  ['entregado', 'Entregado'],
+  ['cancelado', 'Cancelada'],
+];
+
+async function loadReservas() {
+  const cont = $('#reservas-list');
+  cont.innerHTML = '<div class="loading">Cargando reservas…</div>';
+  try {
+    const reservas = await api('/api/reservas');
+    RESERVAS_CACHE = reservas;
+    renderReservas(reservas);
+  } catch (e) {
+    cont.innerHTML = '<div class="loading">Error: ' + esc(e.message) + '</div>';
+  }
+}
+
+function renderReservas(reservas) {
+  const cont = $('#reservas-list');
+  if (!reservas.length) {
+    cont.innerHTML = '<div class="loading">Todavía no hay reservas. Se crean desde la pestaña <b>A pedido</b>, tocando un producto → Reservar.</div>';
+    return;
+  }
+  cont.innerHTML = reservas.map(r => {
+    const fecha = r.created_at ? new Date(r.created_at).toLocaleDateString('es-AR') : '—';
+    const talle = r.talle ? ` · Talle ${esc(r.talle)}` : '';
+    const tel = r.customer_phone ? esc(r.customer_phone) : '';
+    const nota = r.notes ? `<div class="reserva-nota">${esc(r.notes)}</div>` : '';
+    const digits = (r.customer_phone || '').toString().replace(/[^0-9]/g, '');
+    const wa = digits
+      ? `<a class="btn-ghost wa-link" href="https://wa.me/${esc(digits)}" target="_blank" title="Escribir por WhatsApp">💬 WhatsApp</a>`
+      : '';
+    const botonesEstado = RES_ESTADOS.map(([val, label]) =>
+      val === r.status
+        ? `<span class="reserva-badge estado-${esc(val)}">${label}</span>`
+        : `<button class="btn-ghost reserva-estado-btn" data-reserva-status="${esc(val)}" data-reserva-id="${Number(r.id)}">${label}</button>`
+    ).join('');
+    return `
+      <div class="reserva-row estado-borde-${esc(r.status)}">
+        <div class="reserva-main">
+          <div class="reserva-prod">${esc(r.product_name)}${talle}</div>
+          <div class="reserva-cli">${esc(r.customer_name)}${tel ? ' · ' + tel : ''}</div>
+          ${nota}
+          <div class="reserva-fecha">Reservado el ${esc(fecha)}</div>
+        </div>
+        <div class="reserva-acciones">
+          <div class="reserva-estados">${botonesEstado}</div>
+          <div class="reserva-botones">
+            ${wa}
+            <button class="btn-danger reserva-del-btn" data-reserva-del="${Number(r.id)}">Eliminar</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function setReservaStatus(rid, status) {
+  try {
+    await api(`/api/reservas/${rid}/status`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+    toast('✓ Estado actualizado', 'success');
+    loadReservas();
+  } catch (e) {
+    toast('No se pudo cambiar el estado: ' + e.message, 'error');
+  }
+}
+
+async function deleteReserva(rid) {
+  if (!confirm('¿Eliminar esta reserva? No se puede deshacer.')) return;
+  try {
+    await api(`/api/reservas/${rid}`, { method: 'DELETE' });
+    toast('✓ Reserva eliminada', 'success');
+    loadReservas();
+  } catch (e) {
+    toast('No se pudo eliminar: ' + e.message, 'error');
+  }
+}
+
+$('#btn-refresh-reservas').addEventListener('click', loadReservas);
+
 // ============ Modal producto ============
 async function openProduct(pid) {
   $('#modal').classList.remove('hidden');
@@ -359,6 +509,47 @@ function renderProductModal(p) {
     </div>
   `;
 
+  const aPedido = !!p.a_pedido;
+
+  // Los "a pedido" no están en la tienda: no mostramos link ni el botón "Ver
+  // en tienda". En cambio ofrecemos reservar para un cliente.
+  const linkTiendaHtml = aPedido
+    ? '<p style="color:var(--ink-mute); font-size:13px">Producto a pedido — no se publica en la tienda.</p>'
+    : `<p style="color:var(--ink-mute); font-size:13px"><a href="${esc(url)}" target="_blank">${esc(url)} ↗</a></p>`;
+  const verTiendaBtn = aPedido
+    ? '' : `<button class="btn-ghost" data-open-url="${esc(url)}">Ver en tienda ↗</button>`;
+
+  // Bloque de reserva (solo a pedido). El talle sale de las variantes cargadas.
+  let reservaHtml = '';
+  if (aPedido) {
+    const talleOpts = (p.variants || []).map(v => {
+      const vals = v.values || [];
+      const val = vals[0]?.es || vals[0]?.value || '';
+      return val ? `<option value="${Number(v.id)}">${esc(val)}</option>` : '';
+    }).join('');
+    reservaHtml = `
+      <h2 style="margin-top:24px; font-size:14px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-mute)">Reservar para un cliente</h2>
+      <div class="reserva-form">
+        <label class="pos-label">Talle
+          <select id="reserva-talle" class="reserva-input">
+            <option value="">Sin talle específico</option>
+            ${talleOpts}
+          </select>
+        </label>
+        <label class="pos-label">Cliente
+          <input id="reserva-cliente" class="reserva-input" type="text" placeholder="Nombre y apellido" autocomplete="off"/>
+        </label>
+        <label class="pos-label">Teléfono <span class="pos-opt">(opcional)</span>
+          <input id="reserva-telefono" class="reserva-input" type="tel" placeholder="11 2233 4455" autocomplete="off"/>
+        </label>
+        <label class="pos-label">Nota <span class="pos-opt">(opcional)</span>
+          <input id="reserva-nota" class="reserva-input" type="text" placeholder="Color, seña, etc." autocomplete="off"/>
+        </label>
+        <button class="btn-primary" type="button" data-guardar-reserva="${Number(p.id)}">Guardar reserva</button>
+      </div>
+    `;
+  }
+
   $('#modal-body').innerHTML = `
     <div class="modal-brand-row">
       <label class="modal-field-label" for="modal-brand-input">Marca</label>
@@ -368,7 +559,7 @@ function renderProductModal(p) {
       <input id="modal-name-input" class="modal-name-input" value="${escapeHtml(nm)}" />
       <button class="btn-ghost" type="button" data-save-info="${Number(p.id)}">Guardar nombre y marca</button>
     </div>
-    <p style="color:var(--ink-mute); font-size:13px"><a href="${esc(url)}" target="_blank">${esc(url)} ↗</a></p>
+    ${linkTiendaHtml}
     ${imagesHtml}
     ${addPhotosHtml}
 
@@ -377,9 +568,11 @@ function renderProductModal(p) {
 
     ${addSizesHtml}
 
+    ${reservaHtml}
+
     <div class="modal-actions">
       <button class="btn-primary" data-save-stock="${Number(p.id)}">Guardar cambios de stock</button>
-      <button class="btn-ghost" data-open-url="${esc(url)}">Ver en tienda ↗</button>
+      ${verTiendaBtn}
       <button class="btn-danger" data-delete-product="${Number(p.id)}" style="margin-left:auto">Eliminar producto</button>
     </div>
   `;
@@ -509,6 +702,38 @@ function makeCover(pid, imageId) {
                            '✓ Es la foto principal del producto');
 }
 
+// Guarda una reserva desde el modal de un producto "a pedido".
+async function guardarReserva(pid) {
+  const cliente = (document.getElementById('reserva-cliente')?.value || '').trim();
+  if (!cliente) {
+    toast('Escribí el nombre del cliente', 'error');
+    document.getElementById('reserva-cliente')?.focus();
+    return;
+  }
+  const variantId = document.getElementById('reserva-talle')?.value || '';
+  const body = {
+    product_id: pid,
+    customer_name: cliente,
+    customer_phone: (document.getElementById('reserva-telefono')?.value || '').trim(),
+    notes: (document.getElementById('reserva-nota')?.value || '').trim(),
+  };
+  if (variantId) body.variant_id = Number(variantId);
+  const btn = document.querySelector(`[data-guardar-reserva="${pid}"]`);
+  if (btn) btn.disabled = true;
+  try {
+    await api('/api/reservas', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    toast('✓ Reserva guardada. Se ve en la pestaña Reservas', 'success');
+    $('#modal').classList.add('hidden');
+    RESERVAS_CACHE = null;   // que Reservas se recargue la próxima vez
+  } catch (e) {
+    toast('No se pudo guardar la reserva: ' + e.message, 'error');
+    if (btn) btn.disabled = false;
+  }
+}
+
 async function deleteImage(pid, imageId) {
   if (!confirm('¿Eliminar esta foto? No se puede deshacer.')) return;
   try {
@@ -600,107 +825,127 @@ async function deleteProduct(pid) {
 $('#modal-close').addEventListener('click', () => $('#modal').classList.add('hidden'));
 $('.modal-backdrop').addEventListener('click', () => $('#modal').classList.add('hidden'));
 
-// ============ Alta producto ============
+// ============ Alta de productos (normal y "a pedido") ============
 // Las fotos se ACUMULAN en un array propio (el <input file> nativo reemplaza
 // la selección en cada pick, así que no sirve para ir sumando de a tandas).
 // Cada item = { file, rotation }. La primera es la portada.
-let ALTA_FILES = [];
+//
+// La misma máquina sirve a los dos formularios (alta normal y "a pedido"): solo
+// cambian los IDs y un par de flags. Antes esto estaba escrito una sola vez para
+// el alta; se generalizó para no duplicarlo en la pestaña A pedido.
 
 function setRotClass(img, deg) {
   img.classList.remove('rot-90', 'rot-180', 'rot-270');
   if (deg) img.classList.add('rot-' + deg);
 }
 
-function renderAltaPreviews() {
-  const cont = $('#alta-previews');
-  if (!ALTA_FILES.length) { cont.innerHTML = ''; return; }
-  cont.innerHTML = ALTA_FILES.map((it, i) => `
-    <div class="alta-thumb" data-idx="${i}">
-      ${i === 0 ? '<span class="alta-cover">PORTADA</span>' : ''}
-      <img alt="${escapeHtml(it.file.name)}">
-      <button class="alta-remove" type="button" data-idx="${i}" title="Quitar foto">×</button>
-      <button class="alta-rotate" type="button" data-idx="${i}" title="Rotar 90°">↻</button>
-    </div>
-  `).join('');
-  cont.querySelectorAll('.alta-thumb').forEach(thumb => {
-    const i = +thumb.dataset.idx;
-    const img = thumb.querySelector('img');
-    img.src = URL.createObjectURL(ALTA_FILES[i].file);
-    setRotClass(img, ALTA_FILES[i].rotation);
-    thumb.querySelector('.alta-rotate').addEventListener('click', () => {
-      ALTA_FILES[i].rotation = (ALTA_FILES[i].rotation + 90) % 360;
-      setRotClass(img, ALTA_FILES[i].rotation);
+function wireAltaForm(cfg) {
+  const form = document.getElementById(cfg.formId);
+  if (!form) return;
+  const previews = document.getElementById(cfg.previewsId);
+  const status = document.getElementById(cfg.statusId);
+  const result = document.getElementById(cfg.resultId);
+  let FILES = [];
+
+  function render() {
+    if (!FILES.length) { previews.innerHTML = ''; return; }
+    previews.innerHTML = FILES.map((it, i) => `
+      <div class="alta-thumb" data-idx="${i}">
+        ${i === 0 ? '<span class="alta-cover">PORTADA</span>' : ''}
+        <img alt="${escapeHtml(it.file.name)}">
+        <button class="alta-remove" type="button" data-idx="${i}" title="Quitar foto">×</button>
+        <button class="alta-rotate" type="button" data-idx="${i}" title="Rotar 90°">↻</button>
+      </div>
+    `).join('');
+    previews.querySelectorAll('.alta-thumb').forEach(thumb => {
+      const i = +thumb.dataset.idx;
+      const img = thumb.querySelector('img');
+      img.src = URL.createObjectURL(FILES[i].file);
+      setRotClass(img, FILES[i].rotation);
+      thumb.querySelector('.alta-rotate').addEventListener('click', () => {
+        FILES[i].rotation = (FILES[i].rotation + 90) % 360;
+        setRotClass(img, FILES[i].rotation);
+      });
+      thumb.querySelector('.alta-remove').addEventListener('click', () => {
+        FILES.splice(i, 1);
+        render();   // re-render para recalcular índices y portada
+      });
     });
-    thumb.querySelector('.alta-remove').addEventListener('click', () => {
-      ALTA_FILES.splice(i, 1);
-      renderAltaPreviews();   // re-render para recalcular índices y portada
-    });
+  }
+
+  form.elements.images.addEventListener('change', e => {
+    // Sumar lo elegido a lo que ya había (acumular, no reemplazar)
+    Array.from(e.target.files || []).forEach(f => FILES.push({ file: f, rotation: 0 }));
+    e.target.value = '';   // limpiar el input para poder re-elegir y no duplicar
+    render();
+  });
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const submitBtn = form.querySelector('button[type=submit]');
+    const fd = new FormData(form);
+
+    // checkboxes en FormData: si no están tildados no van, hay que normalizar.
+    // El form "a pedido" no los tiene, por eso se chequea que existan.
+    if (form.publicado) fd.set('publicado', form.publicado.checked ? 'true' : 'false');
+    if (form.convertir_a_ars) fd.set('convertir_a_ars', form.convertir_a_ars.checked ? 'true' : 'false');
+    if (cfg.aPedido) fd.set('a_pedido', 'true');
+
+    // Imágenes: van desde nuestro array acumulado (no del input nativo, ya vacío)
+    fd.delete('images');
+    FILES.forEach(it => fd.append('images', it.file, it.file.name));
+    fd.set('rotations', FILES.map(it => it.rotation).join(','));
+
+    submitBtn.disabled = true;
+    if (status) status.textContent = 'Guardando producto + subiendo imágenes…';
+    if (result) result.classList.add('hidden');
+
+    try {
+      const r = await fetch(API + '/api/products', { method: 'POST', body: fd });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.detail || r.statusText);
+
+      if (result) {
+        result.classList.remove('hidden', 'error');
+        const linkTienda = data.url
+          ? `<a href="${esc(data.url)}" target="_blank">Ver en la tienda ↗</a>` : '';
+        result.innerHTML = `
+          <b>✓ Producto ${cfg.aPedido ? 'a pedido guardado' : 'creado'}</b><br>
+          ID interno: ${esc(data.product_id)}<br>
+          Variantes creadas: ${esc(data.variantes_creadas)}<br>
+          Imágenes subidas: ${esc(data.imagenes_subidas)}<br>
+          ${linkTienda}
+        `;
+      }
+      if (status) status.textContent = '';
+      form.reset();
+      FILES = [];
+      if (previews) previews.innerHTML = '';
+      toast(cfg.aPedido ? '✓ Producto a pedido guardado' : '✓ Producto creado', 'success');
+      PRODUCTS_CACHE = [];            // el catálogo normal puede haber cambiado
+      if (cfg.onSuccess) cfg.onSuccess();
+    } catch (e) {
+      if (result) {
+        result.classList.remove('hidden');
+        result.classList.add('error');
+        result.innerHTML = `<b>Error al guardar:</b> ${esc(e.message)}`;
+      }
+      if (status) status.textContent = '';
+      toast('Error: ' + e.message, 'error');
+    } finally {
+      submitBtn.disabled = false;
+    }
   });
 }
 
-function clearAltaPreviews() {
-  ALTA_FILES = [];
-  $('#alta-previews').innerHTML = '';
-}
-
-$('#form-nuevo').elements.images.addEventListener('change', e => {
-  // Sumar lo elegido a lo que ya había (acumular, no reemplazar)
-  Array.from(e.target.files || []).forEach(f => ALTA_FILES.push({ file: f, rotation: 0 }));
-  e.target.value = '';   // limpiar el input para poder re-elegir y no duplicar
-  renderAltaPreviews();
+wireAltaForm({
+  formId: 'form-nuevo', previewsId: 'alta-previews',
+  statusId: 'alta-status', resultId: 'alta-result', aPedido: false,
 });
-
-$('#form-nuevo').addEventListener('submit', async e => {
-  e.preventDefault();
-  const form = e.target;
-  const status = $('#alta-status');
-  const submitBtn = form.querySelector('button[type=submit]');
-  const fd = new FormData(form);
-
-  // checkboxes en FormData: si no están tildados no van, hay que normalizar
-  if (!form.publicado.checked) fd.set('publicado', 'false');
-  else fd.set('publicado', 'true');
-  if (!form.convertir_a_ars.checked) fd.set('convertir_a_ars', 'false');
-  else fd.set('convertir_a_ars', 'true');
-
-  // Imágenes: van desde nuestro array acumulado (no del input nativo, ya vacío)
-  fd.delete('images');
-  ALTA_FILES.forEach(it => fd.append('images', it.file, it.file.name));
-  fd.set('rotations', ALTA_FILES.map(it => it.rotation).join(','));
-
-  submitBtn.disabled = true;
-  status.textContent = 'Creando producto + subiendo imágenes…';
-  const result = $('#alta-result');
-  result.classList.add('hidden');
-
-  try {
-    const r = await fetch(API + '/api/products', { method: 'POST', body: fd });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.detail || r.statusText);
-
-    result.classList.remove('hidden');
-    result.classList.remove('error');
-    result.innerHTML = `
-      <b>✓ Producto creado</b><br>
-      ID interno: ${esc(data.product_id ?? data.tiendanube_id)}<br>
-      Variantes creadas: ${esc(data.variantes_creadas)}<br>
-      Imágenes subidas: ${data.imagenes_subidas}${data.imagenes_fallidas ? ` (${data.imagenes_fallidas} fallaron)` : ''}<br>
-      <a href="${esc(data.url)}" target="_blank">Ver en la tienda ↗</a>
-    `;
-    status.textContent = '';
-    form.reset();
-    clearAltaPreviews();
-    toast('✓ Producto creado', 'success');
-    PRODUCTS_CACHE = []; // forzar recarga
-  } catch (e) {
-    result.classList.remove('hidden');
-    result.classList.add('error');
-    result.innerHTML = `<b>Error al crear:</b> ${esc(e.message)}`;
-    status.textContent = '';
-    toast('Error: ' + e.message, 'error');
-  } finally {
-    submitBtn.disabled = false;
-  }
+wireAltaForm({
+  formId: 'form-apedido', previewsId: 'apedido-previews',
+  statusId: 'apedido-status', resultId: 'apedido-result', aPedido: true,
+  onSuccess: () => { APEDIDO_CACHE = []; loadAPedido(); },
 });
 
 // ============ Pedidos ============
@@ -1176,6 +1421,15 @@ document.addEventListener('click', ev => {
 
   const dimg = t.closest('[data-del-img]');
   if (dimg) return deleteImage(Number(dimg.dataset.pid), Number(dimg.dataset.delImg));
+
+  const gres = t.closest('[data-guardar-reserva]');
+  if (gres) return guardarReserva(Number(gres.dataset.guardarReserva));
+
+  const rst = t.closest('[data-reserva-status]');
+  if (rst) return setReservaStatus(Number(rst.dataset.reservaId), rst.dataset.reservaStatus);
+
+  const rdel = t.closest('[data-reserva-del]');
+  if (rdel) return deleteReserva(Number(rdel.dataset.reservaDel));
 
   const info = t.closest('[data-save-info]');
   if (info) return saveProductInfo(Number(info.dataset.saveInfo));

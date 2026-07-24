@@ -20,7 +20,7 @@ from typing import List, Optional
 import requests
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
-from sqlalchemy import func
+from sqlalchemy import case, func
 from sqlalchemy.orm import Session
 
 from auth import get_current_admin
@@ -28,10 +28,11 @@ from core import storage
 from core.config import settings
 from core.db import get_db
 from core.models import (
-    Category, Order, Product, ProductImage, Variant, Setting,
+    Category, Order, Product, ProductImage, Reserva, Variant, Setting,
+    RESERVA_STATUSES,
 )
 from core.sanitize import clean_description
-from serializers import order_to_tn, product_to_tn
+from serializers import order_to_tn, product_to_tn, reserva_to_dict
 
 log = logging.getLogger("panel_api")
 
@@ -183,10 +184,17 @@ def store_info(db: Session = Depends(get_db)):
     }
 
 
+# Los productos "a pedido" no son stock real: se listan aparte, así que el
+# catálogo normal del panel los excluye. `is_(False)` cubre también las filas
+# viejas donde la columna quedó en NULL antes de existir el flag.
+def _no_a_pedido(query):
+    return query.filter((Product.a_pedido.is_(False)) | (Product.a_pedido.is_(None)))
+
+
 @router.get("/products")
 def list_products(q: Optional[str] = None, page: int = 1, per_page: int = 200,
                   db: Session = Depends(get_db)):
-    query = _productos_completos(db)
+    query = _no_a_pedido(_productos_completos(db))
     if q:
         like = f"%{q.lower()}%"
         query = query.filter(func.lower(Product.name).like(like) | func.lower(Product.brand).like(like))
@@ -196,7 +204,16 @@ def list_products(q: Optional[str] = None, page: int = 1, per_page: int = 200,
 
 @router.get("/products/all")
 def list_all_products(db: Session = Depends(get_db)):
-    return [product_to_tn(p) for p in _productos_completos(db).order_by(Product.id.desc()).all()]
+    q = _no_a_pedido(_productos_completos(db)).order_by(Product.id.desc())
+    return [product_to_tn(p) for p in q.all()]
+
+
+@router.get("/products/a_pedido")
+def list_a_pedido(db: Session = Depends(get_db)):
+    q = (_productos_completos(db)
+         .filter(Product.a_pedido.is_(True))
+         .order_by(Product.id.desc()))
+    return [product_to_tn(p) for p in q.all()]
 
 
 @router.get("/products/{pid}")
@@ -510,10 +527,15 @@ async def create_product(
     name: str = Form(...),
     brand: str = Form(...),
     description: str = Form(""),
-    price: str = Form(...),
+    # Precio opcional: en los productos "a pedido" el precio puede no saberse
+    # todavía. En el catálogo normal sigue siendo obligatorio (se valida abajo).
+    price: str = Form(""),
     talles: str = Form(""),
     stock_por_talle: int = Form(1),
     publicado: bool = Form(True),
+    # Producto "a pedido": no es stock real ni se publica en la tienda. Queda en
+    # la pestaña aparte del panel para tomar reservas.
+    a_pedido: bool = Form(False),
     images: List[UploadFile] = File([]),
     convertir_a_ars: bool = Form(False),
     # Grados de giro por imagen, en el mismo orden que `images` ("0,90,0").
@@ -527,14 +549,26 @@ async def create_product(
     handle = unique_handle(db, base_handle)
     sku_base = re.sub(r"[^A-Z0-9]", "", _strip_accents(f"{brand}{name}").upper())[:30] or "PROD"
 
-    precio_num = _precio_valido(price)
+    # Un producto "a pedido" nunca se publica en la tienda (no es stock real) y
+    # su stock arranca en 0.
+    if a_pedido:
+        publicado = False
+        stock_por_talle = 0
+
     rate = Decimal(str(current_usd_rate(db)))
-    if convertir_a_ars:
-        usd_val = precio_num
-        precio_ars = (precio_num * rate).quantize(Decimal("0.01"))
+    if not price.strip():
+        if not a_pedido:
+            raise HTTPException(400, "Falta el precio")
+        precio_ars = None    # a pedido sin precio definido todavía
+        usd_val = None
     else:
-        precio_ars = precio_num.quantize(Decimal("0.01"))
-        usd_val = (precio_ars / rate).quantize(Decimal("0.01")) if rate else None
+        precio_num = _precio_valido(price)
+        if convertir_a_ars:
+            usd_val = precio_num
+            precio_ars = (precio_num * rate).quantize(Decimal("0.01"))
+        else:
+            precio_ars = precio_num.quantize(Decimal("0.01"))
+            usd_val = (precio_ars / rate).quantize(Decimal("0.01")) if rate else None
 
     # La descripción se renderiza con `| safe` en la tienda, así que el HTML
     # que se guarda tiene que ser SOLO el que armamos acá: los valores del
@@ -546,7 +580,8 @@ async def create_product(
     desc += (f"<p>{html.escape(description)}</p>" if description
              else "<p>Producto original importado.</p>")
 
-    prod = Product(name=name, handle=handle, description=desc, brand=brand, published=publicado)
+    prod = Product(name=name, handle=handle, description=desc, brand=brand,
+                   published=publicado, a_pedido=a_pedido)
     db.add(prod)
     db.flush()
 
@@ -578,7 +613,9 @@ async def create_product(
     return {
         "ok": True,
         "product_id": prod.id,
-        "url": f"{settings.STORE_BASE_URL}/productos/{handle}/",
+        "a_pedido": a_pedido,
+        # Los "a pedido" no viven en la tienda: no tiene sentido un link público.
+        "url": None if a_pedido else f"{settings.STORE_BASE_URL}/productos/{handle}/",
         "imagenes_subidas": imgs_ok,
         "variantes_creadas": len(talles_iter),
     }
@@ -954,3 +991,88 @@ def export_excel(db: Session = Depends(get_db)):
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f"attachment; filename=miami_import_export_{stamp}.xlsx"},
     )
+
+
+# --------------------------------------------------------------------------- #
+# Reservas de productos "a pedido"
+# --------------------------------------------------------------------------- #
+@router.get("/reservas")
+def list_reservas(db: Session = Depends(get_db)):
+    """Todas las reservas, las pendientes primero y dentro de cada grupo las
+    más nuevas arriba."""
+    orden = case((Reserva.status == "pendiente", 0),
+                 (Reserva.status == "avisado", 1),
+                 (Reserva.status == "entregado", 2),
+                 else_=3)
+    reservas = (db.query(Reserva)
+                .order_by(orden, Reserva.created_at.desc())
+                .all())
+    return [reserva_to_dict(r) for r in reservas]
+
+
+@router.post("/reservas")
+def create_reserva(body: dict, db: Session = Depends(get_db)):
+    """Registra que un cliente quiere un producto (y opcionalmente un talle).
+
+    El producto tiene que ser uno "a pedido". Se guardan copias del nombre y el
+    talle para que la reserva se lea aunque el producto se borre después.
+    """
+    nombre = str(body.get("customer_name") or "").strip()[:255]
+    if not nombre:
+        raise HTTPException(400, "Falta el nombre del cliente")
+
+    pid = body.get("product_id")
+    prod = db.get(Product, int(pid)) if pid not in (None, "") else None
+    if not prod:
+        raise HTTPException(404, "Producto no encontrado")
+    if not prod.a_pedido:
+        raise HTTPException(400, "Solo se reservan productos de la pestaña 'A pedido'")
+
+    talle = None
+    variant_id = body.get("variant_id")
+    if variant_id not in (None, ""):
+        v = db.get(Variant, int(variant_id))
+        if not v or v.product_id != prod.id:
+            raise HTTPException(400, "El talle no es de este producto")
+        variant_id = v.id
+        talle = v.value
+    else:
+        variant_id = None
+
+    r = Reserva(
+        product_id=prod.id,
+        variant_id=variant_id,
+        product_name=prod.name,
+        talle=talle,
+        customer_name=nombre,
+        customer_phone=(str(body.get("customer_phone") or "").strip()[:50] or None),
+        notes=(str(body.get("notes") or "").strip()[:1000] or None),
+        status="pendiente",
+    )
+    db.add(r)
+    db.commit()
+    db.refresh(r)
+    return reserva_to_dict(r)
+
+
+@router.post("/reservas/{rid}/status")
+def set_reserva_status(rid: int, body: dict, db: Session = Depends(get_db)):
+    r = db.get(Reserva, rid)
+    if not r:
+        raise HTTPException(404, "Reserva no encontrada")
+    nuevo = str(body.get("status") or "").strip().lower()
+    if nuevo not in RESERVA_STATUSES:
+        raise HTTPException(400, f"Estado inválido: {nuevo or '(vacío)'}")
+    r.status = nuevo
+    db.commit()
+    return reserva_to_dict(r)
+
+
+@router.delete("/reservas/{rid}")
+def delete_reserva(rid: int, db: Session = Depends(get_db)):
+    r = db.get(Reserva, rid)
+    if not r:
+        raise HTTPException(404, "Reserva no encontrada")
+    db.delete(r)
+    db.commit()
+    return {"ok": True}
