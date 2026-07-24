@@ -329,10 +329,10 @@ function renderProductModal(p) {
     ? `<div class="modal-photos">${imgs.map((im, i) => `
         <div class="modal-photo${i === 0 ? ' is-cover' : ''}" data-img-id="${Number(im.id)}" data-rot="0">
           <img src="${esc(im.src)}" alt="">
+          <button class="modal-photo-del" type="button" data-del-img="${Number(im.id)}"
+                  data-pid="${Number(p.id)}" title="Eliminar foto">✕</button>
           <span class="modal-photo-pos">${i === 0 ? '★ Principal' : i + 1 + '°'}</span>
           <div class="modal-photo-tools">
-            <button class="modal-photo-del" type="button" data-del-img="${Number(im.id)}"
-                    data-pid="${Number(p.id)}" title="Eliminar foto">✕</button>
             <button class="modal-photo-rotate" type="button" data-rotate-preview="${Number(im.id)}" title="Girar 90°">↻</button>
             <button class="modal-photo-move" type="button" data-move-img="${Number(im.id)}"
                     data-pid="${Number(p.id)}" data-dir="-1" title="Mover antes"
