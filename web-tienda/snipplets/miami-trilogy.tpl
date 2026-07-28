@@ -114,7 +114,7 @@
   <div class="miami-trilogy__ch" data-chapter="4" data-gender="hombre">
     <div class="miami-trilogy__eyebrow">CAPÍTULO / 03</div>
     <div class="miami-trilogy__number">03</div>
-    <h3 class="miami-trilogy__name">NEGRA PARCHES</h3>
+    <h3 class="miami-trilogy__name miami-trilogy__name--compact">NEGRA PARCHES</h3>
     <div class="miami-trilogy__glass">
       <div class="miami-trilogy__glass-label">REF / 03 · HOMBRE</div>
       <p>Negra estructura. Patches metálicos sobre nylon italiano, costura
@@ -364,6 +364,13 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   mix-blend-mode: difference;
   margin: 0;
 }
+/* Nombres de dos palabras (ej: "NEGRA PARCHES") en el tamaño de una palabra
+   partían en dos renglones y se montaban gigantes sobre la campera. Se achica
+   y se fuerza a UNA línea para que quede alineado abajo como los demás. */
+.miami-trilogy__name--compact {
+  font-size: clamp(44px, 6.5vw, 116px);
+  white-space: nowrap;
+}
 
 .miami-trilogy__glass {
   position: absolute;
@@ -556,6 +563,13 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
     margin: 0; width: 100%;
     mix-blend-mode: normal;
     text-shadow: 0 4px 24px rgba(0,0,0,0.8);
+  }
+  /* En celular se centra: dejamos que las dos palabras bajen a dos renglones
+     (sin nowrap, que se saldría de pantalla) y un poco más chico. */
+  .miami-trilogy__name--compact {
+    font-size: clamp(34px, 10vw, 56px);
+    white-space: normal;
+    line-height: 1;
   }
 
   .miami-trilogy__glass {
