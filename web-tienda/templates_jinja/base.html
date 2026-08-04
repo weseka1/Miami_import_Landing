@@ -133,8 +133,11 @@
     .mi-card{position:relative;display:block;background:#0c0c0c;border:1px solid rgba(255,255,255,.06);
       border-radius:10px;overflow:hidden;transition:.35s}
     .mi-card:hover{border-color:rgba(185,155,99,.4);transform:translateY(-4px)}
-    .mi-card__img{aspect-ratio:3/4;background:#111;overflow:hidden}
-    .mi-card__img img{width:100%;height:100%;object-fit:cover;transition:.6s}
+    /* Prenda ENTERA siempre (pedido de Diego): contain sobre fondo elegante,
+       cuadros 3/4 parejos = grilla prolija sin recortes salvajes. */
+    .mi-card__img{aspect-ratio:3/4;overflow:hidden;
+      background:radial-gradient(120% 90% at 50% 25%, rgba(198,167,104,.07), #0c0c0c 72%)}
+    .mi-card__img img{width:100%;height:100%;object-fit:contain;padding:4%;transition:.6s}
     .mi-card:hover .mi-card__img img{transform:scale(1.05)}
     .mi-card__body{padding:16px 16px 20px}
     .mi-card__brand{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--miami-gold,#b99b63)}
