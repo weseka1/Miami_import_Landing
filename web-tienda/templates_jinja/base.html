@@ -251,7 +251,7 @@
         {% for t in nav_tipos[:5] %}
         <div class="mi-nav__item">
           <a class="mi-nav__link" href="/tipo/{{ t.slug }}" aria-haspopup="true" aria-expanded="false">{{ t.nombre }}</a>
-          <div class="mi-nav__panel u-glass">
+          <div class="mi-nav__panel">
             <a class="mi-nav__all" href="/tipo/{{ t.slug }}">Ver todo {{ t.nombre }} →</a>
             <div class="mi-nav__brands">
               {% for m in t.marcas %}<a href="/categoria/{{ m.handle }}">{{ m.marca }}</a>{% endfor %}
@@ -262,7 +262,7 @@
         {% if nav_tipos|length > 5 %}
         <div class="mi-nav__item">
           <a class="mi-nav__link" href="{{ store.products_url }}" aria-haspopup="true" aria-expanded="false">Más</a>
-          <div class="mi-nav__panel u-glass">
+          <div class="mi-nav__panel">
             <div class="mi-nav__brands">
               {% for t in nav_tipos[5:] %}<a href="/tipo/{{ t.slug }}">{{ t.nombre }}</a>{% endfor %}
             </div>

@@ -98,6 +98,8 @@
   }
   .mi-hero__btn--ghost:hover{ border-color:var(--gold); color:var(--gold); }
 
+  /* Scroll cue ELIMINADO a pedido de Juani (cargaba el hero y se pisaba con los CTAs) */
+  .mi-hero__scroll{ display:none !important; }
   .mi-hero__scroll{
     position:absolute; left:50%; bottom:18px; transform:translateX(-50%); z-index:3;
     width:22px; height:36px; border:1px solid rgba(245,243,238,.3); border-radius:12px;
@@ -123,10 +125,9 @@
     .mi-hero__scrim{ background:linear-gradient(0deg, rgba(5,5,5,.92) 0%, rgba(5,5,5,.28) 55%, transparent 88%); }
     .mi-hero__content{ max-width:100%; padding-bottom:clamp(48px,7vh,72px); }
     .mi-hero__btn{ flex:1 1 auto; justify-content:center; }
-    /* El eyebrow se recortaba en 390px: menos tracking, permite 2 líneas */
-    .mi-hero__top{ right:clamp(22px,5vw,72px); }
-    .mi-hero__eyebrow{ letter-spacing:.22em; font-size:9px; white-space:normal; line-height:1.9; }
-    .mi-hero__eyebrow i{ display:none; }
+    /* En celu el wordmark quemado del video YA lleva la marca: el eyebrow HTML
+       encima era doble branding pisándose. Fuera. */
+    .mi-hero__top{ display:none; }
   }
   @media(prefers-reduced-motion:reduce){
     .mi-hero__scroll span{ animation:none !important; }

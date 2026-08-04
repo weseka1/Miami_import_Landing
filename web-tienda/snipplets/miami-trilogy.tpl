@@ -523,19 +523,7 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   }
   .miami-trilogy__eyebrow::before { display: none; }
 
-  .miami-trilogy__name {
-    bottom: auto; top: calc(42% + 27vh + 16px);
-    left: 50%; transform: translateX(-50%);
-    font-size: clamp(40px, 13vw, 72px);
-    text-align: center;
-    margin: 0; width: 100%;
-    /* RESET del max-width de desktop (que reserva la zona de la ficha glass):
-       en 390px ese calc daba ~38px y "MARRÓN" se apilaba LETRA POR LETRA en
-       vertical pisando la ficha. Acá el layout es centrado: 90vw. */
-    max-width: 90vw;
-    mix-blend-mode: normal;
-    text-shadow: 0 4px 24px rgba(0,0,0,0.8);
-  }
+  .miami-trilogy__name { display: none !important; }  /* mobile: se pisaba con la ficha; la ficha ya informa todo */
   /* En celular se centra: dejamos que las dos palabras bajen a dos renglones
      (sin nowrap, que se saldría de pantalla) y un poco más chico. */
   .miami-trilogy__name--compact {
