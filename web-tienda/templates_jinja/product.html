@@ -77,6 +77,8 @@
         {% if not disponibles %}disabled{% endif %}>
         {{ 'Agregar al carrito' if disponibles else 'Sin stock' }}</button>
 
+      {% if tryon_enabled %}{% include "miami-tryon.tpl" %}{% endif %}
+
       {% if product.description %}
       <div style="margin-top:36px;padding-top:28px;border-top:1px solid rgba(255,255,255,.08);
         color:rgba(245,243,238,.7);line-height:1.8;font-size:15px">

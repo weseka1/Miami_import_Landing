@@ -228,6 +228,9 @@ app.include_router(oauth_router)
 app.include_router(checkout_router)
 app.include_router(mia_router)   # Mia, la asistente de la casa (POST /api/mia/chat)
 
+from tryon import tryon_router  # noqa: E402  (probador virtual, gateado por FAL_KEY/GEMINI_API_KEY)
+app.include_router(tryon_router)
+
 
 @app.on_event("startup")
 def _startup() -> None:
@@ -372,9 +375,13 @@ def product_detail(handle: str, request: Request, db: Session = Depends(get_db))
         .limit(4)
         .all()
     )
+    import os as _os
+    tryon_enabled = bool((_os.environ.get("FAL_KEY") or _os.environ.get("GEMINI_API_KEY") or "").strip()) \
+        or (settings.DEV_MODE and request.query_params.get("tryon_preview") == "1")
     return templates.TemplateResponse(
         request, "product.html",
         base_context(request, db, product=prod, relacionados=relacionados,
+                     tryon_enabled=tryon_enabled,
                      template_class="product"),
     )
 
