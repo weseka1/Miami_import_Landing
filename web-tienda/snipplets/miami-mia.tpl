@@ -29,11 +29,17 @@
     .mia-panel{right:22px;bottom:22px;width:380px;height:min(600px,calc(100dvh - 44px));border-radius:28px}
   }
   @media(max-width:640px){
-    /* Sheet full-screen. z-index 220: el header sticky del sitio usa 200 y
-       tapaba el chat; en desktop queda 80 (bajo el grano 90, Estándar WESEKA). */
-    .mia-panel{left:0;right:0;bottom:0;width:100%;height:100dvh;border-radius:20px 20px 0 0;
-      border-left:0;border-right:0;border-bottom:0;z-index:220;background:rgba(14,11,8,.97)}
-    .mia-head{padding-top:calc(16px + env(safe-area-inset-top))}
+    /* BOTTOM-SHEET amoldable (no full-screen: se comía la página y "tosqueaba").
+       dvh sigue al teclado en iOS/Android → el input nunca queda tapado.
+       z-index 220: el header sticky del sitio usa 200 y tapaba el chat. */
+    .mia-panel{left:0;right:0;bottom:0;width:100%;
+      height:min(78dvh, 640px);
+      border-radius:24px 24px 0 0;
+      border-left:0;border-right:0;border-bottom:0;z-index:220;
+      background:rgba(14,11,8,.97);
+      box-shadow:0 -24px 70px rgba(0,0,0,.55);
+      padding-bottom:env(safe-area-inset-bottom)}
+    .mia-head{padding-top:14px}
   }
   /* ---- Header ---- */
   .mia-head{display:flex;align-items:center;gap:12px;padding:16px 18px;flex:none;
