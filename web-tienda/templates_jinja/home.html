@@ -134,11 +134,17 @@
   .h-brands__track{
     display:flex; gap:clamp(14px,1.6vw,22px);
     overflow-x:auto; scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;               /* impulso nativo iOS */
     padding-right:clamp(20px,5vw,48px); padding-bottom:6px;
     -ms-overflow-style:none; scrollbar-width:none;   /* scrollbar oculta */
     cursor:grab;
   }
   .h-brands__track::-webkit-scrollbar{ display:none; }
+  /* Touch: mandatory frena el impulso en iOS (se sentía trabado). proximity
+     acomoda al soltar cerca del borde pero deja correr el deslizamiento. */
+  @media (pointer:coarse){
+    .h-brands__track{ scroll-snap-type:x proximity; cursor:default; }
+  }
   .h-brands__track.is-grabbing{ cursor:grabbing; scroll-snap-type:none; }
   .h-brand{
     flex:0 0 clamp(240px, 26vw, 340px);   /* ancho fijo → la siguiente asoma (peek) */

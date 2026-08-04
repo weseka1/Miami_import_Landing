@@ -35,7 +35,11 @@
   .mi-hero{
     --gold: var(--miami-gold, #b99b63);
     position:relative; min-height:100svh; height:100svh;
-    background:#050505; overflow:hidden;
+    /* El poster de FONDO, no solo en <video poster>: en iOS con Low Power el
+       video ni arranca y el hero quedaba un bloque negro vacío. Así SIEMPRE
+       pinta imagen (el DS solo pisa el background-color). */
+    background:#0E0B08 url('{{ "videos/hero-miami-poster.jpg" | static_url }}') center/cover no-repeat;
+    overflow:hidden;
     display:flex; align-items:flex-end;
     isolation:isolate;
   }
@@ -113,8 +117,11 @@
   .mi-hero.mi-anim.is-in .mi-hero__cta{ transition-delay:.25s; }
 
   @media(max-width:640px){
+    /* 92svh: el tagline + CTAs entran en el viewport inicial (no un mar de
+       negro) y asoma el ticker, que invita a scrollear. */
+    .mi-hero{ min-height:92svh; height:92svh; }
     .mi-hero__scrim{ background:linear-gradient(0deg, rgba(5,5,5,.92) 0%, rgba(5,5,5,.28) 55%, transparent 88%); }
-    .mi-hero__content{ max-width:100%; }
+    .mi-hero__content{ max-width:100%; padding-bottom:clamp(48px,7vh,72px); }
     .mi-hero__btn{ flex:1 1 auto; justify-content:center; }
     /* El eyebrow se recortaba en 390px: menos tracking, permite 2 líneas */
     .mi-hero__top{ right:clamp(22px,5vw,72px); }

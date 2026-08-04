@@ -12,7 +12,10 @@ Abrir: http://localhost:8001
 """
 from __future__ import annotations
 
+import re
 import secrets
+import time
+import unicodedata
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
@@ -133,10 +136,56 @@ def nav_categories(db: Session) -> list[Category]:
     )
 
 
+# --------------------------------------------------------------------------- #
+# Menú de tienda: TIPOS de prenda → marcas (estructura invertida de la DB)
+# --------------------------------------------------------------------------- #
+_TIPOS_TTL = 60
+_tipos_cache: dict = {"ts": 0.0, "data": None}
+
+
+def _slug_tipo(nombre: str) -> str:
+    """'Buzos' -> 'buzos' — minúsculas, sin acentos, espacios a guiones."""
+    s = unicodedata.normalize("NFKD", (nombre or "").strip().lower())
+    s = "".join(ch for ch in s if not unicodedata.combining(ch))
+    return re.sub(r"[^a-z0-9]+", "-", s).strip("-")
+
+
+def nav_tipos(db: Session) -> list[dict]:
+    """Menú de tienda profesional: TIPO de prenda arriba, marcas debajo.
+
+    En la DB los padres son MARCAS (Diesel, Amiri…) y las hijas TIPOS (Buzos,
+    Remeras… con parent_id=marca). El menú se navega al revés: se agrupan las
+    hijas por nombre normalizado (title case) y cada (tipo, marca) linkea a la
+    categoría hija (/categoria/{handle}). Marcas alfabéticas; tipos con más
+    marcas primero. Cache 60s en memoria, mismo criterio que Mia.
+    """
+    now = time.time()
+    if _tipos_cache["data"] is not None and now - _tipos_cache["ts"] < _TIPOS_TTL:
+        return _tipos_cache["data"]
+
+    padres = {c.id: c for c in db.query(Category).filter(Category.parent_id.is_(None))}
+    grupos: dict[str, list[dict]] = {}
+    for hija in db.query(Category).filter(Category.parent_id.isnot(None)):
+        marca = padres.get(hija.parent_id)
+        nombre = (hija.name or "").strip().title()
+        if not marca or not nombre:
+            continue
+        grupos.setdefault(nombre, []).append({"marca": marca.name, "handle": hija.handle})
+
+    data = [
+        {"nombre": nombre, "slug": _slug_tipo(nombre),
+         "marcas": sorted(marcas, key=lambda m: m["marca"].lower())}
+        for nombre, marcas in sorted(grupos.items(), key=lambda kv: (-len(kv[1]), kv[0]))
+    ]
+    _tipos_cache.update(ts=now, data=data)
+    return data
+
+
 def base_context(request: Request, db: Session, **extra) -> dict:
     ctx = {
         "request": request,
         "nav_categories": nav_categories(db),
+        "nav_tipos": nav_tipos(db),
         "usd_rate": settings.USD_TO_ARS_RATE,
         # Nonce de la CSP: cada <script> inline lo cita. Sin esto los scripts
         # de las plantillas no se ejecutan (script-src ya no lleva
@@ -362,6 +411,36 @@ def category_page(handle: str, request: Request, db: Session = Depends(get_db)):
         request, "category.html",
         base_context(request, db, categoria=cat, productos=productos,
                      template_class="category"),
+    )
+
+
+@app.get("/tipo/{nombre}", response_class=HTMLResponse)
+def tipo_page(nombre: str, request: Request, db: Session = Depends(get_db)):
+    """Listado por TIPO de prenda (Buzos, Remeras…) cruzando TODAS las marcas.
+
+    Cada marca tiene su propia hija "Buzos": acá se juntan todas las hijas
+    cuyo nombre matchea el slug y se listan sus productos con la misma
+    template de listado que /productos.
+    """
+    objetivo = _slug_tipo(nombre)
+    if not objetivo:
+        raise HTTPException(404, "Tipo no encontrado")
+    hijas = [c for c in db.query(Category).filter(Category.parent_id.isnot(None))
+             if _slug_tipo(c.name) == objetivo]
+    if not hijas:
+        raise HTTPException(404, "Tipo no encontrado")
+    productos = (
+        _con_relaciones(db)
+        .filter(Product.published.is_(True))
+        .filter(Product.categories.any(Category.id.in_([c.id for c in hijas])))
+        .order_by(Product.id.desc())
+        .all()
+    )
+    titulo = (hijas[0].name or nombre).strip().title()
+    return templates.TemplateResponse(
+        request, "category.html",
+        base_context(request, db, categoria=None, productos=productos,
+                     catalog_title=titulo, template_class="category"),
     )
 
 

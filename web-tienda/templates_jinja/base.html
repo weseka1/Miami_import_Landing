@@ -42,10 +42,44 @@
       backdrop-filter:blur(8px);border-bottom:1px solid rgba(185,155,99,.18)}
     .mi-header__bar{display:flex;align-items:center;gap:24px;height:74px}
     .mi-logo img{height:40px;width:auto}
-    .mi-nav{display:flex;gap:22px;flex:1;flex-wrap:wrap;overflow:hidden;max-height:46px}
-    .mi-nav a{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:rgba(245,243,238,.78);
-      padding:6px 0;border-bottom:1px solid transparent;transition:.25s;white-space:nowrap}
-    .mi-nav a:hover{color:var(--miami-gold,#b99b63);border-color:var(--miami-gold,#b99b63)}
+    /* ---- Menú de tienda (desktop): TIPOS en el header + MEGA-PANEL glass ----
+       Patrón Richard Lens sobre Champagne Noir: al hover/focus del nav se abre
+       UN panel flotante redondeado con columnas — DESTACADOS | un TIPO por
+       columna con sus MARCAS debajo | MÁS TIPOS. Liquid glass iPhone. */
+    .mi-nav{display:flex;gap:2px;flex:1;min-width:0;align-self:stretch}
+    .mi-nav__link{display:flex;align-items:center;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+      color:rgba(245,243,238,.78);padding:0 10px;transition:color .25s;white-space:nowrap}
+    .mi-nav:hover .mi-nav__link,.mi-nav:focus-within .mi-nav__link{color:rgba(245,243,238,.55)}
+    .mi-nav .mi-nav__link:hover,.mi-nav .mi-nav__link:focus-visible{color:var(--miami-gold,#b99b63)}
+    .mi-mega{position:absolute;top:100%;left:50%;transform:translate(-50%,10px);
+      width:min(1232px,calc(100vw - 32px));
+      display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px 22px;
+      padding:26px 30px 30px;
+      background:rgba(12,9,7,.92);border:1px solid rgba(198,167,104,.22);border-radius:24px;
+      -webkit-backdrop-filter:blur(22px) saturate(150%);backdrop-filter:blur(22px) saturate(150%);
+      box-shadow:0 30px 80px rgba(0,0,0,.55);
+      opacity:0;visibility:hidden;
+      transition:opacity .35s cubic-bezier(.16,1,.3,1),transform .35s cubic-bezier(.16,1,.3,1),visibility 0s .35s}
+    .mi-nav:hover ~ .mi-mega,.mi-nav:focus-within ~ .mi-mega,
+    .mi-mega:hover,.mi-mega:focus-within,.mi-mega.is-open{
+      opacity:1;visibility:visible;transform:translate(-50%,0);
+      transition:opacity .35s cubic-bezier(.16,1,.3,1),transform .35s cubic-bezier(.16,1,.3,1),visibility 0s}
+    .mi-mega__label{display:block;font-size:10px;letter-spacing:.3em;text-transform:uppercase;
+      color:var(--miami-gold,#b99b63);font-weight:600;margin:0 0 10px;padding-bottom:10px;
+      border-bottom:1px solid rgba(198,167,104,.18);white-space:nowrap}
+    a.mi-mega__label:hover{color:var(--miami-gold-2,#e0c88f)}
+    .mi-mega__col a:not(.mi-mega__label){display:block;font-size:12px;line-height:2.3;
+      color:rgba(245,243,238,.72);letter-spacing:.04em;white-space:nowrap;transition:color .25s}
+    .mi-mega__col a:not(.mi-mega__label):hover{color:var(--miami-gold,#b99b63)}
+    .mi-mega__col .mi-mega__all{color:var(--miami-gold,#b99b63);font-size:11px;letter-spacing:.12em;
+      text-transform:uppercase;margin-top:6px}
+    .mi-nav__link:focus-visible,.mi-mega a:focus-visible{
+      outline:2px solid var(--miami-gold,#b99b63);outline-offset:2px;border-radius:4px}
+    /* ---- Hamburguesa (solo mobile, a la izquierda del logo) ---- */
+    .mi-burger{display:none;align-items:center;justify-content:center;width:42px;height:42px;flex:none;
+      background:rgba(255,255,255,.05);border:1px solid rgba(245,243,238,.16);border-radius:999px;
+      color:rgba(245,243,238,.85);cursor:pointer;padding:0}
+    .mi-burger:focus-visible{outline:2px solid var(--miami-gold,#b99b63);outline-offset:2px}
     .mi-utils{display:flex;align-items:center;gap:18px;margin-left:auto}
     .mi-utils a,.mi-utils button{color:rgba(245,243,238,.85);background:none;border:0;cursor:pointer;
       font-size:13px;letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
@@ -83,7 +117,49 @@
       letter-spacing:.15em;text-transform:uppercase;padding:5px 10px;border:1px solid rgba(255,255,255,.3)}
     .mi-section-title{font-size:clamp(22px,3vw,34px);letter-spacing:.06em;text-transform:uppercase;
       text-align:center;margin:64px 0 40px;font-weight:700}
-    @media(max-width:900px){.mi-grid{grid-template-columns:repeat(2,1fr)}.mi-footer__grid{grid-template-columns:1fr}.mi-nav{display:none}}
+    @media(max-width:900px){.mi-grid{grid-template-columns:repeat(2,1fr)}.mi-footer__grid{grid-template-columns:1fr}}
+    /* ≤1024 no entran los tipos + buscador + cuenta/carrito: hamburguesa + drawer */
+    @media(max-width:1024px){.mi-nav{display:none}.mi-burger{display:flex}}
+    /* ---- Drawer mobile (menú de tienda: TIPO acordeón → marcas) ----
+       Escala z de la casa, corta y documentada:
+       80 FAB Mia · 90 grano (body::after) · 200 header sticky · 220 sheets
+       full-screen (este drawer y el panel mobile de Mia — nunca abiertos a la vez). */
+    .mi-drawer{position:fixed;inset:0;z-index:220;visibility:hidden;pointer-events:none;transition:visibility 0s .45s}
+    .mi-drawer.is-open{visibility:visible;pointer-events:auto;transition:visibility 0s}
+    .mi-drawer__backdrop{position:absolute;inset:0;background:rgba(5,4,3,.55);opacity:0;transition:opacity .35s ease}
+    .mi-drawer.is-open .mi-drawer__backdrop{opacity:1}
+    .mi-drawer__sheet{position:absolute;top:0;bottom:0;left:0;width:min(86vw,360px);overflow-y:auto;
+      -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+      background:rgba(14,11,8,.96);border-right:1px solid rgba(198,167,104,.22);
+      -webkit-backdrop-filter:blur(22px) saturate(140%);backdrop-filter:blur(22px) saturate(140%);
+      border-radius:0 28px 28px 0;padding:16px 20px 36px;
+      transform:translateX(-102%);transition:transform .45s cubic-bezier(.16,1,.3,1)}
+    .mi-drawer.is-open .mi-drawer__sheet{transform:none}
+    .mi-drawer__head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .mi-drawer__brand{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--miami-gold,#b99b63);font-weight:600}
+    .mi-drawer__close{display:flex;align-items:center;justify-content:center;width:44px;height:44px;flex:none;
+      background:rgba(255,255,255,.05);border:1px solid rgba(245,243,238,.16);border-radius:999px;
+      color:rgba(245,243,238,.85);cursor:pointer;padding:0}
+    .mi-drawer__group{border-bottom:1px solid rgba(255,255,255,.07)}
+    .mi-drawer__tipo{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
+      min-height:52px;background:none;border:0;color:#f5f3ee;cursor:pointer;padding:0 2px;font-family:inherit;
+      font-size:13px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;text-align:left}
+    .mi-drawer__chev{flex:none;transition:transform .3s ease;color:rgba(245,243,238,.5)}
+    .mi-drawer__group.is-open .mi-drawer__chev{transform:rotate(180deg);color:var(--miami-gold,#b99b63)}
+    .mi-drawer__sub{display:none;padding:0 2px 12px}
+    .mi-drawer__group.is-open .mi-drawer__sub{display:block}
+    .mi-drawer__sub a{display:flex;align-items:center;min-height:44px;font-size:14px;
+      color:rgba(245,243,238,.72);letter-spacing:.05em;padding:0 8px}
+    .mi-drawer__sub a:first-child{color:var(--miami-gold,#b99b63);font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+    .mi-drawer__plain{display:flex;align-items:center;min-height:52px;font-size:13px;letter-spacing:.18em;
+      text-transform:uppercase;font-weight:600;color:rgba(245,243,238,.85);padding:0 2px}
+    .mi-drawer__tipo:focus-visible,.mi-drawer__close:focus-visible,.mi-drawer__sub a:focus-visible,
+    .mi-drawer__plain:focus-visible{outline:2px solid var(--miami-gold,#b99b63);outline-offset:2px;border-radius:6px}
+    body.mi-lock{overflow:hidden}
+    @media(prefers-reduced-motion:reduce){
+      .mi-drawer,.mi-drawer__backdrop,.mi-drawer__sheet,.mi-drawer__chev,
+      .mi-nav__item>.mi-nav__panel{transition:none !important}
+    }
     /* Mobile 390px: nada recortado (Estándar WESEKA — verificado con screenshot) */
     .mi-search-icon{display:none}
     @media(max-width:640px){
@@ -122,11 +198,38 @@
   </div>
   <header class="mi-header">
     <div class="mi-container mi-header__bar">
+      <button class="mi-burger" id="mi-burger" type="button" aria-label="Abrir menú"
+              aria-expanded="false" aria-controls="mi-drawer">
+        <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden="true">
+          <path d="M1 1h16M1 7h16M1 13h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </button>
       <a class="mi-logo" href="/"><img src="/static/images/miami-logo-v4.webp" alt="{{ STORE_NAME }}"/></a>
-      <nav class="mi-nav">
-        {% for c in nav_categories %}
-          <a href="/categoria/{{ c.handle }}">{{ c.name }}</a>
+      {# Menú de tienda profesional: TIPOS de prenda arriba, marcas en el dropdown.
+         Los 5 tipos con más marcas van directos (más entran chocan con el
+         buscador en 1280–1440); el resto, bajo "Más". #}
+      <nav class="mi-nav" aria-label="Tipos de prenda">
+        {% for t in nav_tipos[:5] %}
+        <div class="mi-nav__item">
+          <a class="mi-nav__link" href="/tipo/{{ t.slug }}" aria-haspopup="true" aria-expanded="false">{{ t.nombre }}</a>
+          <div class="mi-nav__panel u-glass">
+            <a class="mi-nav__all" href="/tipo/{{ t.slug }}">Ver todo {{ t.nombre }} →</a>
+            <div class="mi-nav__brands">
+              {% for m in t.marcas %}<a href="/categoria/{{ m.handle }}">{{ m.marca }}</a>{% endfor %}
+            </div>
+          </div>
+        </div>
         {% endfor %}
+        {% if nav_tipos|length > 5 %}
+        <div class="mi-nav__item">
+          <a class="mi-nav__link" href="{{ store.products_url }}" aria-haspopup="true" aria-expanded="false">Más</a>
+          <div class="mi-nav__panel u-glass">
+            <div class="mi-nav__brands">
+              {% for t in nav_tipos[5:] %}<a href="/tipo/{{ t.slug }}">{{ t.nombre }}</a>{% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
       </nav>
       <div class="mi-utils">
         <form class="mi-search" action="/buscar" method="get" role="search">
@@ -138,6 +241,38 @@
       </div>
     </div>
   </header>
+
+  {# Drawer mobile — menú de tienda: TIPO (acordeón) → marcas + "Ver todo". #}
+  <div class="mi-drawer" id="mi-drawer" aria-hidden="true">
+    <div class="mi-drawer__backdrop" data-drawer-close></div>
+    <aside class="mi-drawer__sheet" role="dialog" aria-modal="true" aria-label="Menú de la tienda">
+      <div class="mi-drawer__head">
+        <span class="mi-drawer__brand">{{ STORE_NAME }}</span>
+        <button class="mi-drawer__close" type="button" data-drawer-close aria-label="Cerrar menú">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <nav class="mi-drawer__nav" aria-label="Tipos de prenda">
+        {% for t in nav_tipos %}
+        <div class="mi-drawer__group">
+          <button class="mi-drawer__tipo" type="button" aria-expanded="false">
+            <span>{{ t.nombre }}</span>
+            <svg class="mi-drawer__chev" width="12" height="8" viewBox="0 0 12 8" fill="none" aria-hidden="true">
+              <path d="M1 1l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="mi-drawer__sub">
+            <a href="/tipo/{{ t.slug }}">Ver todo {{ t.nombre }} →</a>
+            {% for m in t.marcas %}<a href="/categoria/{{ m.handle }}">{{ m.marca }}</a>{% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+        <a class="mi-drawer__plain" href="{{ store.products_url }}">Catálogo completo</a>
+      </nav>
+    </aside>
+  </div>
 
   <main id="mi-main">
     {% block content %}{% endblock %}
@@ -187,6 +322,50 @@
       if(!u) return; var l=document.querySelector('[data-account-label]');
       if(l) l.textContent = u.name ? u.name.split(' ')[0] : 'Mi cuenta';
     }).catch(function(){});
+  </script>
+
+  {# Menú de tienda: drawer mobile (hamburguesa) + aria-expanded del dropdown #}
+  <script nonce="{{ csp_nonce }}">
+  (function () {
+    var burger = document.getElementById('mi-burger');
+    var drawer = document.getElementById('mi-drawer');
+    if (burger && drawer) {
+      function setOpen(open) {
+        drawer.classList.toggle('is-open', open);
+        drawer.setAttribute('aria-hidden', open ? 'false' : 'true');
+        burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        document.body.classList.toggle('mi-lock', open);   // scroll-lock del body
+        if (open) { var c = drawer.querySelector('.mi-drawer__close'); if (c) c.focus(); }
+        else if (document.activeElement && drawer.contains(document.activeElement)) burger.focus();
+      }
+      burger.addEventListener('click', function () { setOpen(!drawer.classList.contains('is-open')); });
+      drawer.addEventListener('click', function (e) {
+        if (e.target.closest('[data-drawer-close]')) setOpen(false);
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && drawer.classList.contains('is-open')) setOpen(false);
+      });
+      // Acordeón: TIPO despliega sus marcas
+      drawer.querySelectorAll('.mi-drawer__tipo').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var open = btn.parentElement.classList.toggle('is-open');
+          btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+      });
+    }
+    // Dropdown desktop: reflejar el estado en aria-expanded (abre por CSS :hover/:focus-within)
+    document.querySelectorAll('.mi-nav__item').forEach(function (item) {
+      var link = item.querySelector('[aria-haspopup]');
+      if (!link) return;
+      function set(v) { link.setAttribute('aria-expanded', v ? 'true' : 'false'); }
+      item.addEventListener('mouseenter', function () { set(true); });
+      item.addEventListener('mouseleave', function () { set(false); });
+      item.addEventListener('focusin', function () { set(true); });
+      item.addEventListener('focusout', function () {
+        setTimeout(function () { if (!item.contains(document.activeElement)) set(false); }, 0);
+      });
+    });
+  })();
   </script>
 
   {% block scripts %}{% endblock %}

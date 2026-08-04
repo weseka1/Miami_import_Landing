@@ -70,10 +70,11 @@
       window.addEventListener('mousemove',move);
       window.addEventListener('mouseup',up);
       track.addEventListener('click',function(e){if(hasMoved){e.preventDefault();e.stopPropagation();hasMoved=false;}},true);
-      track.addEventListener('touchstart',down,{passive:true});
-      track.addEventListener('touchmove',move,{passive:true});
-      track.addEventListener('touchend',up);
-      track.addEventListener('touchcancel',up);
+      /* SIN handlers touch a propósito: mover scrollLeft en touchmove PELEABA
+         contra el scroll nativo (los dos movían el track a la vez) y el
+         carrusel se sentía trabado en el celu. En touch manda el scroll
+         nativo del sistema (overflow-x + impulso iOS); el drag-engine queda
+         solo para mouse, donde no hay scroll nativo por arrastre. */
     });
   }
 

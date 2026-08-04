@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8"><title>harness 390</title>
+<style>body{margin:0;background:#222;display:flex;gap:8px}iframe{width:390px;height:844px;border:0}</style>
+</head><body>
+<script>
+var q = new URLSearchParams(location.search);
+var p = q.get('p') || '/';
+var s = parseInt(q.get('s') || '0', 10);
+var open = q.get('open');          // 'drawer' | 'acc' — fuerza estados para captura
+var ifr = document.createElement('iframe');
+ifr.src = p + (p.indexOf('?') >= 0 ? '&' : '?') + 'debugw=1';
+ifr.addEventListener('load', function () {
+  setTimeout(function () {
+    var w = ifr.contentWindow, d = w.document;
+    if (open) {
+      var b = d.getElementById('mi-burger');
+      if (b) b.click();
+      if (open === 'acc') {
+        var t = d.querySelector('.mi-drawer__tipo');
+        if (t) t.click();
+      }
+    }
+    if (s) { d.documentElement.style.scrollBehavior = 'auto'; w.scrollTo({ top: s, left: 0, behavior: 'instant' }); }
+  }, 1500);
+});
+document.body.appendChild(ifr);
+</script>
+</body></html>

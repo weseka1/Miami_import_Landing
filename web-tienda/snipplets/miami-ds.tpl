@@ -30,6 +30,25 @@
   border-radius:var(--mi-r); box-shadow:var(--mi-shadow);
 }
 
+/* ---- Grid de productos BULLETPROOF (fix cards cortadas en mobile) ----
+   `1fr` = minmax(auto,1fr): con contenido no comprimible (precios, nombres
+   largos) el min-content de la card empujaba la grilla más allá del viewport
+   y la columna derecha quedaba CORTADA en el celu. minmax(0,1fr) permite que
+   la columna comprima siempre; min-width:0 en la card y su body hace lo mismo
+   dentro del track. Cubre /, /productos, /categoria y relacionados (todos
+   usan .mi-grid). */
+.mi-grid{ grid-template-columns:repeat(4,minmax(0,1fr)); }
+@media(max-width:900px){ .mi-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+.mi-card, .mi-card__body{ min-width:0; }
+/* miami-import-custom.css (legacy, para su carrusel) fija .mi-card{width:clamp(220px,…)}:
+   en la grilla eso desbordaba el track (220px > columna de ~150px en 390) y la
+   columna derecha quedaba CORTADA. Dentro de .mi-grid la card es fluida. */
+.mi-grid .mi-card{ width:auto; }
+.mi-card__name, .mi-card__brand{ overflow-wrap:break-word; }
+.miami-price-dual{ min-width:0; }
+.miami-price-dual .miami-price-usd, .miami-price-dual .miami-price-ars,
+.miami-price-dual .miami-price-ars-label{ white-space:normal; overflow-wrap:break-word; }
+
 /* ---- De-cuadrar: cards con radio iPhone + hover fluido ---- */
 .mi-card{
   border-radius:var(--mi-r) !important; border-color:var(--mi-line) !important;
@@ -86,7 +105,9 @@ html, body{ overflow-x:clip; }
     radial-gradient(ellipse at 25% 30%, rgba(198,167,104,.06) 0%, transparent 55%),
     linear-gradient(180deg, var(--mi-bg) 0%, var(--mi-bg-2) 50%, var(--mi-bg) 100%) !important;
 }
-.mi-hero{ background:var(--mi-bg) !important; }
+/* Solo background-COLOR: el hero define su propia imagen de poster como
+   fallback (iOS Low Power no arranca el video) y el shorthand acá la pisaba. */
+.mi-hero{ background-color:var(--mi-bg) !important; }
 .h-ticker, .mi-footer, .mi-header{ background-color:rgba(14,11,8,.9) !important; }
 .mi-footer{ border-top-color:rgba(198,167,104,.16) !important; }
 </style>
