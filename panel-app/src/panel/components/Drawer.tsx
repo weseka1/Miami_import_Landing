@@ -17,6 +17,23 @@ export default function Drawer({ open, onClose, children, width = "max-w-xl" }: 
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
+  // "Volver" = cerrar el drawer, NO irse de la página (patrón app nativa).
+  // Al abrir se apila una entrada de historial; el botón atrás la consume y
+  // cierra la ficha, dejándote donde estabas (ej: la lista de Productos).
+  // Cerrar con la X también consume esa entrada para no dejar basura.
+  useEffect(() => {
+    if (!open) return;
+    let cerradoPorAtras = false;
+    window.history.pushState({ miDrawer: true }, "");
+    const onPop = () => { cerradoPorAtras = true; onClose(); };
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      if (!cerradoPorAtras && window.history.state?.miDrawer) window.history.back();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   return (
     // Cerrado, el panel sigue en el DOM para poder animar la salida. Sin `invisible`
     // sus botones quedan alcanzables con Tab aunque no se vean. El delay deja que
