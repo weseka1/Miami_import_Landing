@@ -166,8 +166,12 @@ def _generar_gemini(person_jpeg: bytes, garment_jpeg: bytes, key: str) -> bytes:
                                  "data": base64.b64encode(garment_jpeg).decode()}},
             ],
         }],
+        # Sin esto Gemini puede responder SOLO texto y no hay imagen que parsear.
+        "generationConfig": {"responseModalities": ["TEXT", "IMAGE"]},
     }
     r = requests.post(f"{_GEMINI_URL}?key={key}", json=body, timeout=_POLL_TIMEOUT)
+    if r.status_code != 200:
+        print(f"[tryon] gemini HTTP {r.status_code}: {r.text[:400]}")
     r.raise_for_status()
     data = r.json()
     for part in data["candidates"][0]["content"]["parts"]:

@@ -10,7 +10,9 @@
   Probátelo puesto
 </button>
 
-<div id="mi-tryon" hidden style="position:fixed;inset:0;z-index:220;display:flex;align-items:flex-end;justify-content:center">
+{# OJO: display NO va inline — un display:flex inline le gana al atributo
+   `hidden` y el modal no se puede cerrar. Lo pone la regla CSS de abajo. #}
+<div id="mi-tryon" hidden style="position:fixed;inset:0;z-index:220;align-items:flex-end;justify-content:center">
   <div id="mi-tryon-bg" style="position:absolute;inset:0;background:rgba(5,4,3,.7);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)"></div>
   <div id="mi-tryon-card" style="position:relative;width:100%;max-width:440px;max-height:94svh;overflow-y:auto;overscroll-behavior:contain;
     background:rgba(20,16,12,.92);-webkit-backdrop-filter:blur(24px) saturate(150%);backdrop-filter:blur(24px) saturate(150%);
@@ -59,6 +61,7 @@
 </div>
 
 <style>
+  #mi-tryon:not([hidden]){display:flex}
   @media(min-width:641px){
     #mi-tryon{align-items:center}
     #mi-tryon-card{border-radius:24px;max-height:88vh}
