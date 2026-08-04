@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Stock Manager · MIAMI_IMPORT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/static/css/style.css?v=20260804c">
+<!-- Capa táctil para la tablet del local. Va DESPUÉS: solo ajusta. -->
+<link rel="stylesheet" href="/static/css/tablet.css?v=20260804c">
+<!-- Dock colapsable (desktop). En <head> SIN defer a propósito: lee localStorage
+     y marca <html> antes del primer paint → el sidebar no "flashea". -->
+<script src="/static/js/sidebar.js?v=20260804c"></script>
+</head>
+<body>
+
+<!-- Configuración del segundo factor. Se muestra sola cuando el backend
+     responde que falta activarlo: sin esto el panel devuelve 403 en todo y
+     no había forma de salir del paso. -->
+<!-- OJO: el `display` NO va en el style inline. Un `display:flex` acá le gana
+     al atributo `hidden` (que es solo display:none de la hoja del navegador) y
+     la pantalla quedaba visible SIEMPRE, tapando el panel. Lo pone el JS al
+     abrirla. -->
+<div id="mfa-setup" hidden
+     style="position:fixed;inset:0;z-index:9999;background:rgba(5,5,5,.97);
+            align-items:center;justify-content:center;padding:20px;overflow:auto">
+  <div style="max-width:460px;width:100%;background:#121212;border:1px solid rgba(185,155,99,.25);
+              border-radius:14px;padding:32px;text-align:center">
+    <h2 style="margin:0 0 8px;font-size:20px;color:#b99b63">Activá el segundo factor</h2>
+    <p style="color:#8a8578;font-size:14px;margin:0 0 20px">
+      Es obligatorio para entrar al panel. Escaneá el código con
+      <strong>Google Authenticator</strong>, Authy o 1Password.
+    </p>
+
+    <div id="mfa-qr" style="background:#fff;padding:14px;border-radius:10px;display:inline-block;
+                            min-height:180px;min-width:180px"></div>
+
+    <p style="color:#8a8578;font-size:12px;margin:16px 0 6px">
+      ¿No podés escanear? Cargá esta clave a mano en la app:
+    </p>
+    <code id="mfa-secret" style="display:block;font-size:14px;letter-spacing:2px;color:#f5f3ee;
+                                 background:#0d0d0d;padding:10px;border-radius:8px;word-break:break-all"></code>
+
+    <label style="display:block;margin:22px 0 6px;font-size:12px;color:#8a8578;
+                  text-transform:uppercase;letter-spacing:.5px">Código de 6 dígitos</label>
+    <input id="mfa-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000"
+           style="width:100%;padding:12px;border-radius:9px;background:#0d0d0d;
+                  border:1px solid rgba(255,255,255,.12);color:#f5f3ee;font-size:20px;
+                  text-align:center;letter-spacing:6px"/>
+    <button id="mfa-confirm" class="btn-primary" style="width:100%;margin-top:16px">Activar y entrar</button>
+    <div id="mfa-err" style="min-height:18px;margin-top:12px;font-size:13px;color:#ff7a7a"></div>
+    <p style="color:#8a8578;font-size:12px;margin-top:10px">
+      Guardá la clave de arriba en un lugar seguro: si perdés el celular, es tu única forma de volver a entrar.
+    </p>
+  </div>
+</div>
+
+<!-- Barra superior (solo en celular): hamburguesa + marca -->
+<header class="mobile-topbar">
+  <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Abrir menú">☰</button>
+  <span class="mobile-topbar-brand">MIAMI_IMPORT</span>
+</header>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<aside class="sidebar">
+  <!-- Toggle del dock (solo desktop, lo muestra el CSS): « colapsa / » expande -->
+  <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-label="Colapsar menú" title="Colapsar menú">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/></svg>
+  </button>
+  <div class="brand">
+    <div class="brand-mark">M/I</div>
+    <div class="brand-text">
+      <div class="brand-name">MIAMI_IMPORT</div>
+      <div class="brand-sub">Stock Manager</div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <!-- Íconos: SVG inline outline (lucide, stroke 1.5) — nunca emojis (veto Juani) -->
+    <a class="nav-item active" href="#dashboard" data-tab="dashboard">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg></span>
+      <span>Dashboard</span>
+    </a>
+    <a class="nav-item" href="#productos" data-tab="productos">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg></span>
+      <span>Productos</span>
+    </a>
+    <!-- "Nuevo producto" salió del menú: ahora es el botón "+ Agregar producto"
+         dentro de Productos (menos pestañas = menos mareo para Diego). -->
+    <a class="nav-item" href="#venta" data-tab="venta">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
+      <span>Vender</span>
+    </a>
+    <a class="nav-item" href="#a-pedido" data-tab="a-pedido">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></span>
+      <span>A pedido</span>
+    </a>
+    <a class="nav-item" href="#reservas" data-tab="reservas">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg></span>
+      <span>Reservas</span>
+    </a>
+    <a class="nav-item" href="#pedidos" data-tab="pedidos">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M14 8H8"/><path d="M16 12H8"/><path d="M13 16H8"/></svg></span>
+      <span>Pedidos</span>
+    </a>
+    <a class="nav-item" href="#estadisticas" data-tab="estadisticas">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></span>
+      <span>Estadísticas</span>
+    </a>
+    <a class="nav-item" href="#precios-usd" data-tab="precios-usd">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg></span>
+      <span>Precios USD</span>
+    </a>
+    <a class="nav-item" href="#whatsapp" data-tab="whatsapp">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
+      <span>WhatsApp</span>
+    </a>
+    <a class="nav-item" href="#acciones" data-tab="acciones">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg></span>
+      <span>Acciones</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button id="btn-export" class="btn-secondary">Descargar Excel completo</button>
+    <a href="#" id="link-tienda" target="_blank" class="link-tn">Ver mi tienda ↗</a>
+    <button id="btn-logout" class="btn-secondary" style="margin-top:8px">Cerrar sesión</button>
+  </div>
+</aside>
+
+<main class="main">
+
+  <!-- ========= DASHBOARD ========= -->
+  <section class="tab active" data-tab="dashboard">
+    <header class="page-header">
+      <div>
+        <div class="eyebrow">Panel</div>
+        <h1>Dashboard</h1>
+      </div>
+      <div class="header-right">
+        <!-- Chip de usuario (decorativo, estilo Potente "Mateo · Dirección") -->
+        <div class="user-chip" aria-hidden="true">
+          <span class="user-avatar">D</span>
+          <span class="user-chip-txt">
+            <strong>Diego</strong>
+            <small>Miami Import</small>
+          </span>
+        </div>
+        <button id="btn-refresh-stats" class="btn-ghost">Actualizar</button>
+      </div>
+    </header>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg></div>
+        <div class="kpi-label">Productos publicados</div>
+        <div class="kpi-value" id="kpi-publicados">—</div>
+        <div class="kpi-sub" id="kpi-publicados-sub">de — totales</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>
+        <div class="kpi-label">Stock total (unidades)</div>
+        <div class="kpi-value" id="kpi-stock">—</div>
+        <div class="kpi-sub" id="kpi-stock-sub">en — variantes</div>
+      </div>
+      <div class="kpi-card kpi-warn">
+        <div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div>
+        <div class="kpi-label">Productos sin stock</div>
+        <div class="kpi-value" id="kpi-sin-stock">—</div>
+        <div class="kpi-sub">requieren atención</div>
+      </div>
+      <div class="kpi-card kpi-success">
+        <div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg></div>
+        <div class="kpi-label">Facturado (últimos pedidos)</div>
+        <div class="kpi-value" id="kpi-facturado">—</div>
+        <div class="kpi-sub" id="kpi-facturado-sub">— pedidos</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <h2>Top vendidos</h2>
+        <ol class="list-top" id="list-top-vendidos">
+          <li class="loading-row">Cargando…</li>
+        </ol>
+      </div>
+      <div class="panel">
+        <h2>Stock bajo (≤ 1 unidad)</h2>
+        <ul class="list-stock" id="list-stock-bajo">
+          <li class="loading-row">Cargando…</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========= PRODUCTOS ========= -->
+  <section class="tab" data-tab="productos">
+    <header class="page-header">
+      <div>
+        <div class="eyebrow">Catálogo en vivo</div>
+        <h1>Productos</h1>
+      </div>
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap">
+        <input id="search" class="search" placeholder="Buscar por nombre o marca…" />
+        <a href="#alta" class="btn-primary" style="text-decoration:none; white-space:nowrap">+ Agregar producto</a>
+      </div>
+    </header>
+
+    <div id="products-grid" class="grid-products">
+      <div class="loading">Cargando productos…</div>
+    </div>
+  </section>
+
+  <!-- ========= NUEVO PRODUCTO ========= -->
+  <section class="tab" data-tab="alta">
+    <header class="page-header">
+      <div>
+        <div class="eyebrow">Publicar en la tienda</div>
+        <h1>Nuevo producto</h1>
+      </div>
+      <a href="#productos" class="btn-ghost" style="text-decoration:none; white-space:nowrap">← Volver a productos</a>
+    </header>
+
+    <form id="form-nuevo" class="form-card" enctype="multipart/form-data">
+      <div class="form-row">
+        <label>
+          Nombre del producto
+          <input name="name" required placeholder="Ej: Buzo Balmain sin Capucha Gris" />
+        </label>
+        <label>
+          Marca
+          <input name="brand" required placeholder="Ej: Balmain" />
+        </label>
+      </div>
+
+      <div class="form-row">
+        <label>
+          Precio
+          <input name="price" type="number" step="0.01" required placeholder="430" />
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="convertir_a_ars" />
+          <span>Convertir USD → ARS al TC del día</span>
+        </label>
+      </div>
+
+      <div class="form-row">
+        <label>
+          Talles (separados por coma)
+          <input name="talles" placeholder="S, M, L, XL  (dejar vacío para 'único')" />
+        </label>
+        <label>
+          Stock por talle
+          <input name="stock_por_talle" type="number" value="1" min="0" />
+        </label>
+      </div>
+
+      <label>
+        Descripción
+        <textarea name="description" rows="3" placeholder="Texto adicional. Opcional."></textarea>
+      </label>
+
+      <label class="checkbox-label">
+        <input type="checkbox" name="publicado" checked />
+        <span>Publicar inmediatamente (no dejar como borrador)</span>
+      </label>
+
+      <label class="file-drop">
+        Imágenes del producto (podés seleccionar varias)
+        <input name="images" type="file" multiple accept="image/*" />
+        <span class="file-hint">Podés elegir varias y seguir sumando (se acumulan) — primera = portada · ↻ girar · × quitar</span>
+      </label>
+
+      <div id="alta-previews" class="alta-previews"></div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Crear y publicar</button>
+        <span id="alta-status"></span>
+      </div>
+    </form>
+
+    <div id="alta-result" class="result-card hidden"></div>
+  </section>
+
+
+  <!-- ========= PEDIDOS ========= -->
+  <!-- ========= VENDER (mostrador) ========= -->
+  <section class="tab" data-tab="venta">
+    <header class="page-header">
+      <div>
+        <div class="eyebrow">Punto de venta</div>
+        <h1>Vender en el local</h1>
+      </div>
+    </header>
+
+    <div class="pos-layout">
+      <!-- Buscador + productos -->
+      <div class="pos-catalogo">
+        <div class="pos-barra">
+          <input id="pos-buscar" class="search pos-search" type="search"
+                 placeholder="Buscar producto o marca…" autocomplete="off"/>
+          <button type="button" id="pos-abrir-libre" class="pos-btn-libre">
+            + No está en el catálogo
+          </button>
+        </div>
+
+        <!-- Cobrar algo que no está cargado: descripción y precio a mano -->
+        <div id="pos-libre" class="pos-libre" hidden>
+          <div class="pos-libre__campos">
+            <label class="pos-label">¿Qué se vende?
+              <input id="pos-libre-nombre" type="text" placeholder="Ej: Cinturón de cuero" autocomplete="off"/>
+            </label>
+            <label class="pos-label">Precio
+              <input id="pos-libre-precio" type="number" inputmode="decimal" min="1" step="0.01" placeholder="0"/>
+            </label>
+            <label class="pos-label">Cantidad
+              <input id="pos-libre-cant" type="number" inputmode="numeric" min="1" max="99" value="1"/>
+            </label>
+          </div>
+          <div class="pos-libre__acciones">
+            <button type="button" id="pos-libre-agregar" class="btn-primary">Agregar a la venta</button>
+            <button type="button" id="pos-libre-cerrar" class="btn-ghost">Cancelar</button>
+          </div>
+        </div>
+        <div id="pos-resultados" class="pos-grid">
+          <div class="loading">Escribí para buscar, o esperá a que cargue el catálogo…</div>
+        </div>
+      </div>
+
+      <!-- Carrito -->
+      <aside class="pos-carrito">
+        <h2 class="pos-carrito__titulo">Venta actual</h2>
+
+        <div id="pos-items" class="pos-items">
+          <p class="pos-vacio">Tocá un producto para agregarlo.</p>
+        </div>
+
+        <div class="pos-total">
+          <span>Total</span>
+          <strong id="pos-total">$ 0</strong>
+        </div>
+
+        <label class="pos-label">Cliente
+          <input id="pos-cliente" type="text" placeholder="Nombre y apellido" autocomplete="off"/>
+        </label>
+        <label class="pos-label">Teléfono <span class="pos-opt">(opcional)</span>
+          <input id="pos-telefono" type="tel" placeholder="11 2233 4455" autocomplete="off"/>
+        </label>
+
+        <button type="button" id="pos-cobrar" class="btn-primary pos-cobrar" disabled>
+          Cobrar
+        </button>
+        <button type="button" id="pos-vaciar" class="btn-ghost pos-vaciar">Vaciar</button>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Pantalla de cobro con QR -->
+  <div id="pos-modal-cobro" class="pos-cobro" hidden>
+    <div class="pos-cobro__caja">
+      <button type="button" id="pos-cerrar-cobro" class="pos-cobro__cerrar" aria-label="Cerrar">✕</button>
+      <div id="pos-cobro-espera">
+        <h2 class="pos-cobro__titulo">Que el cliente escanee el código</h2>
+        <p class="pos-cobro__sub">Paga con su celular. La pantalla se actualiza sola.</p>
+        <div id="pos-qr" class="pos-qr"></div>
+        <div class="pos-cobro__monto"><span>Total a cobrar</span><strong id="pos-cobro-total">—</strong></div>
+        <p class="pos-cobro__link">¿No puede escanear? <a id="pos-link" href="#" target="_blank">Abrir el link de pago</a></p>
+        <div class="pos-cobro__estado"><span class="pos-punto"></span> Esperando el pago…</div>
+        <button type="button" id="pos-cancelar-venta" class="btn-ghost pos-cobro__cancelar">Cancelar venta</button>
+      </div>
+      <div id="pos-cobro-ok" hidden class="pos-cobro__ok">
+        <div class="pos-cobro__tilde">✓</div>
+        <h2 class="pos-cobro__titulo">¡Pago recibido!</h2>
+        <p class="pos-cobro__sub">La venta quedó registrada en Pedidos.</p>
+        <button type="button" id="pos-nueva-venta" class="btn-primary pos-cobrar">Nueva venta</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========= A PEDIDO ========= -->
+  <section class="tab" data-tab="a-pedido">
+    <header class="page-header">
+      <div>
+        <div class="eyebrow">Productos que no son stock</div>
+        <h1>A pedido</h1>
+      </div>
+    </header>
+
+    <div class="panel">
+      <p>Cargá acá los productos que <b>no tenés en stock</b> pero podés conseguir.
+        No aparecen en la tienda. Después, en cada uno, tocás <b>Reservar</b> para
+        anotar qué cliente lo quiere y en qué talle. Las reservas se ven en la
+        pestaña <b>Reservas</b>.</p>
+    </div>
+
+    <form id="form-apedido" class="form-card" enctype="multipart/form-data">
+      <div class="form-row">
+        <label>
+          Nombre del producto
+          <input name="name" required placeholder="Ej: Campera Moncler" />
+        </label>
+        <label>
+          Marca
+          <input name="brand" required placeholder="Ej: Moncler" />
+        </label>
+      </div>
+
+      <div class="form-row">
+        <label>
+          Precio <span class="pos-opt">(opcional)</span>
+          <input name="price" type="number" step="0.01" placeholder="Dejar vacío si todavía no lo sabés" />
+        </label>
+        <label>
+          Talles (separados por coma)
+          <input name="talles" placeholder="S, M, L, XL  (dejar vacío para 'único')" />
+        </label>
+      </div>
+
+      <label>
+        Descripción <span class="pos-opt">(opcional)</span>
+        <textarea name="description" rows="2" placeholder="Notas del producto. Opcional."></textarea>
+      </label>
+
+      <label class="file-drop">
+        Imágenes del producto (podés seleccionar varias)
+        <input name="images" type="file" multiple accept="image/*" />
+        <span class="file-hint">Podés elegir varias y seguir sumando (se acumulan) — primera = portada · ↻ girar · × quitar</span>
+      </label>
+
+      <div id="apedido-previews" class="alta-previews"></div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Guardar producto a pedido</button>
+        <span id="apedido-status"></span>
+      </div>
+    </form>
+
+    <div id="apedido-result" class="result-card hidden"></div>
+
+    <header class="page-header" style="margin-top:28px">
+      <div>
+        <div class="eyebrow">Cargados</div>
+        <h1 style="font-size:22px">Productos a pedido</h1>
+      </div>
+      <input id="apedido-search" class="search" placeholder="Buscar por nombre o marca…" />
+    </header>
+
+    <div id="apedido-grid" class="grid-products">
+      <div class="loading">Cargando…</div>
+    </div>
+  </section>
+
+  <!-- ========= RESERVAS ========= -->
+  <section class="tab" data-tab="reservas">
+    <header class="page-header">
+      <div>
+        <div class="eyebrow">Clientes esperando</div>
+        <h1>Reservas</h1>
+      </div>
+      <button id="btn-refresh-reservas" class="btn-ghost">Actualizar</button>
+    </header>
+
+    <div id="reservas-list" class="orders-list">
+      <div class="loading">Cargando reservas…</div>
+    </div>
+  </section>
+
+  <section class="tab" data-tab="pedidos">
+    <header class="page-header">
+      <div>
+        <div class="eyebrow">Últimos pedidos</div>
+        <h1>Pedidos</h1>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button id="btn-reconciliar" class="btn-secondary"
+                title="Consulta a Stripe si los pedidos pendientes ya fueron pagados">Verificar pagos pendientes</button>
+        <button id="btn-refresh-orders" class="btn-ghost">Actualizar</button>
+      </div>
+    </header>
+
+    <div id="reconciliar-status" style="margin-bottom:12px;font-size:13px;color:var(--ink-mute)"></div>
+
+    <div id="orders-list" class="orders-list">
+      <div class="loading">Cargando pedidos…</div>
+    </div>
+  </section>
+
+  <!-- ========= ESTADISTICAS ========= -->
+  <section class="tab" data-tab="estadisticas">
+    <header class="page-header">
+      <div>
+        <div class="eyebrow">Métricas</div>
+        <h1>Estadísticas</h1>
+      </div>
+      <button id="btn-refresh-stats2" class="btn-ghost">Actualizar</button>
+    </header>
+
+    <div class="panel">
+      <p>Para descargar todo el catálogo + pedidos + variantes en Excel, click en el botón
+        <b>Descargar Excel completo</b> del menú izquierdo.</p>
+    </div>
+
+    <div class="kpi-grid" id="stats-grid">
+      <!-- se rellena con JS -->
+    </div>
+  </section>
+
+  <!-- ========= PRECIOS USD ========= -->
+  <section class="tab" data-tab="precios-usd">
+    <header class="page-header">
+      <div>
+        <div class="eyebrow">Pricing</div>
+        <h1>Precios en USD</h1>
+      </div>
+      <button id="btn-refresh-usd" class="btn-ghost">Actualizar</button>
+    </header>
+
+    <div class="panel">
+      <h2>Cómo funciona</h2>
+      <p>Vos manejás precios en <b>USD</b> internamente (que es lo que realmente cuesta el producto). El cliente en la tienda <b>paga en ARS</b> (ARS = USD × tipo de cambio). Cuando cambia el dólar, ajustás la cotización acá y con un click se recalculan TODOS los precios ARS de la tienda.</p>
+    </div>
+
+    <div class="form-card">
+      <div class="form-row">
+        <label>
+          Cotización USD → ARS actual
+          <input type="number" id="usd-rate-input" step="0.01" placeholder="1410" />
+        </label>
+        <div style="display:flex;align-items:end;">
+          <button type="button" id="btn-save-rate" class="btn-primary">Guardar cotización</button>
+        </div>
+      </div>
+      <p style="color:#888;font-size:13px;margin-top:8px;">
+        Última cotización guardada: <b id="usd-rate-current">—</b>
+      </p>
+    </div>
+
+    <div class="form-card">
+      <h2 style="margin-top:0;">Acciones de precios</h2>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <button type="button" id="btn-seed-usd" class="btn-secondary">
+          Inicializar USD desde precios actuales
+        </button>
+        <button type="button" id="btn-sync-usd" class="btn-primary">
+          Recalcular y subir ARS = USD × cotización
+        </button>
+      </div>
+      <p style="color:#888;font-size:13px;margin-top:14px;">
+        <b>Inicializar</b>: la primera vez, toma los precios ARS actuales y los divide por la cotización para guardar el equivalente USD.<br/>
+        <b>Recalcular</b>: con tus USD prices guardados y la cotización actual, actualiza los precios ARS en TODAS las variantes de la tienda.
+      </p>
+      <div id="usd-action-status" style="margin-top:16px;font-size:13px;"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Lista de productos con USD</h2>
+      <p style="color:#888;font-size:13px;">Editá el USD de cada producto y después tocá "Recalcular y subir ARS" arriba.</p>
+      <div id="usd-prices-list">
+        <div class="loading">Cargando…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========= WHATSAPP ========= -->
+  <section class="tab" data-tab="whatsapp">
+    <header class="page-header">
+      <div>
+        <div class="eyebrow">Plantillas</div>
+        <h1>WhatsApp</h1>
+      </div>
+      <button id="btn-save-wa" class="btn-primary">Guardar cambios</button>
+    </header>
+
+    <div class="panel">
+      <p>Plantillas pre-armadas que usás cuando hacés click en "WhatsApp" en la tab Pedidos.</p>
+    </div>
+
+    <div id="wa-templates-container">
+      <div class="loading">Cargando plantillas…</div>
+    </div>
+  </section>
+
+
+
+  <!-- ========= ACCIONES ========= -->
+  <section class="tab" data-tab="acciones">
+    <header class="page-header">
+      <div>
+        <div class="eyebrow">Utilidades</div>
+        <h1>Acciones rápidas</h1>
+      </div>
+    </header>
+
+    <div class="form-card">
+      <h2 style="margin-top:0;">Redeploy del bot en Render</h2>
+      <p style="color:#888;font-size:13px;">Trigger un redeploy del Bot-Miami en Render (requiere <code>RENDER_DEPLOY_HOOK</code> configurado en .env).</p>
+      <button type="button" id="btn-redeploy-bot" class="btn-primary">Redeploy bot ahora</button>
+      <div id="redeploy-status" style="margin-top:14px;font-size:13px;"></div>
+    </div>
+
+    <div class="form-card">
+      <h2>Theme FTP (subir cambios visuales)</h2>
+      <p style="color:#888;font-size:13px;">Por seguridad esto no corre desde el panel. Desde tu terminal:</p>
+      <pre style="background:#0a0a0a;color:#d4bb88;padding:12px;font-size:11px;overflow-x:auto;">cd "C:\Users\Yamil\Desktop\Miami Import\Stock mIAmimport_-20260422T165214Z-3-001\Stock mIAmimport_"
+$env:FTP_PASSWORD = 'pduox3ob'
+python upload_theme_to_tiendanube.py</pre>
+    </div>
+  </section>
+
+</main>
+
+<!-- ========= MODAL PRODUCTO ========= -->
+<div id="modal" class="modal hidden">
+  <div class="modal-backdrop"></div>
+  <div class="modal-content" id="modal-content">
+    <button class="modal-close" id="modal-close">×</button>
+    <div id="modal-body">Cargando…</div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"></div>
+
+<script src="/static/js/app.js?v=20260722a"></script>
+</body>
+</html>

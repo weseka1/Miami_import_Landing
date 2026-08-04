@@ -59,6 +59,9 @@
       var track = carousel.querySelector('[data-miami-track]');
       if (!track || track.dataset.miamiReady) return;
       track.dataset.miamiReady = '1';
+      /* Las cards son <a><img>: el drag&drop nativo del browser se robaba el
+         gesto y solo se podia arrastrar desde el fondo. Se anula acá. */
+      track.addEventListener('dragstart', function (e) { e.preventDefault(); });
       var isDown=false,startX=0,startScroll=0,lastX=0,lastT=0,velocity=0,hasMoved=false;
       function down(e){isDown=true;hasMoved=false;startX=(e.touches?e.touches[0].pageX:e.pageX);startScroll=track.scrollLeft;lastX=startX;lastT=Date.now();velocity=0;}
       function move(e){if(!isDown)return;var x=(e.touches?e.touches[0].pageX:e.pageX);var dx=x-startX;if(Math.abs(dx)>6){if(!hasMoved){hasMoved=true;track.classList.add('is-grabbing');}if(!e.touches)e.preventDefault();track.scrollLeft=startScroll-dx*1.4;var n=Date.now();var dt=n-lastT||16;velocity=(x-lastX)/dt;lastX=x;lastT=n;}}
@@ -393,9 +396,9 @@
     initCarousels();
     initTilt3D();
     initHeroParallax();
-    initVanta();
-    initLenis();
-    initCursor();
+    /* initVanta() + initLenis() removidos: el hero viejo (Vanta 3D) ya no existe
+       y el smooth-scroll de Lenis trababa la ruedita. Scroll NATIVO, fluido.
+       initCursor() también fuera (cursor custom = tell de IA). */
     initMagnetic();
     initCinematicTile();
   }

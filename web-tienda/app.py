@@ -31,6 +31,12 @@ from core.db import get_db, init_db
 from core.models import Category, Order, Product, User
 from core.web_security import install_security
 from deps import current_user
+from mia import mia_router
+
+# El panel administrativo, empaquetado como sub-app (web-tienda/panel/). Comparte
+# el mismo core y la misma base de datos que la tienda.
+from panel.app import app as panel_app
+from panel.auth import ensure_admin as ensure_panel_admin
 
 HERE = Path(__file__).resolve().parent
 
@@ -168,11 +174,16 @@ app.include_router(cart_router)
 app.include_router(account_router)
 app.include_router(oauth_router)
 app.include_router(checkout_router)
+app.include_router(mia_router)   # Mia, la asistente de la casa (POST /api/mia/chat)
 
 
 @app.on_event("startup")
 def _startup() -> None:
     init_db()
+    # El sub-app del panel NO recibe eventos de lifespan al estar montado, así
+    # que su bootstrap del admin (ADMIN_EMAIL/ADMIN_PASSWORD -> ensure_admin)
+    # se ejecuta acá, desde el startup del proceso principal.
+    ensure_panel_admin()
 
 
 # --------------------------------------------------------------------------- #
@@ -237,18 +248,61 @@ def diag():
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request, db: Session = Depends(get_db)):
-    destacados = (
-        _con_relaciones(db)
-        .filter(Product.published.is_(True))
-        .order_by(Product.id.desc())
-        .limit(12)
-        .all()
+    from sqlalchemy import func
+    from core.models import OrderItem, Variant
+
+    def _base():
+        return _con_relaciones(db).filter(Product.published.is_(True))
+
+    # MÁS VENDIDOS — curación manual desde el panel (mas_vendido=True). Si no
+    # hay ninguno marcado, cae la lógica automática de siempre: unidades
+    # vendidas reales (order_items) y, sin historial, los productos con más
+    # talles cargados (proxy de "producto insignia"). Nunca queda vacía.
+    mas_vendidos = (_base().filter(Product.mas_vendido.is_(True))
+                    .order_by(Product.id.desc()).limit(8).all())
+    if not mas_vendidos:
+        ventas = (
+            db.query(OrderItem.product_id, func.sum(OrderItem.quantity).label("q"))
+            .group_by(OrderItem.product_id).subquery()
+        )
+        mas_vendidos = (
+            _base().join(ventas, ventas.c.product_id == Product.id)
+            .order_by(ventas.c.q.desc()).limit(8).all()
+        )
+        if len(mas_vendidos) < 4:
+            talles = (
+                db.query(Variant.product_id, func.count(Variant.id).label("n"))
+                .group_by(Variant.product_id).subquery()
+            )
+            mas_vendidos = (
+                _base().join(talles, talles.c.product_id == Product.id)
+                .order_by(talles.c.n.desc(), Product.id.desc()).limit(8).all()
+            )
+
+    # DESTACADOS — los que Diego marcó desde el panel (destacado=True). Si no
+    # hay ninguno marcado, caen los más nuevos: la sección nunca queda vacía.
+    destacados = (_base().filter(Product.destacado.is_(True))
+                  .order_by(Product.id.desc()).limit(8).all())
+    if not destacados:
+        destacados = _base().order_by(Product.id.desc()).limit(8).all()
+
+    # ÚLTIMOS EN STOCK — quedan pocas unidades (suma de stock ascendente, > 0).
+    stock_sq = (
+        db.query(Variant.product_id, func.sum(Variant.stock).label("s"))
+        .group_by(Variant.product_id).subquery()
     )
+    ultimos = (
+        _base().join(stock_sq, stock_sq.c.product_id == Product.id)
+        .filter(stock_sq.c.s > 0)
+        .order_by(stock_sq.c.s.asc(), Product.id.desc()).limit(8).all()
+    )
+
     marcas = nav_categories(db)
     sections = {"primary": {"products": destacados}}
     return templates.TemplateResponse(
         request, "home.html",
-        base_context(request, db, destacados=destacados, marcas=marcas,
+        base_context(request, db, destacados=destacados, mas_vendidos=mas_vendidos,
+                     ultimos=ultimos, marcas=marcas,
                      sections=sections, template_class="home"),
     )
 
@@ -486,6 +540,10 @@ def sitemap(db: Session = Depends(get_db)):
 
 
 app.mount("/static", StaticFiles(directory=HERE / "static"), name="static")
+
+# Panel administrativo montado DESPUÉS de las rutas de la tienda. Mismo proceso,
+# mismo core, misma base de datos. La tienda queda en "/", el panel en "/panel".
+app.mount("/panel", panel_app)
 
 
 if __name__ == "__main__":

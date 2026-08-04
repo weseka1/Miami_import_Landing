@@ -162,6 +162,13 @@ class Product(Base):
     description: Mapped[str | None] = mapped_column(Text)  # HTML
     brand: Mapped[str | None] = mapped_column(String(255), index=True)
     published: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    # Producto "a pedido": no es stock real, no se muestra en la tienda. Vive en
+    # una pestaña aparte del panel y sirve para tomar reservas de clientes.
+    a_pedido: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    # Curación manual de la home desde el panel. Sin ninguno marcado, cada
+    # sección cae a su lógica automática (más nuevos / ventas reales).
+    destacado: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    mas_vendido: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     free_shipping: Mapped[bool] = mapped_column(Boolean, default=False)
     video_url: Mapped[str | None] = mapped_column(String(500))
     seo_title: Mapped[str | None] = mapped_column(String(255))
@@ -403,4 +410,31 @@ class AuditLog(Base):
     entity_id: Mapped[str | None] = mapped_column(String(80))
     ip: Mapped[str | None] = mapped_column(String(64))
     detail: Mapped[dict | None] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+
+
+# Estados posibles de una reserva de producto "a pedido".
+RESERVA_STATUSES = ("pendiente", "avisado", "entregado", "cancelado")
+
+
+class Reserva(Base):
+    """Un cliente que quiere un producto 'a pedido' (y su talle).
+
+    Se guardan copias del nombre del producto y del talle (snapshot) para que
+    la reserva se siga leyendo aunque después se borre el producto. Por eso las
+    FK son SET NULL: si el producto desaparece, la reserva queda con el texto.
+    """
+    __tablename__ = "reservas"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    product_id: Mapped[int | None] = mapped_column(
+        ForeignKey("products.id", ondelete="SET NULL"), index=True)
+    variant_id: Mapped[int | None] = mapped_column(
+        ForeignKey("variants.id", ondelete="SET NULL"), index=True)
+    product_name: Mapped[str] = mapped_column(String(500))     # snapshot
+    talle: Mapped[str | None] = mapped_column(String(255))     # snapshot
+    customer_name: Mapped[str] = mapped_column(String(255), index=True)
+    customer_phone: Mapped[str | None] = mapped_column(String(50))
+    notes: Mapped[str | None] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(20), default="pendiente", index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)

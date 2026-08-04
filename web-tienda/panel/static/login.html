@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="robots" content="noindex,nofollow"/>
+<title>Ingresar · MIAMI_IMPORT</title>
+<style>
+  /* Skin ENLATADO WESEKA — tema claro premium + acento champagne M/I */
+  @import url("https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600&f[]=general-sans@400,500,600,700&display=swap");
+  :root { --gold:#B99B63; --gold-600:#A5854D; --gold-700:#8A6F3F; --ink:#16161A; --ink-mute:#A1A1AA; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background-color:#F4F5F6; color:var(--ink);
+    font-family:"General Sans",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(1100px 540px at 100% -12%, rgba(185,155,99,.12), transparent 62%),
+      radial-gradient(900px 520px at -12% 112%, rgba(185,155,99,.08), transparent 60%);
+  }
+  .card {
+    width:min(92vw,380px); padding:40px 34px;
+    background:#FFFFFF; border:1px solid rgba(22,22,26,.08);
+    border-radius:20px;
+    box-shadow:0 1px 0 rgba(23,26,23,.02), 0 24px 60px -24px rgba(22,22,26,.30);
+  }
+  .brand-mark {
+    width:44px; height:44px; margin:0 auto 12px;
+    display:flex; align-items:center; justify-content:center;
+    background:#FFFFFF; border:1px solid rgba(185,155,99,.25); border-radius:14px;
+    box-shadow:0 8px 20px -8px rgba(185,155,99,.45);
+    font-family:"Clash Display","General Sans",sans-serif;
+    font-weight:600; letter-spacing:1px; font-size:13px; color:var(--gold-700);
+    text-align:center;
+  }
+  h1 {
+    font-family:"Clash Display","General Sans",sans-serif;
+    font-size:21px; font-weight:600; letter-spacing:-.01em;
+    text-align:center; margin:0 0 26px;
+  }
+  label { display:block; font-size:11px; color:#71717A; font-weight:600; margin:14px 0 6px; text-transform:uppercase; letter-spacing:.12em; }
+  input {
+    width:100%; padding:12px 14px; border-radius:12px; font-size:15px;
+    background:#FFFFFF; border:1px solid rgba(22,22,26,.15); color:var(--ink); outline:none;
+    transition:border-color .2s ease, box-shadow .2s ease;
+  }
+  input::placeholder { color:var(--ink-mute); }
+  input:focus { border-color:rgba(185,155,99,.6); box-shadow:0 0 0 3px rgba(185,155,99,.15); }
+  button {
+    margin-top:24px; width:100%; padding:13px; border:0; border-radius:12px; cursor:pointer;
+    font-family:inherit; font-size:15px; font-weight:600; color:#FFFFFF;
+    background:var(--gold);
+    box-shadow:0 10px 24px -12px rgba(185,155,99,.55);
+    transition:background .2s ease, transform .2s ease, box-shadow .2s ease;
+  }
+  button:hover { background:var(--gold-600); transform:translateY(-1px); box-shadow:0 14px 30px -12px rgba(185,155,99,.55); }
+  button:disabled { opacity:.6; cursor:default; transform:none; }
+  .err { margin-top:16px; min-height:18px; font-size:13px; color:#DC2626; text-align:center; }
+</style>
+</head>
+<body>
+  <form class="card" id="login-form">
+    <div class="brand-mark">M / I</div>
+    <h1>Panel de control</h1>
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="username" required autofocus/>
+    <label for="password">Contraseña</label>
+    <input id="password" type="password" autocomplete="current-password" required/>
+    <div id="mfa-wrap" hidden>
+      <label for="totp_code">Código de verificación</label>
+      <input id="totp_code" type="text" inputmode="numeric" autocomplete="one-time-code"
+             pattern="[0-9]*" maxlength="6" placeholder="6 dígitos"/>
+    </div>
+    <button id="submit" type="submit">Ingresar</button>
+    <div class="err" id="err"></div>
+  </form>
+<script src="/static/js/login.js"></script>
+</body>
+</html>

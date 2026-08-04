@@ -52,8 +52,6 @@
 
   {# 4 Overlays editoriales — solo el del jacket activo (y del genero activo) se ve #}
   <div class="miami-trilogy__ch is-active" data-chapter="0" data-gender="hombre">
-    <div class="miami-trilogy__eyebrow">CAPÍTULO / 01</div>
-    <div class="miami-trilogy__number">01</div>
     <h3 class="miami-trilogy__name">MARRÓN</h3>
     <div class="miami-trilogy__glass">
       <div class="miami-trilogy__glass-label">REF / 01 · HOMBRE</div>
@@ -67,8 +65,6 @@
     </div>
   </div>
   <div class="miami-trilogy__ch" data-chapter="1" data-gender="hombre">
-    <div class="miami-trilogy__eyebrow">CAPÍTULO / 02</div>
-    <div class="miami-trilogy__number">02</div>
     <h3 class="miami-trilogy__name">MULTICOLOR</h3>
     <div class="miami-trilogy__glass">
       <div class="miami-trilogy__glass-label">REF / 02 · HOMBRE</div>
@@ -82,8 +78,6 @@
     </div>
   </div>
   <div class="miami-trilogy__ch" data-chapter="2" data-gender="mujer">
-    <div class="miami-trilogy__eyebrow">CAPÍTULO / 01</div>
-    <div class="miami-trilogy__number">01</div>
     <h3 class="miami-trilogy__name">BLANCO</h3>
     <div class="miami-trilogy__glass">
       <div class="miami-trilogy__glass-label">REF / 01 · MUJER</div>
@@ -97,8 +91,6 @@
     </div>
   </div>
   <div class="miami-trilogy__ch" data-chapter="3" data-gender="mujer">
-    <div class="miami-trilogy__eyebrow">CAPÍTULO / 02</div>
-    <div class="miami-trilogy__number">02</div>
     <h3 class="miami-trilogy__name">NEGRO</h3>
     <div class="miami-trilogy__glass">
       <div class="miami-trilogy__glass-label">REF / 02 · MUJER</div>
@@ -112,8 +104,6 @@
     </div>
   </div>
   <div class="miami-trilogy__ch" data-chapter="4" data-gender="hombre">
-    <div class="miami-trilogy__eyebrow">CAPÍTULO / 03</div>
-    <div class="miami-trilogy__number">03</div>
     <h3 class="miami-trilogy__name miami-trilogy__name--compact">NEGRA PARCHES</h3>
     <div class="miami-trilogy__glass">
       <div class="miami-trilogy__glass-label">REF / 03 · HOMBRE</div>
@@ -127,19 +117,12 @@
     </div>
   </div>
 
-  {# HUD top — counter + progress bar #}
-  <div class="miami-trilogy__hud">
-    <em data-counter>01</em>
-    <span class="miami-trilogy__hud-bar"><i data-bar></i></span>
-    <span data-total>02</span>
-  </div>
-
   {# Nav abajo: 2 dots (mujer) o 3 dots (hombre) — JS oculta los que sobran segun genero #}
   <nav class="miami-trilogy__nav" aria-label="Capítulos">
     <button class="miami-trilogy__nav-arrow" data-arrow="prev" aria-label="Anterior">←</button>
-    <button data-go="0" class="is-active">01</button>
-    <button data-go="1">02</button>
-    <button data-go="2">03</button>
+    <button data-go="0" class="is-active" aria-label="Modelo 1"></button>
+    <button data-go="1" aria-label="Modelo 2"></button>
+    <button data-go="2" aria-label="Modelo 3"></button>
     <button class="miami-trilogy__nav-arrow" data-arrow="next" aria-label="Siguiente">→</button>
   </nav>
 </section>
@@ -214,6 +197,11 @@
   display: flex; align-items: center; justify-content: center;
   pointer-events: none;
 }
+
+/* Deslizable con el mouse (se suma al swipe touch que ya existía) */
+.miami-trilogy { cursor: grab; }
+.miami-trilogy.is-dragging { cursor: grabbing; }
+.miami-trilogy__glass { cursor: auto; }
 
 .miami-trilogy__jacket {
   position: absolute; top: 50%; left: 50%;
@@ -310,6 +298,7 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   width: 100%; height: 100%; object-fit: contain;
   animation: miami-trilogy-float 6.5s ease-in-out infinite;
   transition: filter 0.95s cubic-bezier(0.22, 0.61, 0.36, 1);
+  -webkit-user-drag: none; user-select: none;   /* que el browser no "agarre" la imagen */
 }
 @keyframes miami-trilogy-float {
   0%, 100% { transform: translate3d(0,0,0) rotate(0deg); }
@@ -340,36 +329,37 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   content: ""; width: 48px; height: 1px; background: #b99b63;
 }
 
-.miami-trilogy__number {
-  position: absolute;
-  top: clamp(80px, 11vh, 110px);
-  right: clamp(24px, 5vw, 64px);
-  font-size: clamp(180px, 26vw, 420px);
-  font-weight: 500; line-height: 0.85;
-  -webkit-text-stroke: 1.5px #b99b63;
-  -webkit-text-fill-color: transparent; color: transparent;
-  letter-spacing: -0.04em; opacity: 0.55;
-  pointer-events: none; user-select: none;
-}
-
 .miami-trilogy__name {
   position: absolute;
   bottom: clamp(120px, 18vh, 180px);
   left: clamp(24px, 5vw, 64px);
-  font-size: clamp(64px, 11vw, 200px);
+  /* Antes 11vw/200px: monstruoso y chocaba con la ficha. Más contenido = más offwhite. */
+  font-size: clamp(48px, 8vw, 140px);
   font-weight: 500; line-height: 0.95;
   letter-spacing: 0.04em; text-transform: uppercase;
-  max-width: 90vw;
+  /* Reserva SIEMPRE la zona de la ficha glass (su ancho + su margen derecho) */
+  max-width: calc(100% - clamp(280px, 28vw, 380px) - clamp(48px, 10vw, 128px) - clamp(24px, 5vw, 64px));
+  overflow-wrap: break-word;
   text-shadow: 0 4px 24px rgba(0,0,0,0.7);
   mix-blend-mode: difference;
   margin: 0;
+}
+
+/* Anchos intermedios (ventana achicada / tablet apaisada): el hueco entre
+   nombre y ficha se achica — bajamos tipografía y compactamos la ficha para
+   que NUNCA se pisen. */
+@media (min-width: 768px) and (max-width: 1280px) {
+  .miami-trilogy__name { font-size: clamp(34px, 5.5vw, 80px); bottom: clamp(140px, 22vh, 200px); }
+  .miami-trilogy__name--compact { font-size: clamp(28px, 4.2vw, 60px); }
+  .miami-trilogy__glass { width: clamp(250px, 32vw, 330px); padding: 18px 20px; }
+  .miami-trilogy__glass p { font-size: 12px; margin-bottom: 12px; }
 }
 /* Nombres de dos palabras (ej: "NEGRA PARCHES") en el tamaño de una palabra
    partían en dos renglones y se montaban gigantes sobre la campera. Se achica
    y se fuerza a UNA línea para que quede alineado abajo como los demás. */
 .miami-trilogy__name--compact {
-  font-size: clamp(44px, 6.5vw, 116px);
-  white-space: nowrap;
+  font-size: clamp(38px, 5.5vw, 96px);
+  /* puede partir en dos líneas: con la tipo contenida queda bien y nunca desborda */
 }
 
 .miami-trilogy__glass {
@@ -401,31 +391,6 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
 }
 .miami-trilogy__glass-meta strong {
   color: #fff; font-weight: 500; letter-spacing: 0.18em;
-}
-
-/* ========== HUD top center ========== */
-.miami-trilogy__hud {
-  position: absolute;
-  top: clamp(82px, 13vh, 140px);
-  left: 50%; transform: translateX(-50%);
-  z-index: 11;
-  display: flex; align-items: center; gap: 18px;
-  font-size: 10px; letter-spacing: 0.5em; text-transform: uppercase;
-  color: rgba(255,255,255,0.7); font-variant-numeric: tabular-nums;
-}
-.miami-trilogy__hud em {
-  font-style: normal; color: #b99b63; font-weight: 500;
-}
-.miami-trilogy__hud-bar {
-  width: 120px; height: 1px;
-  background: rgba(255,255,255,0.15);
-  position: relative; overflow: hidden;
-}
-.miami-trilogy__hud-bar i {
-  position: absolute; inset: 0;
-  background: linear-gradient(90deg, #8e7547, #b99b63, #d4bb88);
-  transform-origin: left center; transform: scaleX(0.5);
-  transition: transform 0.3s linear;
 }
 
 /* ========== Nav abajo ========== */
@@ -467,6 +432,16 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
 .miami-trilogy__nav-arrow:hover { color: #b99b63 !important; }
 .miami-trilogy__nav-arrow:disabled {
   opacity: 0.3 !important; cursor: not-allowed !important;
+}
+/* Dots simples (chau numeros 01/02/03): puntos, como se navega en cualquier lado */
+.miami-trilogy__nav [data-go] {
+  width: 10px; height: 10px; padding: 0; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.35); background: transparent;
+  box-shadow: none;
+}
+.miami-trilogy__nav [data-go]:hover { border-color: #b99b63; }
+.miami-trilogy__nav [data-go].is-active {
+  background: #b99b63; border-color: #b99b63;
 }
 
 /* ========== Responsive mobile ========== */
@@ -548,13 +523,6 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   }
   .miami-trilogy__eyebrow::before { display: none; }
 
-  .miami-trilogy__number {
-    top: 50%; right: 50%;
-    transform: translate(50%, -50%);
-    font-size: clamp(180px, 60vw, 320px);
-    opacity: 0.25;
-  }
-
   .miami-trilogy__name {
     bottom: auto; top: calc(42% + 27vh + 16px);
     left: 50%; transform: translateX(-50%);
@@ -602,13 +570,6 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
     gap: 3px;
   }
 
-  .miami-trilogy__hud {
-    top: 52px;
-    font-size: 9px; letter-spacing: 0.4em; gap: 12px;
-  }
-  .miami-trilogy__hud-bar { width: 70px; }
-  .miami-trilogy__hud em { font-size: 14px; }
-
   .miami-trilogy__nav {
     bottom: 16px;
     gap: 10px; padding: 8px 14px;
@@ -637,11 +598,7 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
    via IntersectionObserver. Mata TODAS las animaciones para liberar GPU. */
 .miami-trilogy.is-paused .miami-trilogy__img,
 .miami-trilogy.is-paused .miami-trilogy__jacket.is-center::before,
-.miami-trilogy.is-paused .miami-trilogy__hud-bar i,
-.miami-trilogy.is-paused .miami-trilogy__jacket.is-center .miami-trilogy__img {
-  animation-play-state: paused !important;
-}
-</style>
+.miami-trilogy.is-paused </style>
 
 <script>
 (function () {
@@ -783,6 +740,47 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
     touchStartY = null;
   }, { passive: true });
 
+  /* ===== Mouse drag / swipe (desktop) =====
+     El swipe touch ya existía; faltaba poder arrastrar con el mouse. Un drag
+     horizontal pasado el umbral cambia de campera, igual que el swipe. Si hubo
+     drag, se cancela el click para no navegar al producto sin querer. */
+  var mDownX = null, mDownY = null, mDragged = false;
+  var MOUSE_SWIPE_THRESHOLD = 60;
+  /* CLAVE: la campera central es <a><img> — el drag&drop nativo del browser
+     secuestraba el gesto (por eso el swipe con mouse "no andaba"). Se anula. */
+  section.addEventListener('dragstart', function (e) { e.preventDefault(); });
+  section.addEventListener('mousedown', function (e) {
+    if (e.button !== 0) return;
+    /* No interceptar los controles (dots, flechas, switch, ficha) */
+    if (e.target.closest('.miami-trilogy__nav, .miami-trilogy__gender, .miami-trilogy__glass')) return;
+    e.preventDefault();   /* mata la selección de texto y el drag nativo */
+    mDownX = e.clientX; mDownY = e.clientY; mDragged = false;
+  });
+  window.addEventListener('mousemove', function (e) {
+    if (mDownX === null) return;
+    if (!mDragged && Math.abs(e.clientX - mDownX) > 8) {
+      mDragged = true;
+      section.classList.add('is-dragging');
+    }
+  });
+  window.addEventListener('mouseup', function (e) {
+    if (mDownX === null) return;
+    var dx = e.clientX - mDownX, dy = e.clientY - mDownY;
+    section.classList.remove('is-dragging');
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > MOUSE_SWIPE_THRESHOLD) {
+      if (dx < 0) switchChapter(active + 1);
+      else        switchChapter(active - 1);
+      pauseForManual();
+    }
+    mDownX = null; mDownY = null;
+  });
+  /* Si arrastró sobre la campera central (que es un <a>), no navegar al producto */
+  section.querySelectorAll('.miami-trilogy__jacket').forEach(function (j) {
+    j.addEventListener('click', function (e) {
+      if (mDragged) { e.preventDefault(); e.stopPropagation(); mDragged = false; }
+    }, true);
+  });
+
   /* ===== Mouse parallax (solo la central, solo desktop con mouse real) =====
      En mobile/tablet con touch NO arrancamos el loop. Si lo arrancaramos,
      requestAnimationFrame corre 60 veces por segundo en idle, comiendo CPU
@@ -838,8 +836,8 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
 
   function autoNext() { switchChapter(active + 1); }
   function startAutoLoop() {
-    if (autoTimer) return;
-    autoTimer = setInterval(autoNext, AUTO_INTERVAL);
+    /* DESACTIVADO a pedido de Juani: la seccion NUNCA se mueve sola.
+       (antes rotaba cada 5s y ademas revivia a los 15s tras interaccion) */
   }
   function stopAutoLoop() {
     if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
@@ -853,14 +851,9 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
     }, MANUAL_PAUSE);
   }
 
-  section.addEventListener('mouseenter', stopAutoLoop);
-  section.addEventListener('mouseleave', function () {
-    if (!resumeTimer) startAutoLoop();
-  });
-
   /* Inicializa render desde estado inicial */
   render();
-  setTimeout(startAutoLoop, 3500);
+  /* auto-loop DESACTIVADO: solo se mueve cuando el usuario lo pide */
 
   /* ===== Pausa total cuando la seccion sale del viewport =====
      Mata todas las animaciones CSS del trilogy (rim glow, float, aura)
@@ -871,7 +864,6 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
       var isVisible = entries[0].isIntersecting;
       section.classList.toggle('is-paused', !isVisible);
       if (isVisible) {
-        if (!autoTimer && !resumeTimer) startAutoLoop();
       } else {
         stopAutoLoop();
       }

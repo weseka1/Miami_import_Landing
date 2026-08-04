@@ -1,0 +1,240 @@
+import { useEffect, useMemo, useState } from "react";
+import { Loader2, RefreshCw, MessageCircle, ChevronDown, CreditCard, Undo2 } from "lucide-react";
+import { api, ApiError, ESTADOS_PEDIDO, waLink, type MiamiPedido, type WaTemplates } from "../api/miamiApi";
+import { fmtARS } from "@/lib/format";
+import { PageHeader, EmptyState } from "../components/PageShell";
+import { Segmented } from "../components/Controls";
+import Badge from "../components/Badge";
+import { useToast } from "../components/Toast";
+import type { Tone } from "../ui/estados";
+import { cn } from "../ui/cn";
+import Select from "@/components/Select";
+
+// ============================================================================
+//  PEDIDOS — lista real (/panel/api/orders), online y de mostrador juntas.
+//  Igual que el panel viejo: detalle expandible con dirección + productos,
+//  botón de WhatsApp con la plantilla "coordinar" pre-cargada, y "Verificar
+//  pagos pendientes" (reconciliación contra Stripe). Suma lo que el backend
+//  ya sabía hacer y el viejo no mostraba: cambio de estado y reembolso.
+// ============================================================================
+
+const badgePago: Record<string, { label: string; tone: Tone }> = {
+  paid: { label: "Pagado", tone: "green" },
+  pending: { label: "Pendiente", tone: "amber" },
+  cancelled: { label: "Cancelado", tone: "neutral" },
+  refunded: { label: "Reembolsado", tone: "blue" },
+  failed: { label: "Falló", tone: "red" },
+};
+
+const rotuloEstado: Record<string, string> = {
+  pending: "Pendiente", paid: "Pagado", processing: "Preparando",
+  shipped: "Enviado", delivered: "Entregado", cancelled: "Cancelado", refunded: "Reembolsado",
+};
+
+export default function Pedidos() {
+  const { push } = useToast();
+  const [pedidos, setPedidos] = useState<MiamiPedido[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [filtro, setFiltro] = useState("todos");
+  const [abierto, setAbierto] = useState<number | null>(null);
+  const [tpls, setTpls] = useState<WaTemplates>({});
+  const [reconciliando, setReconciliando] = useState(false);
+  const [reconcilInfo, setReconcilInfo] = useState("");
+
+  const cargar = async () => {
+    try {
+      setError(null);
+      setPedidos(await api.pedidos(100));
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "No se pudieron cargar los pedidos");
+      setPedidos([]);
+    }
+  };
+
+  useEffect(() => {
+    void cargar();
+    api.waTemplates().then(setTpls, () => {}); // plantillas para el botón de WhatsApp
+  }, []);
+
+  const filtrados = useMemo(() => {
+    if (!pedidos) return [];
+    if (filtro === "todos") return pedidos;
+    return pedidos.filter((p) => p.payment_status === filtro);
+  }, [pedidos, filtro]);
+
+  const conteo = (st: string) => pedidos?.filter((p) => p.payment_status === st).length ?? 0;
+
+  const reconciliar = async () => {
+    setReconciliando(true);
+    setReconcilInfo("");
+    try {
+      const r = await api.reconciliarPagos();
+      const partes = [`Revisados: ${r.revisados}`, `acreditados: ${r.acreditados.length}`];
+      if (r.sin_pagar.length) partes.push(`sin pagar: ${r.sin_pagar.length}`);
+      if (r.para_revisar.length) partes.push(`a revisar: ${r.para_revisar.length}`);
+      if (r.errores.length) partes.push(`errores: ${r.errores.length}`);
+      setReconcilInfo(partes.join(" · ") + (r.acreditados.length ? " — pedidos: " + r.acreditados.map((a) => `#${a.pedido}`).join(", ") : ""));
+      push(r.acreditados.length ? `${r.acreditados.length} pedido(s) acreditado(s)` : "No había pagos pendientes de acreditar", r.acreditados.length ? "success" : "info");
+      void cargar();
+    } catch (e) {
+      // Local sin Stripe configurado → 503: se muestra tal cual, sin inventar.
+      push(e instanceof ApiError ? e.message : "No se pudo reconciliar", "error");
+    } finally {
+      setReconciliando(false);
+    }
+  };
+
+  const cambiarEstado = async (p: MiamiPedido, status: string) => {
+    try {
+      await api.setEstadoPedido(p.id, status);
+      setPedidos((prev) => prev?.map((x) => (x.id === p.id ? { ...x, status } : x)) ?? null);
+      push(`Pedido #${p.number} → ${rotuloEstado[status] || status}`, "success");
+    } catch (e) {
+      push(e instanceof ApiError ? e.message : "No se pudo cambiar el estado", "error");
+    }
+  };
+
+  const reembolsar = async (p: MiamiPedido) => {
+    if (!window.confirm(`¿Reembolsar el pedido #${p.number} por ${fmtARS(parseFloat(p.total || "0"))}? Se le devuelve la plata al cliente por Stripe y se repone el stock.`)) return;
+    try {
+      await api.reembolsarPedido(p.id);
+      push(`Pedido #${p.number} reembolsado`, "success");
+      void cargar();
+    } catch (e) {
+      push(e instanceof ApiError ? e.message : "No se pudo reembolsar", "error");
+    }
+  };
+
+  const abrirWhatsapp = (p: MiamiPedido) => {
+    const phone = p.contact_phone || (p.shipping_address?.phone as string) || "";
+    const tpl = tpls.coordinar_caba || "Hola {name}, te aviso por tu pedido #{order}.";
+    window.open(waLink(phone, tpl, { name: p.contact_name || "", order: p.number }), "_blank");
+  };
+
+  return (
+    <div>
+      <PageHeader
+        title="Pedidos"
+        subtitle={pedidos ? `${pedidos.length} pedidos · online y mostrador juntos` : "Cargando…"}
+        actions={
+          <>
+            <button
+              onClick={reconciliar}
+              disabled={reconciliando}
+              title="Consulta a Stripe si los pedidos pendientes ya fueron pagados"
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-graph/15 bg-graph/[0.03] px-4 text-sm font-semibold text-graph transition hover:border-graph/30 disabled:opacity-50"
+            >
+              {reconciliando ? <Loader2 size={15} className="animate-spin" /> : <CreditCard size={15} />} Verificar pagos pendientes
+            </button>
+            <button onClick={() => { setPedidos(null); void cargar(); }} className="inline-flex h-10 items-center gap-2 rounded-xl border border-graph/15 px-4 text-sm font-medium text-graph-500 transition hover:text-graph">
+              <RefreshCw size={15} /> Actualizar
+            </button>
+          </>
+        }
+      />
+
+      {reconcilInfo && <p className="mb-4 rounded-xl bg-graph/[0.03] px-3 py-2 text-xs text-graph-500 ring-1 ring-inset ring-graph/[0.06]">{reconcilInfo}</p>}
+
+      <div className="mb-4">
+        <Segmented
+          value={filtro}
+          onChange={setFiltro}
+          options={[
+            { value: "todos", label: "Todos", count: pedidos?.length ?? 0 },
+            { value: "paid", label: "Pagados", count: conteo("paid") },
+            { value: "pending", label: "Pendientes", count: conteo("pending") },
+            { value: "cancelled", label: "Cancelados", count: conteo("cancelled") },
+            { value: "refunded", label: "Reembolsados", count: conteo("refunded") },
+          ]}
+        />
+      </div>
+
+      {pedidos === null ? (
+        <div className="grid place-items-center py-24 text-graph-400"><Loader2 className="animate-spin" /></div>
+      ) : error ? (
+        <EmptyState msg={error} />
+      ) : filtrados.length === 0 ? (
+        <EmptyState msg={filtro === "todos" ? "Todavía no hay pedidos. Cuando alguien compre en la tienda (o cobres en el local) aparecen acá." : "No hay pedidos con ese estado."} />
+      ) : (
+        <div className="space-y-2.5">
+          {filtrados.map((p) => {
+            const b = badgePago[p.payment_status] || { label: p.payment_status, tone: "neutral" as Tone };
+            const d = p.shipping_address || {};
+            const calle = [d.street, d.number].filter(Boolean).join(" ") + (d.floor ? `, ${d.floor}` : "");
+            const loc = [d.city, d.province, d.zipcode].filter(Boolean).join(" · ");
+            const esLocal = d.canal === "local";
+            const open = abierto === p.id;
+            const phone = p.contact_phone || (d.phone as string) || "";
+            return (
+              <div key={p.id} className="pcard overflow-hidden">
+                <button onClick={() => setAbierto(open ? null : p.id)} className="flex w-full flex-wrap items-center gap-3 px-4 py-3 text-left transition hover:bg-graph/[0.02] md:flex-nowrap">
+                  <span className="w-16 shrink-0 font-display text-sm font-bold text-graph">#{p.number}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold text-graph">{p.contact_name || "—"}</span>
+                    <span className="block truncate text-xs text-graph-400">{p.contact_email || (esLocal ? "venta de mostrador" : "")}</span>
+                  </span>
+                  <span className="hidden text-xs text-graph-400 sm:block">{p.created_at ? new Date(p.created_at).toLocaleDateString("es-AR") : "—"}</span>
+                  <span className="w-24 text-right font-display text-sm font-semibold text-graph">{fmtARS(parseFloat(p.total || "0"))}</span>
+                  <Badge tone={b.tone} dot>{b.label}</Badge>
+                  {esLocal && <Badge tone="neutral">Local</Badge>}
+                  <ChevronDown size={15} className={cn("shrink-0 text-graph-400 transition-transform", open && "rotate-180")} />
+                </button>
+
+                {open && (
+                  <div className="border-t border-graph/[0.07] bg-graph/[0.02] px-4 py-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-graph-400">Enviar a</p>
+                        <p className="mt-1 text-sm text-graph">
+                          {calle.trim() || loc ? `${calle.trim()}${calle.trim() && loc ? " — " : ""}${loc}` : <span className="text-graph-400">sin dirección cargada{esLocal ? " (venta en el local)" : ""}</span>}
+                        </p>
+                        {phone && <p className="mt-1 text-sm text-graph-500">Tel: {phone}</p>}
+                        {d.vendedor && <p className="mt-1 text-xs text-graph-400">Vendió: {String(d.vendedor)}</p>}
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-graph-400">Productos</p>
+                        <ul className="mt-1 space-y-0.5 text-sm text-graph">
+                          {p.products.map((it, i) => (
+                            <li key={i}>
+                              {it.name}{it.sku ? <span className="text-graph-400"> ({it.sku})</span> : null} × {it.quantity}
+                              {it.price && <span className="text-graph-400"> — {fmtARS(parseFloat(it.price))}</span>}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-graph/[0.07] pt-3">
+                      {phone ? (
+                        <button onClick={() => abrirWhatsapp(p)} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-sea/10 px-3 text-xs font-semibold text-sea ring-1 ring-inset ring-sea/25 transition hover:bg-sea hover:text-white">
+                          <MessageCircle size={14} /> WhatsApp
+                        </button>
+                      ) : (
+                        <span className="text-xs text-graph-400">Sin teléfono para WhatsApp</span>
+                      )}
+
+                      <div className="ml-auto flex items-center gap-2">
+                        <span className="text-[11px] font-medium uppercase tracking-wide text-graph-400">Estado</span>
+                        <Select
+                          value={ESTADOS_PEDIDO.includes(p.status as any) ? p.status : "pending"}
+                          onChange={(v) => cambiarEstado(p, v)}
+                          options={ESTADOS_PEDIDO.map((s) => ({ value: s, label: rotuloEstado[s] || s }))}
+                          className="w-40"
+                        />
+                        {p.payment_status === "paid" && (
+                          <button onClick={() => reembolsar(p)} className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-graph-400 transition hover:bg-red-500/10 hover:text-red-600" title="Devuelve la plata por Stripe y repone stock">
+                            <Undo2 size={14} /> Reembolsar
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

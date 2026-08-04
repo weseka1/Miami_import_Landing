@@ -50,9 +50,17 @@
     .mi-utils a,.mi-utils button{color:rgba(245,243,238,.85);background:none;border:0;cursor:pointer;
       font-size:13px;letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
     .mi-utils a:hover{color:var(--miami-gold,#b99b63)}
-    .mi-search{display:flex;align-items:center;border:1px solid rgba(245,243,238,.18);border-radius:999px;
-      padding:6px 14px}
-    .mi-search input{background:none;border:0;color:#fff;outline:none;font-size:13px;width:150px}
+    .mi-search{display:flex;align-items:center;gap:8px;border:1px solid rgba(245,243,238,.14);border-radius:999px;
+      padding:9px 16px;background:rgba(255,255,255,.05);
+      -webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%);
+      transition:border-color .3s ease, background .3s ease}
+    .mi-search::before{content:"";width:14px;height:14px;flex:none;border-radius:50%;
+      border:1.5px solid rgba(245,243,238,.5);box-shadow:6px 6px 0 -5px rgba(245,243,238,.5)}
+    .mi-search:focus-within{border-color:rgba(185,155,99,.55);background:rgba(255,255,255,.08)}
+    .mi-search input{-webkit-appearance:none;appearance:none;background:transparent;border:0;color:#fff;
+      outline:none;font-size:13px;width:150px;letter-spacing:.02em}
+    .mi-search input::placeholder{color:rgba(245,243,238,.5)}
+    .mi-search input::-webkit-search-cancel-button{-webkit-appearance:none}
     /* Footer */
     .mi-footer{background:#050505;border-top:1px solid rgba(185,155,99,.18);margin-top:80px;padding:56px 0 40px}
     .mi-footer__grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px}
@@ -76,7 +84,28 @@
     .mi-section-title{font-size:clamp(22px,3vw,34px);letter-spacing:.06em;text-transform:uppercase;
       text-align:center;margin:64px 0 40px;font-weight:700}
     @media(max-width:900px){.mi-grid{grid-template-columns:repeat(2,1fr)}.mi-footer__grid{grid-template-columns:1fr}.mi-nav{display:none}}
+    /* Mobile 390px: nada recortado (Estándar WESEKA — verificado con screenshot) */
+    .mi-search-icon{display:none}
+    @media(max-width:640px){
+      .mi-adbar{font-size:9px !important;letter-spacing:.08em !important;padding:6px 10px !important;line-height:1.6}
+      .mi-header__bar{gap:10px;height:60px}
+      .mi-logo img{height:30px}
+      /* El input no entra con CUENTA+CARRITO: en mobile el buscador es un ícono
+         que lleva a /buscar (patrón e-commerce), y el header respira. */
+      .mi-search{display:none}
+      .mi-search-icon{display:flex;align-items:center;justify-content:center;width:38px;height:38px;
+        border:1px solid rgba(245,243,238,.16);border-radius:999px;background:rgba(255,255,255,.05);flex:none}
+      .mi-search-icon::before{content:"";width:13px;height:13px;border-radius:50%;
+        border:1.5px solid rgba(245,243,238,.65);box-shadow:5px 5px 0 -4px rgba(245,243,238,.65)}
+      .mi-utils{gap:10px}
+      .mi-utils a{font-size:11px;letter-spacing:.04em;white-space:nowrap}
+      .mi-logo img{height:26px;max-width:96px;object-fit:contain}
+      .mi-cart-label{display:none}   /* mobile: solo el contador ( 0 ) */
+    }
   </style>
+
+  {# DESIGN SYSTEM — tokens + glass base. Se carga ÚLTIMO para unificar toda la web. #}
+  {% include "miami-ds.tpl" %}
 </head>
 <body class="template-{{ template_class|default('page') }}">
 
@@ -103,8 +132,9 @@
         <form class="mi-search" action="/buscar" method="get" role="search">
           <input type="search" name="q" placeholder="Buscar…" aria-label="Buscar productos"/>
         </form>
+        <a class="mi-search-icon" href="/buscar" aria-label="Buscar productos"></a>
         <a href="/cuenta" aria-label="Mi cuenta"><span data-account-label>Cuenta</span></a>
-        <a href="/carrito" aria-label="Carrito">Carrito (<span data-cart-count>0</span>)</a>
+        <a href="/carrito" aria-label="Carrito"><span class="mi-cart-label">Carrito </span>(<span data-cart-count>0</span>)</a>
       </div>
     </div>
   </header>
@@ -142,6 +172,9 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.0.45/dist/lenis.min.js" defer></script>
 
+  {# Mia — chat de la casa (FAB + panel, todas las páginas) #}
+  {% include "miami-mia.tpl" %}
+
   {# Scripts propios: carrusel trilogía, reveal, marquee, tilt 3D, hero parallax, vanta init #}
   {% include "miami-scripts.tpl" %}
 
@@ -157,5 +190,29 @@
   </script>
 
   {% block scripts %}{% endblock %}
+
+  {# Medidor de overflow horizontal (solo con ?debugw=1) — herramienta del
+     Estándar WESEKA: lista qué elementos se pasan del viewport. #}
+  <script nonce="{{ csp_nonce }}">
+  if (location.search.indexOf('debugw') !== -1) {
+    window.addEventListener('load', function () {
+      var cw = document.documentElement.clientWidth;
+      document.title = '[SW ' + document.documentElement.scrollWidth + '/' + cw + '] ' + document.title;
+      var hits = [];
+      document.querySelectorAll('body *').forEach(function (el) {
+        var r = el.getBoundingClientRect();
+        if ((r.right > cw + 2 || r.width > cw + 2) && hits.length < 15) {
+          var cls = (typeof el.className === 'string' ? el.className : '').split(' ')[0];
+          hits.push(el.tagName + '.' + cls + ' w=' + Math.round(r.width) + ' right=' + Math.round(r.right));
+        }
+      });
+      var d = document.createElement('div'); d.id = 'debugw-out';
+      d.textContent = '[SW ' + document.documentElement.scrollWidth + '/' + cw + '] ' + (hits.join(' || ') || 'SIN OVERFLOW');
+      d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2147483647;background:#c00;color:#fff;' +
+                        'font:11px/1.4 monospace;padding:4px 6px;white-space:normal;word-break:break-all';
+      document.body.appendChild(d);
+    });
+  }
+  </script>
 </body>
 </html>

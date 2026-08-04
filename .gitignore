@@ -41,3 +41,7 @@ dist/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# EXCEPCION: el build del panel React SE VERSIONA (Render corre Python, sin Node) — se sirve el dist commiteado
+!panel-app/dist/
+!panel-app/dist/**

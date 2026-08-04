@@ -1,0 +1,384 @@
+/* ==========================================================================
+   Capa táctil — optimizada para la tablet de 8.7" del local.
+
+   Se carga DESPUÉS de style.css y solo agrega/ajusta: no reescribe el diseño,
+   así el panel sigue viéndose igual en una notebook.
+
+   Objetivo: que todo se pueda operar con el dedo, sin apuntar. La referencia
+   es 44px de lado mínimo por objetivo táctil; acá se usa 52-64px porque se
+   trabaja parado y a veces con el producto en la otra mano.
+
+   Una tablet de 8.7" reporta entre ~600 y ~1100 px de ancho CSS según
+   orientación, así que ese es el rango que cubre esta hoja.
+   ========================================================================== */
+
+:root{
+  --tap:56px;            /* alto mínimo de cualquier cosa tocable */
+  --tap-lg:64px;         /* acciones principales */
+  --gap:14px;
+}
+
+/* --------------------------------------------------------------------------
+   1. Objetivos táctiles grandes en TODO el panel
+   -------------------------------------------------------------------------- */
+@media (max-width: 1100px), (pointer: coarse){
+
+  html{ -webkit-text-size-adjust:100%; }
+  body{ -webkit-tap-highlight-color:rgba(185,155,99,.2); }
+
+  /* Nada de textos de 11-12px: en tablet no se leen de un vistazo. */
+  .btn-primary, .btn-secondary, .btn-ghost, .btn-danger{
+    min-height:var(--tap); padding:0 24px;
+    font-size:15px; letter-spacing:.06em;
+    display:inline-flex; align-items:center; justify-content:center;
+    border-radius:10px;
+  }
+  .btn-primary{ font-weight:700; }
+
+  input, select, textarea{
+    min-height:var(--tap);
+    font-size:16px;          /* <16px hace que iOS/Android hagan zoom al tocar */
+    padding:12px 14px; border-radius:10px;
+  }
+  textarea{ min-height:120px; }
+  label{ font-size:13px; }
+
+  /* Menú lateral: ítems anchos y separados, se navega sin errar */
+  .nav-item{
+    min-height:var(--tap); padding:0 16px;
+    font-size:16px; gap:14px; border-radius:10px;
+  }
+  .nav-icon{ font-size:19px; width:26px; height:26px; text-align:center; }
+  .nav-icon svg{ width:20px; height:20px; }
+  .nav{ gap:6px; display:flex; flex-direction:column; }
+
+  .page-header h1{ font-size:24px; }
+  .eyebrow{ font-size:11px; }
+
+  /* Grilla de productos: 2 columnas cómodas en vez de muchas chicas */
+  .grid-products{ grid-template-columns:repeat(2, 1fr); gap:var(--gap); }
+  .product-card .name{ font-size:15px; }
+  .product-card .brand{ font-size:11px; }
+
+  /* Filas de stock del modal: botones + / − grandes */
+  .modal-row{ padding:12px 0; gap:10px; flex-wrap:wrap; }
+  .btn-stock{
+    min-width:52px; min-height:52px;
+    font-size:24px; line-height:1; border-radius:10px;
+  }
+  .stock-input{
+    min-width:76px; min-height:52px;
+    font-size:19px; text-align:center; font-weight:600;
+  }
+  .price-input{
+    min-width:104px; min-height:52px;
+    font-size:19px; text-align:right; font-weight:600;
+  }
+  .talle{ font-size:16px; font-weight:600; min-width:52px; }
+  .size-chip{ min-height:48px; padding:0 18px; font-size:15px; border-radius:10px; }
+  /* Talle libre y "agregar fotos": tamaño de dedo, y el input a 16px para que
+     el navegador no haga zoom automático al enfocarlo. */
+  .size-custom-input{ min-height:52px; font-size:16px; }
+  .size-custom .btn-ghost{ min-height:52px; padding:0 20px; font-size:15px; }
+  .modal-addphotos .btn-ghost{ min-height:52px; padding:0 20px; font-size:15px; }
+  .modal-addphotos-hint{ font-size:13px; }
+
+  /* Pedidos: en pantalla angosta la tabla se lee mejor apilada */
+  .order-row{ gap:10px; padding:16px 0; font-size:15px; }
+  .order-row .num{ font-size:16px; font-weight:700; }
+
+  /* Modal a pantalla casi completa: más espacio para el dedo */
+  .modal-box{ width:96vw; max-width:none; max-height:92vh; border-radius:14px; }
+  .modal-close{ min-width:52px; min-height:52px; font-size:26px; }
+}
+
+/* --------------------------------------------------------------------------
+   2. MENÚ HAMBURGUESA EN TODA LA TABLET (hasta 1100px), las dos orientaciones.
+
+   En una tablet de 8.7" horizontal (~890px de ancho CSS) una barra lateral fija
+   se come un tercio de la pantalla y deja el contenido apretado. Con el cajón
+   se gana toda la pantalla y el menú es un botón grande, igual en vertical y en
+   horizontal. Estas reglas van DESPUÉS de style.css, así que ganan sobre la
+   barra fija que aquel muestra a partir de 861px.
+   -------------------------------------------------------------------------- */
+@media (max-width: 1100px), (pointer: coarse){
+  /* Barra superior siempre visible con el botón del menú — glass claro (enlatado) */
+  .mobile-topbar{
+    display:flex !important; align-items:center; gap:14px;
+    position:fixed; top:0; left:0; right:0; height:64px; z-index:70;
+    background:rgba(244,245,246,.85);
+    -webkit-backdrop-filter:blur(24px); backdrop-filter:blur(24px);
+    color:var(--ink); padding:0 12px;
+    border-bottom:1px solid var(--rule);
+  }
+  .mobile-menu-btn{
+    display:flex !important; align-items:center; justify-content:center;
+    min-width:52px; min-height:52px; font-size:28px; color:var(--ink);
+    background:transparent; border:1px solid var(--rule-strong); border-radius:12px;
+  }
+  .mobile-menu-btn:active{ background:rgba(22,22,26,.08); }
+  .mobile-topbar-brand{ font-family:var(--font-display,inherit); font-weight:600; letter-spacing:.02em; font-size:15px; }
+
+  /* Barra lateral → cajón que entra desde la izquierda */
+  .sidebar{
+    top:0; bottom:0; left:0; width:300px; max-width:86vw; padding:24px 18px;
+    z-index:80; transform:translateX(-100%);
+    transition:transform .28s var(--ease); overflow-y:auto;
+  }
+  body.nav-open .sidebar{ transform:translateX(0); box-shadow:0 0 50px rgba(0,0,0,.5); }
+
+  /* Fondo oscuro detrás del cajón */
+  .sidebar-overlay{
+    display:block !important; position:fixed; inset:0; z-index:75;
+    background:rgba(0,0,0,.5); opacity:0; pointer-events:none;
+    transition:opacity .25s var(--ease);
+  }
+  body.nav-open .sidebar-overlay{ opacity:1; pointer-events:auto; }
+
+  /* Contenido a todo el ancho, debajo de la barra fija (que mide 64px).
+     El padding-top DEBE superarla: con 20px el contenido se metía debajo y
+     tapaba el botón del menú, y parecía que no existía. */
+  .main{ margin-left:0 !important; padding:84px 16px 40px; }
+
+  .grid-2{ grid-template-columns:1fr; gap:var(--gap); }
+  .kpi-grid{ grid-template-columns:repeat(2,1fr); gap:var(--gap); }
+  .kpi-value{ font-size:26px; }
+}
+
+/* ==========================================================================
+   PUNTO DE VENTA
+   ========================================================================== */
+.pos-layout{
+  display:grid; grid-template-columns:1fr 340px; gap:20px; align-items:start;
+}
+.pos-search{ width:100%; margin-bottom:14px; }
+
+.pos-grid{
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+  gap:var(--gap);
+  max-height:calc(100vh - 210px); overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+.pos-card{
+  background:var(--bg-card); border:1px solid var(--rule); border-radius:var(--radius);
+  overflow:hidden; display:flex; flex-direction:column;
+}
+.pos-card__img{
+  height:118px; background:var(--bg-soft);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--ink-mute); font-size:12px;
+}
+.pos-card__img img{ width:100%; height:100%; object-fit:cover; }
+.pos-card__info{ padding:12px; }
+.pos-card__marca{
+  font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-mute);
+}
+.pos-card__nombre{
+  font-size:14px; font-weight:600; margin:4px 0 10px; line-height:1.35;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.pos-card__talles{ display:flex; flex-wrap:wrap; gap:8px; }
+
+/* Botón de talle: es LO que más se toca, así que es el más grande.
+   Acción principal = acento champagne (enlatado WESEKA). */
+.pos-talle{
+  min-height:54px; min-width:66px; padding:6px 12px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  background:var(--accent,#B99B63); color:#fff; border:0; border-radius:10px;
+  box-shadow:0 8px 18px -10px rgba(185,155,99,.55);
+  cursor:pointer; transition:transform .12s var(--ease), opacity .12s var(--ease);
+}
+.pos-talle span{ font-size:15px; font-weight:700; line-height:1; }
+.pos-talle small{ font-size:11px; opacity:.75; }
+.pos-talle:active{ transform:scale(.94); opacity:.85; }
+
+/* --- Carrito --- */
+.pos-carrito{
+  background:var(--bg-card); border:1px solid var(--rule); border-radius:var(--radius);
+  padding:18px; position:sticky; top:20px;
+}
+.pos-carrito__titulo{
+  margin:0 0 14px; font-size:12px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-mute);
+}
+.pos-items{ max-height:34vh; overflow-y:auto; margin-bottom:14px; }
+.pos-vacio{ color:var(--ink-mute); font-size:14px; text-align:center; padding:22px 0; }
+
+.pos-item{
+  display:grid; grid-template-columns:1fr auto auto; gap:10px; align-items:center;
+  padding:11px 0; border-bottom:1px solid var(--rule);
+}
+.pos-item__nombre{ font-size:14px; font-weight:600; line-height:1.3; }
+.pos-item__talle{ font-size:12px; color:var(--ink-mute); margin-top:2px; }
+.pos-item__qty{ display:flex; align-items:center; gap:8px; }
+.pos-item__qty button{
+  min-width:42px; min-height:42px; font-size:22px; line-height:1;
+  background:var(--bg-soft); border:1px solid var(--rule); border-radius:9px;
+  cursor:pointer; color:var(--ink);
+}
+.pos-item__qty button:active{ background:var(--rule); }
+.pos-item__qty span{ min-width:24px; text-align:center; font-weight:700; font-size:16px; }
+.pos-item__sub{ font-weight:700; font-size:14px; white-space:nowrap; }
+
+.pos-total{
+  display:flex; justify-content:space-between; align-items:baseline;
+  padding:14px 0; border-top:2px solid var(--ink); margin-bottom:14px;
+}
+.pos-total span{ font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-mute); }
+.pos-total strong{ font-size:27px; font-weight:800; }
+
+.pos-label{ display:block; margin-bottom:12px; font-size:12px; color:var(--ink-soft); }
+.pos-label input{ width:100%; margin-top:5px; }
+.pos-opt{ color:var(--ink-mute); font-weight:400; }
+
+.pos-cobrar{ width:100%; min-height:var(--tap-lg); font-size:17px; margin-top:4px; }
+.pos-cobrar:disabled{ opacity:.4; cursor:not-allowed; }
+.pos-vaciar{ width:100%; margin-top:9px; }
+
+/* --- Pantalla de cobro (QR) --- */
+.pos-cobro{
+  position:fixed; inset:0; z-index:9998; background:rgba(0,0,0,.75);
+  align-items:center; justify-content:center; padding:20px; overflow:auto;
+}
+.pos-cobro__caja{
+  background:#fff; border-radius:18px; padding:30px 26px;
+  width:min(94vw,440px); text-align:center; position:relative;
+}
+.pos-cobro__cerrar{
+  position:absolute; top:10px; right:10px;
+  min-width:48px; min-height:48px; font-size:22px;
+  background:none; border:0; color:var(--ink-mute); cursor:pointer; border-radius:10px;
+}
+.pos-cobro__titulo{ margin:0 0 6px; font-size:21px; }
+.pos-cobro__sub{ margin:0 0 20px; color:var(--ink-soft); font-size:14px; }
+.pos-qr{
+  background:#fff; padding:12px; border-radius:14px; border:1px solid var(--rule);
+  display:inline-block; line-height:0;
+}
+.pos-qr svg{ width:230px; height:230px; display:block; }
+.pos-cobro__monto{ margin:20px 0 8px; }
+.pos-cobro__monto span{
+  display:block; font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-mute); margin-bottom:4px;
+}
+.pos-cobro__monto strong{ font-size:31px; font-weight:800; }
+.pos-cobro__link{ font-size:13px; color:var(--ink-mute); margin:12px 0 0; }
+.pos-cobro__link a{ color:var(--ink); text-decoration:underline; }
+.pos-cobro__estado{
+  margin-top:18px; font-size:14px; color:var(--ink-soft);
+  display:flex; align-items:center; justify-content:center; gap:9px;
+}
+.pos-punto{
+  width:9px; height:9px; border-radius:50%; background:var(--orange);
+  animation:posLatido 1.3s ease-in-out infinite;
+}
+@keyframes posLatido{ 0%,100%{opacity:1} 50%{opacity:.25} }
+.pos-cobro__cancelar{ width:100%; margin-top:18px; }
+.pos-cobro__tilde{
+  width:74px; height:74px; margin:0 auto 16px; border-radius:50%;
+  background:rgba(14,140,90,.12); color:var(--green);
+  font-size:40px; display:flex; align-items:center; justify-content:center;
+}
+
+/* --- El punto de venta en tablet vertical: carrito abajo, no al costado --- */
+@media (max-width: 900px){
+  .pos-layout{ grid-template-columns:1fr; }
+  .pos-carrito{ position:static; }
+  .pos-grid{
+    grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+    max-height:46vh;
+  }
+  .pos-card__img{ height:96px; }
+  .pos-items{ max-height:none; }
+  .pos-qr svg{ width:200px; height:200px; }
+}
+
+/* --- Ítem suelto: vender algo que no está en el catálogo ------------------- */
+.pos-barra{ display:flex; gap:10px; margin-bottom:14px; align-items:stretch; }
+.pos-barra .pos-search{ flex:1; margin-bottom:0; }
+
+.pos-btn-libre{
+  min-height:var(--tap); padding:0 20px; white-space:nowrap;
+  background:var(--bg-card); color:var(--ink);
+  border:2px dashed var(--rule-strong); border-radius:10px;
+  font-size:14px; font-weight:600; cursor:pointer;
+  transition:border-color .15s var(--ease), background .15s var(--ease);
+}
+.pos-btn-libre:active{ background:var(--bg-soft); border-color:var(--ink); }
+
+.pos-libre{
+  background:var(--bg-soft); border:1px solid var(--rule); border-radius:var(--radius);
+  padding:16px; margin-bottom:14px;
+}
+.pos-libre__campos{ display:grid; grid-template-columns:2fr 1fr 90px; gap:12px; }
+.pos-libre__campos .pos-label{ margin-bottom:0; }
+.pos-libre__acciones{ display:flex; gap:10px; margin-top:14px; }
+.pos-libre__acciones .btn-primary{ flex:1; }
+
+/* Marca visual para distinguirlo de un producto del catálogo */
+.pos-item__libre{
+  display:inline-block; margin-left:6px; padding:1px 7px; border-radius:5px;
+  background:var(--orange); color:#fff; font-size:10px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase; vertical-align:middle;
+}
+
+@media (max-width: 900px){
+  .pos-barra{ flex-direction:column; }
+  .pos-btn-libre{ width:100%; }
+  .pos-libre__campos{ grid-template-columns:1fr; }
+}
+
+/* --- El modal de producto, cómodo en tablet ------------------------------- */
+@media (max-width: 1100px), (pointer: coarse){
+  /* Casi pantalla completa: en 8.7" un modal chico centrado deja poco lugar
+     para tocar los +/− de stock. */
+  .modal-content{
+    width:94vw; max-width:640px; max-height:90vh; padding:22px 20px 28px;
+    border-radius:16px;
+  }
+  .modal-close{
+    top:8px; right:10px; min-width:52px; min-height:52px;
+    display:flex; align-items:center; justify-content:center; font-size:30px;
+    border-radius:10px;
+  }
+  /* Cada fila de talle: botones grandes y que no se aprieten */
+  .modal .modal-row{ gap:12px; padding:14px 0; flex-wrap:wrap; }
+  .modal .talle{ font-size:17px; min-width:auto; }
+  .modal .stock-input{
+    width:84px; min-height:52px; font-size:20px;
+  }
+  .modal .price-input{
+    width:112px; min-height:52px; font-size:20px;
+  }
+  /* Miniaturas de fotos del modal: girar/mover/actualizar tocables */
+  .modal-photo-apply, .modal-photo-cover{ min-height:48px; font-size:13px; padding:0 12px; }
+  .modal-photo-rotate, .modal-photo-move{ width:44px; height:44px; font-size:17px; }
+  .modal-photo-del{ width:36px; height:36px; top:-12px; left:-12px; font-size:16px; }
+  .modal-photo-tools{ gap:6px; }
+
+  /* Reservar: una columna, campos e input a 16px (sin zoom) y grande al tacto */
+  .reserva-form{ grid-template-columns:1fr; gap:14px; }
+  .reserva-input{ min-height:52px; font-size:16px; }
+  .reserva-estado-btn, .reserva-del-btn, .wa-link{ min-height:46px; font-size:14px; padding:0 16px; }
+  .reserva-row{ padding:18px; }
+  .reserva-acciones{ align-items:stretch; width:100%; }
+  .reserva-estados, .reserva-botones{ justify-content:flex-start; }
+}
+
+/* --------------------------------------------------------------------------
+   FIX TÁCTIL (iOS/Safari): un <div> dispara el clic al tocarlo solo si el
+   elemento TOCADO tiene cursor:pointer. Las tarjetas lo tienen, pero el dedo
+   cae sobre sus hijos (la foto, el texto), que no. Sin esto, tocar un producto
+   en la tablet no abría nada (el menú sí anda porque son <a>).
+
+   Se le da cursor:pointer a las cajas tocables y a TODOS sus descendientes,
+   salvo los controles que tienen su propia acción (botones, inputs).
+   -------------------------------------------------------------------------- */
+.product-card, .product-card *,
+.pos-card, .pos-card *,
+.order-row, .order-row *{
+  cursor:pointer;
+}
+.order-row .wa-btn,
+.pos-card .pos-talle{ cursor:pointer; }   /* explícito: tienen su propia acción */

@@ -1,0 +1,24 @@
+fastapi>=0.110
+uvicorn[standard]>=0.27
+requests>=2.31
+openpyxl>=3.1.5
+Pillow>=10.0                # rotar imágenes de productos
+truststore>=0.9
+python-multipart>=0.0.9
+
+# --- Base de datos ---
+SQLAlchemy>=2.0
+alembic>=1.13
+psycopg2-binary>=2.9          # driver Postgres (Render)
+
+# --- Seguridad / auth ---
+argon2-cffi>=23.1          # hashing de contraseñas (Argon2id, OWASP)
+bcrypt>=4.1                # solo para verificar hashes viejos (legacy)
+PyJWT>=2.8
+pyotp>=2.9                 # MFA/TOTP para administradores
+qrcode>=7.4                # QR para configurar el MFA (SVG, sin dependencias extra)
+email-validator>=2.1
+bleach>=6.1                # sanitizar HTML de descripciones (anti-XSS almacenado)
+
+# --- Pagos ---
+stripe>=8.0

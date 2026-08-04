@@ -496,6 +496,11 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   color: #fff;
 }
 .miami-lookbook__tile:hover .miami-lookbook__cta { padding-right: 12px; }
+/* FIX reflow: el padding del hover empujaba "EXPLORAR CAPÍTULO" a 2 renglones.
+   Se fija a UNA línea (base y hover) para que el hover solo desplace/ilumine. */
+.miami-lookbook__cta,
+.miami-lookbook__cta--glass,
+.miami-lookbook__cta--glass > span { white-space: nowrap; }
 
 /* === Products grid (cuando sections.primary tiene items) === */
 .miami-products-grid {

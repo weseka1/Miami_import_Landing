@@ -347,6 +347,10 @@ h2{ font-size:18px; font-weight:600; letter-spacing:-.01em; margin:0 0 16px }
 .modal .talle{ font-weight:600; min-width:80px }
 .modal .sku{ font-size:11px; color:var(--ink-mute); font-family:monospace; }
 .modal .stock-input{ width:80px; padding:6px 10px; border:1px solid var(--rule-strong); border-radius:6px; text-align:center; font-weight:600; }
+.modal .price-wrap{ display:inline-flex; align-items:center; gap:4px; margin-left:12px; }
+.modal .price-cur{ color:var(--ink-mute); font-weight:600; }
+.modal .price-input{ width:104px; padding:6px 10px; border:1px solid var(--rule-strong); border-radius:6px; text-align:right; font-weight:600; }
+.modal .price-input:focus{ outline:none; border-color:var(--ink); }
 .modal .btn-stock{ width:32px; height:32px; border:1px solid var(--rule-strong); border-radius:6px; font-weight:700; }
 .modal .btn-stock:hover{ background:var(--ink); color:#FFFFFF; border-color:var(--ink); }
 .modal .modal-actions{ display:flex; gap:12px; margin-top:24px; padding-top:20px; border-top:1px solid var(--rule); }

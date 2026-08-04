@@ -438,7 +438,7 @@ function renderProductModal(p) {
         <button class="btn-stock" data-adjust="-1" data-pid="${Number(p.id)}" data-vid="${Number(v.id)}">−</button>
         <input class="stock-input" type="number" min="0" value="${Number(v.stock) || 0}" data-stock-input/>
         <button class="btn-stock" data-adjust="1" data-pid="${Number(p.id)}" data-vid="${Number(v.id)}">+</button>
-        <span style="font-weight:600; min-width:80px; text-align:right">${fmtMoney(v.price)}</span>
+        <span class="price-wrap"><span class="price-cur">$</span><input class="price-input" type="number" min="0" step="1" inputmode="numeric" value="${Number(v.price) || 0}" data-price-input aria-label="Precio ${esc(talle)}"/></span>
         <button class="btn-stock" data-del-variant="${Number(v.id)}" data-pid="${Number(p.id)}"
                 title="Quitar este talle" style="color:#ff7a7a">✕</button>
       </div>
@@ -571,7 +571,7 @@ function renderProductModal(p) {
     ${reservaHtml}
 
     <div class="modal-actions">
-      <button class="btn-primary" data-save-stock="${Number(p.id)}">Guardar cambios de stock</button>
+      <button class="btn-primary" data-save-stock="${Number(p.id)}">Guardar cambios</button>
       ${verTiendaBtn}
       <button class="btn-danger" data-delete-product="${Number(p.id)}" style="margin-left:auto">Eliminar producto</button>
     </div>
@@ -633,17 +633,26 @@ async function adjustStock(pid, vid, delta) {
   // guardado optimista visual; el save real se hace con "Guardar cambios"
 }
 
-async function saveAllStock(pid) {
+async function saveAllChanges(pid) {
   const rows = document.querySelectorAll('.modal-row');
   let ok = 0, fail = 0;
   for (const row of rows) {
     const vid = row.dataset.vid;
-    const newStock = parseInt(row.querySelector('[data-stock-input]').value) || 0;
+    const stockInput = row.querySelector('[data-stock-input]');
+    const priceInput = row.querySelector('[data-price-input]');
+    const payload = {};
+    if (stockInput) payload.stock = parseInt(stockInput.value) || 0;
+    // El precio solo se manda si es un número positivo: el backend rechaza 0 o
+    // negativos. Un talle "a pedido" sin precio definido se deja como está.
+    if (priceInput) {
+      const price = parseFloat(priceInput.value);
+      if (!isNaN(price) && price > 0) payload.price = price;
+    }
     try {
-      await api(`/api/variants/${pid}/${vid}/stock`, {
+      await api(`/api/variants/${pid}/${vid}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stock: newStock }),
+        body: JSON.stringify(payload),
       });
       ok++;
     } catch (e) {
@@ -651,11 +660,11 @@ async function saveAllStock(pid) {
     }
   }
   if (fail === 0) {
-    toast(`✓ Stock actualizado en ${ok} variantes`, 'success');
+    toast(`✓ Cambios guardados en ${ok} ${ok === 1 ? 'variante' : 'variantes'}`, 'success');
   } else {
-    toast(`Actualizadas ${ok}, fallaron ${fail}`, 'error');
+    toast(`Guardadas ${ok}, fallaron ${fail}`, 'error');
   }
-  // refrescar el cache
+  PRODUCTS_CACHE = [];   // que la grilla recalcule el precio mínimo mostrado
   loadProducts();
 }
 
@@ -1435,7 +1444,7 @@ document.addEventListener('click', ev => {
   if (info) return saveProductInfo(Number(info.dataset.saveInfo));
 
   const sst = t.closest('[data-save-stock]');
-  if (sst) return saveAllStock(Number(sst.dataset.saveStock));
+  if (sst) return saveAllChanges(Number(sst.dataset.saveStock));
 
   const del = t.closest('[data-delete-product]');
   if (del) return deleteProduct(Number(del.dataset.deleteProduct));

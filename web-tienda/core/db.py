@@ -64,6 +64,11 @@ _ADDED_COLUMNS = {
     "variants": {
         "currency": "VARCHAR(3)",
     },
+    "products": {
+        "a_pedido": "BOOLEAN DEFAULT FALSE",
+        "destacado": "BOOLEAN DEFAULT FALSE",
+        "mas_vendido": "BOOLEAN DEFAULT FALSE",
+    },
 }
 
 

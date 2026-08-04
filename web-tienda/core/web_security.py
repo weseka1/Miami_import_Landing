@@ -99,7 +99,7 @@ _DEFAULT_CSP = {
     "img-src": "'self' data: https:",
     "font-src": "'self' https://fonts.gstatic.com data:",
     "connect-src": "'self' https://api.stripe.com",
-    "frame-src": "https://js.stripe.com https://hooks.stripe.com",
+    "frame-src": "'self' https://js.stripe.com https://hooks.stripe.com",
     "frame-ancestors": "'self'",
     "base-uri": "'self'",
     "form-action": "'self'",

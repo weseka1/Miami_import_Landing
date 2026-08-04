@@ -1,0 +1,10 @@
+node_modules
+# dist SE VERSIONA: Render corre runtime Python (sin build de Node) — el panel se sirve del dist commiteado. Rebuild: ver README.
+dist-ssr
+.env.local
+.env.*.local
+.netlify
+*.local
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
