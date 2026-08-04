@@ -92,6 +92,16 @@ body::after{ content:""; position:fixed; inset:0; z-index:90; pointer-events:non
 /* Red de seguridad responsive (Estándar): 0px overflow horizontal en cualquier ancho */
 html, body{ overflow-x:clip; }
 
+/* FIX CRÍTICO mobile — grid blowout por min-content: con `1fr` (=minmax(auto,1fr))
+   la fila de precios/labels no comprime y el grid se derramaba a la derecha
+   (cards cortadas en el celu, reporte de Juani en prod). minmax(0,1fr) obliga
+   a las columnas a respetar el viewport SIEMPRE, pase lo que pase adentro. */
+.mi-grid{ grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
+@media(max-width:900px){ .mi-grid{ grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:14px !important; } }
+.mi-card{ min-width:0; }
+.mi-card__name{ overflow-wrap:break-word; }
+.miami-price-dual .miami-price-ars-label{ white-space:normal; }
+
 /* ---- Carruseles arrastrables: que el browser nunca "agarre" links/imágenes ---- */
 [data-miami-track] a, [data-miami-track] img{
   -webkit-user-drag:none; user-select:none;
