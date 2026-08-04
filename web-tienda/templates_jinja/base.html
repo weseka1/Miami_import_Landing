@@ -2,7 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  {# interactive-widget: en Android el teclado ACHICA el layout (el chat se
+     amolda solo); en iOS lo maneja el JS de Mia vía visualViewport. #}
+  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content"/>
   <title>{% block title %}{{ STORE_NAME }}{% endblock %}</title>
   <meta name="description" content="{% block meta_description %}Indumentaria original importada — {{ STORE_NAME }}.{% endblock %}"/>
   <link rel="canonical" href="{{ request.url.scheme }}://{{ request.url.netloc }}{{ request.url.path }}"/>

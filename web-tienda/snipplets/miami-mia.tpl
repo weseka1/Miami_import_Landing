@@ -202,10 +202,40 @@
 
   var isMobile = function () { return window.matchMedia('(max-width:640px)').matches; };
 
+  /* --- Anti-mareo del teclado móvil ---
+     iOS empuja toda la página al abrir el teclado. Solución en dos partes:
+     1) CONGELAR el body (position:fixed) mientras el chat está abierto: la
+        página de atrás no puede saltar ni deformarse.
+     2) Pegar el sheet al viewport VISUAL (visualViewport): cuando aparece el
+        teclado, el chat se achica y se apoya justo arriba de él. */
+  var scrollY0 = 0;
+  function freezeBody() {
+    scrollY0 = window.scrollY || 0;
+    var b = document.body;
+    b.style.position = 'fixed'; b.style.top = (-scrollY0) + 'px';
+    b.style.left = '0'; b.style.right = '0'; b.style.width = '100%';
+  }
+  function unfreezeBody() {
+    var b = document.body;
+    b.style.position = ''; b.style.top = ''; b.style.left = ''; b.style.right = ''; b.style.width = '';
+    window.scrollTo(0, scrollY0);
+  }
+  function fitSheet() {
+    if (!panel.classList.contains('is-open') || !isMobile()) return;
+    var vv = window.visualViewport;
+    if (!vv) return;
+    panel.style.height = Math.min(Math.round(vv.height * 0.8), 640) + 'px';
+    panel.style.bottom = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)) + 'px';
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', fitSheet);
+    window.visualViewport.addEventListener('scroll', fitSheet);
+  }
+
   function openPanel() {
     panel.classList.add('is-open');
     fab.style.display = 'none';
-    if (isMobile()) document.documentElement.classList.add('mia-lock');
+    if (isMobile()) { document.documentElement.classList.add('mia-lock'); freezeBody(); fitSheet(); }
     renderAll();
     if (!isMobile()) input.focus();
   }
@@ -213,6 +243,9 @@
     panel.classList.remove('is-open');
     fab.style.display = '';
     document.documentElement.classList.remove('mia-lock');
+    if (isMobile()) unfreezeBody();
+    panel.style.height = ''; panel.style.bottom = '';
+    input.blur();
   }
 
   fab.addEventListener('click', openPanel);
