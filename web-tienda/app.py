@@ -371,7 +371,9 @@ def home(request: Request, db: Session = Depends(get_db)):
 def product_detail(handle: str, request: Request, db: Session = Depends(get_db)):
     prod = _con_relaciones(db).filter(Product.handle == handle).one_or_none()
     if not prod or not prod.published:
-        raise HTTPException(404, "Producto no encontrado")
+        # Nunca mostrarle al cliente un JSON crudo: un producto que ya no está
+        # (vendido/renombrado/link viejo) lo lleva al catálogo vivo.
+        return RedirectResponse("/productos", status_code=302)
     relacionados = (
         _con_relaciones(db)
         .filter(Product.brand == prod.brand, Product.id != prod.id,

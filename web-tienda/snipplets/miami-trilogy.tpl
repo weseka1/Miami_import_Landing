@@ -24,7 +24,7 @@
 
   {# Stage del carrusel: 4 jackets. La activa (is-center) es clickeable y va al producto. #}
   <div class="miami-trilogy__stage" aria-label="Carrusel de chaquetas">
-    <a href="https://miamiimport.com.ar/productos/diesel-chaqueta-diesel-marron-parches/"
+    <a href="/tipo/camperas"
        class="miami-trilogy__jacket is-center" data-jacket="0" data-gender="hombre"
        aria-label="Ver Chaqueta Diesel Marrón Parches">
       <img class="miami-trilogy__img" src="{{ 'images/trilogy-marron-v6.webp' | static_url }}" alt="Diesel Varsity Marron" loading="lazy"/>
@@ -33,17 +33,17 @@
     <div class="miami-trilogy__jacket is-next" data-jacket="1" data-gender="hombre">
       <img class="miami-trilogy__img" src="{{ 'images/trilogy-multicolor-v6.webp' | static_url }}" alt="Diesel Varsity Multicolor" loading="lazy"/>
     </div>
-    <a href="https://miamiimport.com.ar/productos/diesel-chaqueta-diesel-dama-blanca-con-strass/"
+    <a href="/tipo/camperas"
        class="miami-trilogy__jacket" data-jacket="2" data-gender="mujer"
        aria-label="Ver Chaqueta Diesel Blanca con Strass">
       <img class="miami-trilogy__img" src="{{ 'images/trilogy-blanco-v6.webp' | static_url }}" alt="Diesel Varsity Blanco" loading="lazy"/>
     </a>
-    <a href="https://miamiimport.com.ar/productos/diesel-chaqueta-diesel-negra-con-strass/"
+    <a href="/tipo/camperas"
        class="miami-trilogy__jacket" data-jacket="3" data-gender="mujer"
        aria-label="Ver Chaqueta Diesel Negra con Strass">
       <img class="miami-trilogy__img" src="{{ 'images/trilogy-negro-v6.webp' | static_url }}" alt="Diesel Varsity Negro" loading="lazy"/>
     </a>
-    <a href="https://miamiimport.com.ar/productos/diesel-chaqueta-diesel-negra-parches/"
+    <a href="/tipo/camperas"
        class="miami-trilogy__jacket" data-jacket="4" data-gender="hombre"
        aria-label="Ver Chaqueta Diesel Negra Parches">
       <img class="miami-trilogy__img" src="{{ 'images/trilogy-negra-parches-v6.webp' | static_url }}" alt="Diesel Negra Parches" loading="lazy"/>
