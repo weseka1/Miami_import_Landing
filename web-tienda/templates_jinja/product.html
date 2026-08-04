@@ -79,6 +79,18 @@
 
       {% if tryon_enabled %}{% include "miami-tryon.tpl" %}{% endif %}
 
+      {% if META_PIXEL_ID %}
+      <script nonce="{{ csp_nonce }}">
+        if (window.fbq) fbq('track', 'ViewContent', {
+          content_name: {{ product.name | tojson }},
+          content_ids: ['{{ product.id }}'],
+          content_type: 'product',
+          value: {{ (ars | float) if ars else 0 }},
+          currency: 'ARS'
+        });
+      </script>
+      {% endif %}
+
       {% if product.description %}
       <div style="margin-top:36px;padding-top:28px;border-top:1px solid rgba(255,255,255,.08);
         color:rgba(245,243,238,.7);line-height:1.8;font-size:15px">

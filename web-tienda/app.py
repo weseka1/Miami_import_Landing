@@ -57,6 +57,10 @@ app = FastAPI(
 templates = Jinja2Templates(directory=[str(HERE / "templates_jinja"), str(HERE / "snipplets")])
 templates.env.globals["USD_RATE"] = settings.USD_TO_ARS_RATE
 templates.env.globals["STORE_NAME"] = "MIAMI IMPORT"
+# Píxel de Meta: gateado por env. Cuando exista el Business nuevo de Diego se
+# setea META_PIXEL_ID en Render y la web empieza a juntar audiencias sola.
+import os as _osenv  # noqa: E402
+templates.env.globals["META_PIXEL_ID"] = (_osenv.environ.get("META_PIXEL_ID") or "").strip()
 
 
 # --------------------------------------------------------------------------- #
@@ -208,10 +212,10 @@ def base_context(request: Request, db: Session, **extra) -> dict:
 # estricta (no tiene inline y es la superficie sensible).
 install_security(
     app,
-    csp_extra={"script-src": "'unsafe-inline' https://bot-miami.onrender.com",
+    csp_extra={"script-src": "'unsafe-inline' https://bot-miami.onrender.com https://connect.facebook.net",
                "style-src": "'unsafe-inline'",
-               "img-src": "https://miamiimport.com.ar",
-               "connect-src": "https://bot-miami.onrender.com https://miamiimport.com.ar"},
+               "img-src": "https://miamiimport.com.ar https://www.facebook.com",
+               "connect-src": "https://bot-miami.onrender.com https://miamiimport.com.ar https://www.facebook.com https://connect.facebook.net"},
     use_nonce=False,
     # El webhook NO se limita: Stripe entrega desde un pool chico de IPs y una
     # tanda normal de pedidos (cada uno dispara varios eventos) superaba los
