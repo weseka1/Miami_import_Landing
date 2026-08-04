@@ -214,21 +214,29 @@ async def tryon(
     person_jpeg = _leer_foto(raw)
     garment_url, garment_jpeg = _garment(request, product)
 
+    def _tag(motor: str, e: Exception) -> str:
+        st = getattr(getattr(e, "response", None), "status_code", "")
+        return f"{motor}:{type(e).__name__}:{st}"
+
     img: bytes | None = None
     errores = []
     if _fal_key():
         try:
             img = _generar_fashn(person_jpeg, garment_url, _categoria(product), _fal_key())
         except Exception as e:  # noqa: BLE001
-            errores.append(f"fashn:{type(e).__name__}")
+            errores.append(_tag("fashn", e))
     if img is None and _gemini_key():
         try:
             img = _generar_gemini(person_jpeg, garment_jpeg, _gemini_key())
         except Exception as e:  # noqa: BLE001
-            errores.append(f"gemini:{type(e).__name__}")
+            errores.append(_tag("gemini", e))
 
     if img is None:
         print(f"[tryon] fallo ({', '.join(errores)})")
+        # 429 = cuota del motor agotada — no es culpa de la foto del cliente.
+        if any(":429" in e for e in errores):
+            raise HTTPException(503, "El probador está a tope en este momento. "
+                                     "Probá de nuevo en unos minutos.")
         raise HTTPException(502, "No pudimos generar la prueba con esa foto. "
                                  "Probá con una foto de frente, cuerpo visible y buena luz.")
 
