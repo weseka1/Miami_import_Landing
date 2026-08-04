@@ -33,6 +33,26 @@ def public_url(path: str) -> str:
     return f"{settings.SUPABASE_URL}/storage/v1/object/public/{settings.SUPABASE_BUCKET}/{path}"
 
 
+_OBJECT_MARKER = "/storage/v1/object/public/"
+_RENDER_MARKER = "/storage/v1/render/image/public/"
+
+
+def thumb_url(url: str | None, width: int = 800, quality: int = 75) -> str | None:
+    """URL redimensionada al vuelo (Supabase Image Transformations).
+
+    Las fotos del panel entran crudas del celular (4-5 MB): servirlas directo
+    deja las cards en negro / a medio pintar en el teléfono. El endpoint
+    `render/image` devuelve la misma foto en el ancho pedido (~10x más
+    liviana) y con la rotación EXIF ya aplicada.
+
+    URLs que no son del Storage propio (CDN de Tiendanube, /static/...)
+    vuelven tal cual.
+    """
+    if not url or _OBJECT_MARKER not in url or "?" in url:
+        return url
+    return url.replace(_OBJECT_MARKER, _RENDER_MARKER, 1) + f"?width={width}&quality={quality}"
+
+
 def upload_bytes(content: bytes, path: str, content_type: str = "application/octet-stream") -> str:
     """Sube bytes al bucket en `path` (sobrescribe si existe). Devuelve la URL pública.
     Lanza RuntimeError si falla."""

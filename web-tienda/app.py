@@ -26,6 +26,7 @@ from sqlalchemy.orm import Session
 from auth_store import account_router, oauth_router
 from cart import cart_router, cart_summary, get_or_create_cart, resolve_cart
 from checkout import checkout_router, confirmar_pago_desde_stripe
+from core import storage
 from core.config import settings
 from core.db import get_db, init_db
 from core.models import Category, Order, Product, User
@@ -104,6 +105,8 @@ templates.env.filters["money"] = fmt_moneda   # {{ importe | money(moneda) }}
 # Permite incluir los snipplets .tpl (miami-trilogy, etc.) casi sin tocarlos.
 templates.env.filters["static_url"] = lambda p: f"/static/{p}"
 templates.env.filters["has_custom_image"] = lambda p: False
+# {{ url | thumb(640) }} -> foto redimensionada al vuelo (ver core/storage.py)
+templates.env.filters["thumb"] = storage.thumb_url
 templates.env.globals["store"] = {"products_url": "/productos"}
 
 

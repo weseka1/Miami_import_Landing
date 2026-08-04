@@ -131,9 +131,53 @@ def validate_image(filename: str, content_type: str, content: bytes) -> str:
     return f"{secrets.token_hex(16)}{ext if ext != '.jpeg' else '.jpg'}"
 
 
+MAX_IMAGE_SIDE = 1600      # px: alcanza para zoom en detalle; una foto de celular trae 4000+
+JPEG_WEB_QUALITY = 82
+
+
+def comprimir_imagen(content: bytes) -> bytes:
+    """Recomprime una foto a tamaño web ANTES de guardarla.
+
+    Las fotos salen del celular en 4-5 MB / 4000px: servidas así, las cards de
+    la tienda quedan negras o pintadas a medias en el teléfono. Acá se aplica
+    la rotación EXIF, se limita el lado mayor a MAX_IMAGE_SIDE y se guarda en
+    calidad web. GIF/AVIF (o cualquier cosa que Pillow no abra) vuelven tal
+    cual: mejor foto pesada que upload roto.
+    """
+    try:
+        from PIL import Image, ImageOps
+    except ImportError:
+        return content
+    try:
+        Image.MAX_IMAGE_PIXELS = 40_000_000  # anti bomba de descompresión
+        img = Image.open(io.BytesIO(content))
+        fmt = (img.format or "").upper()
+        if fmt == "MPO":
+            fmt = "JPEG"   # foto de iPhone: JPEG multi-frame, el primer frame es la foto
+        if fmt not in ("JPEG", "PNG", "WEBP"):
+            return content
+        img = ImageOps.exif_transpose(img)
+        if max(img.size) > MAX_IMAGE_SIDE:
+            img.thumbnail((MAX_IMAGE_SIDE, MAX_IMAGE_SIDE), Image.LANCZOS)
+        if fmt == "JPEG" and img.mode not in ("RGB", "L"):
+            img = img.convert("RGB")
+        buf = io.BytesIO()
+        if fmt == "PNG":
+            img.save(buf, format="PNG", optimize=True)
+        else:
+            img.save(buf, format=fmt, quality=JPEG_WEB_QUALITY, optimize=True)
+        out = buf.getvalue()
+        # Si no achicó (foto ya optimizada), se queda la original.
+        return out if len(out) < len(content) else content
+    except Exception:  # noqa: BLE001 — nunca romper la subida por la compresión
+        log.exception("comprimir_imagen falló; se sube la original")
+        return content
+
+
 def store_image_bytes(content: bytes, content_type: str, handle: str, safe_name: str) -> tuple[str, str | None]:
     """Guarda la imagen en Supabase Storage (si está configurado) o en disco local.
     Devuelve (src, local_path). En Supabase, src = URL pública y local_path = None."""
+    content = comprimir_imagen(content)
     rel = f"products/{handle}/{safe_name}"
     if storage.is_enabled():
         url = storage.upload_bytes(content, rel, content_type or "image/jpeg")
@@ -448,7 +492,7 @@ def rotate_product_image(pid: int, image_id: int, body: dict, db: Session = Depe
             out = out.convert("RGB")
         buf = io.BytesIO()
         out.save(buf, format=fmt, quality=90)
-        data = buf.getvalue()
+        data = comprimir_imagen(buf.getvalue())
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001

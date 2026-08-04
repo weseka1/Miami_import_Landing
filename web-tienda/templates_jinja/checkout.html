@@ -55,7 +55,7 @@
       <h3 style="margin:0 0 18px;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--miami-gold,#b99b63)">Tu pedido</h3>
       {% for it in cart['items'] %}
       <div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)">
-        <img src="{{ it.image }}" alt="" style="width:48px;height:60px;object-fit:cover;border-radius:6px"/>
+        <img src="{{ it.image | thumb(160) }}" alt="" style="width:48px;height:60px;object-fit:cover;border-radius:6px"/>
         <div style="flex:1;font-size:13px">
           <div style="color:#f5f3ee">{{ it.product_name }}</div>
           <div style="color:rgba(245,243,238,.55)">{% if it.value %}Talle {{ it.value }} · {% endif %}x{{ it.quantity }}</div>

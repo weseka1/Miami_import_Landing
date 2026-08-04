@@ -15,7 +15,7 @@
         {% for it in cart['items'] %}
         <div class="mi-cart-row" data-vid="{{ it.variant_id }}"
           style="display:grid;grid-template-columns:90px 1fr auto;gap:18px;padding:20px 0;border-bottom:1px solid rgba(255,255,255,.08)">
-          <a href="/productos/{{ it.handle }}/"><img src="{{ it.image }}" alt="{{ it.product_name }}"
+          <a href="/productos/{{ it.handle }}/"><img src="{{ it.image | thumb(240) }}" alt="{{ it.product_name }}"
             style="width:90px;height:115px;object-fit:cover;border-radius:8px;background:#111"/></a>
           <div>
             <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--miami-gold,#b99b63)">{{ it.brand }}</div>

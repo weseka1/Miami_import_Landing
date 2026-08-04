@@ -5,7 +5,7 @@
 {% block head_extra %}
   <meta property="og:type" content="product"/>
   <meta property="og:title" content="{{ product.name }}"/>
-  {% if product.images %}<meta property="og:image" content="{{ product.images[0].url }}"/>{% endif %}
+  {% if product.images %}<meta property="og:image" content="{{ product.images[0].url | thumb(1200, 80) }}"/>{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -25,7 +25,7 @@
     <!-- Galería -->
     <div>
       <div style="background:#0c0c0c;border:1px solid rgba(255,255,255,.06);border-radius:12px;overflow:hidden;aspect-ratio:3/4">
-        <img id="mi-main-img" src="{{ product.images[0].url if product.images else '/static/images/empty-placeholder.png' }}"
+        <img id="mi-main-img" src="{{ (product.images[0].url | thumb(1280, 80)) if product.images else '/static/images/empty-placeholder.png' }}"
              alt="{{ product.name }}" style="width:100%;height:100%;object-fit:cover"/>
       </div>
       {% if product.images|length > 1 %}
@@ -35,9 +35,9 @@
              de HTML decodifica las entidades ANTES de que se parsee el JS, así
              que una comilla en la URL cerraba la string y ejecutaba lo que
              siguiera (la CSP de la tienda permite inline). #}
-          <button type="button" class="mi-thumb" data-src="{{ img.url }}"
+          <button type="button" class="mi-thumb" data-src="{{ img.url | thumb(1280, 80) }}"
             style="width:72px;height:90px;border:1px solid rgba(255,255,255,.12);border-radius:8px;overflow:hidden;background:none;cursor:pointer;padding:0">
-            <img src="{{ img.url }}" alt="" style="width:100%;height:100%;object-fit:cover"/>
+            <img src="{{ img.url | thumb(240) }}" alt="" style="width:100%;height:100%;object-fit:cover"/>
           </button>
         {% endfor %}
       </div>

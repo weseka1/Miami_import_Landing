@@ -9,7 +9,7 @@
               else (ars | float / usd_rate if ars and usd_rate else None)) %}
 <a class="mi-card" href="/productos/{{ p.handle }}/">
   {% if p.total_stock == 0 %}<span class="mi-soldout">Agotado</span>{% endif %}
-  <div class="mi-card__img"><img src="{{ img }}" alt="{{ p.name }}" loading="lazy"/></div>
+  <div class="mi-card__img"><img src="{{ img | thumb(640) }}" alt="{{ p.name }}" loading="lazy"/></div>
   <div class="mi-card__body">
     <div class="mi-card__brand">{{ p.brand or '' }}</div>
     <div class="mi-card__name">{{ p.name }}</div>
