@@ -24,9 +24,12 @@
   <div style="display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:start" class="mi-product-layout">
     <!-- Galería -->
     <div>
-      <div style="background:radial-gradient(120% 90% at 50% 25%, rgba(198,167,104,.07), #0c0c0c 72%);border:1px solid rgba(255,255,255,.06);border-radius:12px;overflow:hidden;aspect-ratio:3/4">
-        <img id="mi-main-img" src="{{ (product.images[0].url | thumb(1280, 80)) if product.images else '/static/images/empty-placeholder.png' }}"
-             alt="{{ product.name }}" style="width:100%;height:100%;object-fit:contain;padding:3%"/>
+      {% set mainimg = (product.images[0].url | thumb(1280, 80)) if product.images else '/static/images/empty-placeholder.png' %}
+      <div style="position:relative;background:#0c0c0c;border:1px solid rgba(255,255,255,.06);border-radius:12px;overflow:hidden;aspect-ratio:3/4">
+        <img id="mi-main-blur" src="{{ mainimg }}" alt="" aria-hidden="true"
+             style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(26px) brightness(.5) saturate(1.1);transform:scale(1.2)"/>
+        <img id="mi-main-img" src="{{ mainimg }}"
+             alt="{{ product.name }}" style="position:relative;width:100%;height:100%;object-fit:contain;padding:2%"/>
       </div>
       {% if product.images|length > 1 %}
       <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
@@ -155,7 +158,9 @@
   document.querySelectorAll('.mi-thumb').forEach(function(b){
     b.addEventListener('click', function(){
       const main = document.getElementById('mi-main-img');
+      const blur = document.getElementById('mi-main-blur');
       if (main && b.dataset.src) main.src = b.dataset.src;
+      if (blur && b.dataset.src) blur.src = b.dataset.src;   // el fondo difuminado acompaña
     });
   });
 

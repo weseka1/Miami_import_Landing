@@ -9,7 +9,12 @@
               else (ars | float / usd_rate if ars and usd_rate else None)) %}
 <a class="mi-card" href="/productos/{{ p.handle }}/">
   {% if p.total_stock == 0 %}<span class="mi-soldout">Agotado</span>{% endif %}
-  <div class="mi-card__img"><img src="{{ img | thumb(640) }}" alt="{{ p.name }}" loading="lazy"/></div>
+  {# Fondo = la misma foto difuminada (llena el cuadro en cualquier proporción)
+     + la prenda ENTERA nítida encima. Mismo archivo → cero requests extra. #}
+  <div class="mi-card__img">
+    <img class="mi-card__blur" src="{{ img | thumb(640) }}" alt="" aria-hidden="true" loading="lazy"/>
+    <img class="mi-card__pic" src="{{ img | thumb(640) }}" alt="{{ p.name }}" loading="lazy"/>
+  </div>
   <div class="mi-card__body">
     <div class="mi-card__brand">{{ p.brand or '' }}</div>
     <div class="mi-card__name">{{ p.name }}</div>
