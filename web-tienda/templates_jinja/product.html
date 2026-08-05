@@ -192,6 +192,9 @@
       const data = await r.json();
       if(!r.ok) throw new Error(data.detail||'Error');
       const badge=document.querySelector('[data-cart-count]'); if(badge) badge.textContent=data.count;
+      if (window.fbq) fbq('track','AddToCart',{content_type:'product',
+        content_ids:['{{ product.id }}'],
+        value:{{ (ars | float) if ars else 0 }},currency:'ARS'});
       addBtn.textContent='✓ Agregado al carrito';
       setTimeout(()=>{addBtn.textContent=original;addBtn.disabled=false;},1800);
     }catch(e){ addBtn.textContent=e.message; setTimeout(()=>{addBtn.textContent=original;addBtn.disabled=false;},1800); }

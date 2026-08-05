@@ -88,6 +88,11 @@
 {% endblock %}
 
 {% block scripts %}
+{% if META_PIXEL_ID and cart['items'] %}
+<script nonce="{{ csp_nonce }}">
+  if (window.fbq) fbq('track','InitiateCheckout');
+</script>
+{% endif %}
 {% if stripe_enabled and cart['items'] %}
 <script nonce="{{ csp_nonce }}">
   const form=document.getElementById('form-checkout');

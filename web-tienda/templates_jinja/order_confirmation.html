@@ -115,6 +115,24 @@
   })();
 </script>
 
+{% if META_PIXEL_ID and paid %}
+<script nonce="{{ csp_nonce }}">
+  // Purchase se dispara UNA vez por pedido (la página se recarga al volver de
+  // Stripe y con el sondeo): localStorage hace de candado por número.
+  (function(){
+    var k = 'mi_pur_{{ order.number }}';
+    if (!window.fbq || localStorage.getItem(k)) return;
+    fbq('track', 'Purchase', {
+      value: {{ order.total | float }},
+      currency: '{{ (order.currency or "ARS") | upper }}',
+      content_type: 'product',
+      content_ids: {{ order.items | selectattr('product_id') | map(attribute='product_id') | map('string') | list | tojson }}
+    });
+    localStorage.setItem(k, '1');
+  })();
+</script>
+{% endif %}
+
 {% if not paid %}
 <script nonce="{{ csp_nonce }}">
   // Mientras el pago no esté acreditado, reconsulta. Conserva location.search
