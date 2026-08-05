@@ -24,7 +24,8 @@ export default function CargarProducto() {
     nombre: "",
     marca: "",
     precio: "",
-    enUSD: false,        // convertir_a_ars: el precio se carga en dólares
+    enUSD: true,         // convertir_a_ars — DEFAULT DÓLARES: el catálogo de Diego es USD
+                         // (arrancar en pesos causó gorras a "US$ 0,15")
     stockPorTalle: "1",
     descripcion: "",
     publicado: true,
@@ -184,23 +185,41 @@ export default function CargarProducto() {
           <section className="pcard p-5">
             <h3 className="mb-4 font-display text-base font-semibold text-graph">Precio, talles y stock</h3>
             <div className="grid gap-4 sm:grid-cols-3">
-              <Campo label={f.enUSD ? "Precio (USD)" : "Precio (ARS)"}>
+              {/* Selector de moneda OBLIGATORIO y visible (pedido de Juani tras
+                  cargas con la moneda equivocada): siempre hay UNA elegida.
+                  Default DÓLARES: el catálogo de Diego se maneja en USD. */}
+              <Campo label="El precio que cargás está en…">
+                <div className="grid h-10 grid-cols-2 overflow-hidden rounded-xl border border-graph/15">
+                  <button
+                    type="button"
+                    onClick={() => set("enUSD", true)}
+                    className={`inline-flex items-center justify-center gap-1.5 text-xs font-bold transition ${f.enUSD ? "bg-brand text-white" : "bg-graph/[0.03] text-graph-500 hover:text-graph"}`}
+                  >
+                    <DollarSign size={13} /> DÓLARES
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => set("enUSD", false)}
+                    className={`inline-flex items-center justify-center gap-1.5 text-xs font-bold transition ${!f.enUSD ? "bg-brand text-white" : "bg-graph/[0.03] text-graph-500 hover:text-graph"}`}
+                  >
+                    $ PESOS
+                  </button>
+                </div>
+              </Campo>
+              <Campo label={f.enUSD ? "Precio en DÓLARES" : "Precio en PESOS"}>
                 <Inp value={f.precio} onChange={(v) => setNum("precio", v)} ph={f.enUSD ? "170" : "250000"} mode="numeric" />
               </Campo>
               <Campo label="Stock por talle">
                 <Inp value={f.stockPorTalle} onChange={(v) => setNum("stockPorTalle", v)} ph="1" mode="numeric" />
               </Campo>
-              <div className="flex items-end pb-1">
-                <button
-                  type="button"
-                  onClick={() => set("enUSD", !f.enUSD)}
-                  className={`inline-flex h-10 items-center gap-2 rounded-xl border px-3 text-xs font-semibold transition ${f.enUSD ? "border-brand bg-brand text-white" : "border-graph/15 bg-graph/[0.03] text-graph-500 hover:border-brand/40"}`}
-                  title="El precio está en dólares: el servidor lo convierte a pesos con la cotización cargada"
-                >
-                  <DollarSign size={14} /> Precio en USD
-                </button>
-              </div>
             </div>
+            {precioNum > 0 && (
+              <p className="mt-2 text-xs text-graph-500">
+                {f.enUSD
+                  ? <>Se publica como <b className="text-graph">{fmtUSD(precioNum)}</b>{rate ? <> = <b className="text-graph">{fmtARS(precioNum * rate)}</b> al dólar de hoy ({rate.toLocaleString("es-AR")})</> : null}.</>
+                  : <>Se publica como <b className="text-graph">{fmtARS(precioNum)}</b>{rate ? <> (≈ {fmtUSD(precioNum / rate)})</> : null}. ¿Era en dólares? Tocá DÓLARES arriba.</>}
+              </p>
+            )}
 
             {/* Talles */}
             <div className="mt-4">
