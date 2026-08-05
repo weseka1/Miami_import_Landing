@@ -50,7 +50,13 @@ def thumb_url(url: str | None, width: int = 800, quality: int = 75) -> str | Non
     """
     if not url or _OBJECT_MARKER not in url or "?" in url:
         return url
-    return url.replace(_OBJECT_MARKER, _RENDER_MARKER, 1) + f"?width={width}&quality={quality}"
+    # OJO: con `width` solo, el transformador aplica `resize=cover` y mantiene el
+    # alto original → recorta los costados y las fotos verticales salen como una
+    # tira finita. `resize=contain` + una caja alta (tope 2500, el máximo del
+    # transformador) devuelve la foto ENTERA proporcional al ancho pedido.
+    alto = min(width * 2, 2500)
+    return (url.replace(_OBJECT_MARKER, _RENDER_MARKER, 1)
+            + f"?width={width}&height={alto}&resize=contain&quality={quality}")
 
 
 def upload_bytes(content: bytes, path: str, content_type: str = "application/octet-stream") -> str:
