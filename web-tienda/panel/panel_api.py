@@ -552,17 +552,29 @@ def update_variant_stock(pid: int, vid: int, body: dict, db: Session = Depends(g
 
 @router.put("/variants/{pid}/{vid}")
 def update_variant(pid: int, vid: int, body: dict, db: Session = Depends(get_db)):
+    # `usd_price` y `price` se mantienen SIEMPRE coherentes entre sí usando la
+    # cotización del panel: la tienda muestra el USD guardado como precio
+    # principal, así que si quedaran desacoplados (editás pesos y el USD viejo
+    # no se toca) el cliente ve un precio y paga otro. Editar cualquiera de los
+    # dos recalcula el otro.
     v = db.get(Variant, vid)
     if not v or v.product_id != pid:
         raise HTTPException(404, "Variante no encontrada")
     try:
+        rate = Decimal(str(current_usd_rate(db)))
         if "stock" in body:
             stock = int(body["stock"])
             if stock < 0:
                 raise HTTPException(400, "El stock no puede ser negativo")
             v.stock = stock
-        if "price" in body:
+        if "usd_price" in body and body["usd_price"] not in (None, ""):
+            v.usd_price = _precio_valido(body["usd_price"])
+            if rate > 0:
+                v.price = (v.usd_price * rate).quantize(Decimal("0.01"))
+        elif "price" in body:
             v.price = _precio_valido(body["price"])
+            if v.usd_price is not None and rate > 0:
+                v.usd_price = (v.price / rate).quantize(Decimal("0.01"))
         if "sku" in body:
             v.sku = (str(body["sku"]) or "")[:120] or None
         if "promotional_price" in body and body["promotional_price"] not in (None, ""):

@@ -263,8 +263,10 @@ export const api = {
 
   eliminarProducto: (id: number) => req<{ ok: boolean }>(`/products/${id}`, { method: "DELETE" }),
 
-  /** Edita PRECIO y/o STOCK (y sku) de un talle. El backend responde {ok:true}. */
-  actualizarVariante: (pid: number, vid: number, patch: { price?: number; stock?: number; sku?: string }) =>
+  /** Edita PRECIO y/o STOCK (y sku) de un talle. El backend responde {ok:true}.
+   *  `usd_price` es el precio principal de la tienda: el backend recalcula los
+   *  pesos con la cotización del panel (y viceversa si se manda `price`). */
+  actualizarVariante: (pid: number, vid: number, patch: { price?: number; usd_price?: number; stock?: number; sku?: string }) =>
     req<{ ok: boolean }>(`/variants/${pid}/${vid}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(patch) }),
 
   /** Agrega un talle nuevo. Devuelve el producto actualizado. */

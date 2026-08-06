@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Plus, LayoutGrid, List, AlertTriangle, Trash2, ExternalLink, Loader2, ImagePlus, X, Check, Star, Flame } from "lucide-react";
 import { useData } from "@/lib/DataProvider";
-import { api, ApiError, fotoDe, precioDe, stockDe, talleDe, precioVar, type MiamiProducto, type MiamiVariante } from "../api/miamiApi";
+import { api, ApiError, fotoDe, precioDe, stockDe, talleDe, type MiamiProducto, type MiamiVariante } from "../api/miamiApi";
 import { fmtARS } from "@/lib/format";
 import { PageHeader, EmptyState } from "../components/PageShell";
 import { SearchInput, FilterSelect } from "../components/Controls";
@@ -328,9 +328,18 @@ function ProductoDrawer({
   const { actualizarProducto, actualizarVariante, agregarTalle, quitarTalle, subirImagen, refrescarProducto, store } = useData();
   const { push } = useToast();
 
+  const rate = store?.usd_rate || 0;
+  // El precio que se edita acá es el de la TIENDA: dólares. Si la variante no
+  // tiene usd_price guardado (cargas viejas), se deriva de los pesos con la
+  // cotización — igual que lo muestra la web.
+  const usdDe = (v: MiamiVariante): number => {
+    if (v.usd_price && parseFloat(v.usd_price) > 0) return Math.round(parseFloat(v.usd_price));
+    return rate > 0 && v.price ? Math.round(parseFloat(v.price) / rate) : 0;
+  };
+
   // --- datos base (nombre / marca) ---
   const [f, setF] = useState({ nombre: "", marca: "" });
-  // --- variantes: precio/stock como strings de edición, por id ---
+  // --- variantes: precio USD/stock como strings de edición, por id ---
   const [vf, setVf] = useState<Record<number, { precio: string; stock: string }>>({});
   const [busy, setBusy] = useState(false);
   const [busyFoto, setBusyFoto] = useState(false);
@@ -341,7 +350,7 @@ function ProductoDrawer({
     if (producto) {
       setF({ nombre: producto.name.es, marca: producto.brand || "" });
       const m: Record<number, { precio: string; stock: string }> = {};
-      producto.variants.forEach((v) => { m[v.id] = { precio: v.price ? String(Math.round(precioVar(v))) : "", stock: String(v.stock ?? 0) }; });
+      producto.variants.forEach((v) => { m[v.id] = { precio: usdDe(v) ? String(usdDe(v)) : "", stock: String(v.stock ?? 0) }; });
       setVf(m);
       setNuevoTalle({ talle: "", stock: "1", precio: "" });
     }
@@ -356,8 +365,7 @@ function ProductoDrawer({
   const varsCambiadas = p.variants.filter((v) => {
     const e = vf[v.id];
     if (!e) return false;
-    const precioActual = v.price ? Math.round(precioVar(v)) : 0;
-    return (Number(e.precio) || 0) !== precioActual || (Number(e.stock) || 0) !== (v.stock ?? 0);
+    return (Number(e.precio) || 0) !== usdDe(v) || (Number(e.stock) || 0) !== (v.stock ?? 0);
   });
 
   const guardar = async () => {
@@ -366,12 +374,14 @@ function ProductoDrawer({
       if (cambioDatos) {
         await actualizarProducto(p.id, { name: f.nombre.trim(), brand: f.marca.trim() });
       }
-      // PUT /panel/api/variants/{pid}/{vid} — precio y stock POR TALLE.
+      // PUT /panel/api/variants/{pid}/{vid} — precio USD y stock POR TALLE.
+      // Se manda usd_price: el backend fija el USD y recalcula los pesos con
+      // la cotización del panel (así el precio grande de la tienda queda BIEN).
       for (const v of varsCambiadas) {
         const e = vf[v.id];
-        const patch: { price?: number; stock?: number } = {};
+        const patch: { usd_price?: number; stock?: number } = {};
         const precioNuevo = Number(e.precio) || 0;
-        if (precioNuevo > 0 && precioNuevo !== Math.round(precioVar(v))) patch.price = precioNuevo;
+        if (precioNuevo > 0 && precioNuevo !== usdDe(v)) patch.usd_price = precioNuevo;
         const stockNuevo = Number(e.stock) || 0;
         if (stockNuevo !== (v.stock ?? 0)) patch.stock = stockNuevo;
         if (Object.keys(patch).length) await actualizarVariante(p.id, v.id, patch);
@@ -389,10 +399,12 @@ function ProductoDrawer({
     if (!t) { push("Escribí el talle (ej: XL, 42)", "info"); return; }
     setBusy(true);
     try {
+      // El input del talle nuevo también es US$: se convierte a pesos acá
+      // porque el alta de talles del backend recibe `price` (ARS).
       await agregarTalle(p.id, {
         talle: t,
         stock: Math.max(0, Number(nuevoTalle.stock) || 0),
-        ...(Number(nuevoTalle.precio) > 0 ? { price: Number(nuevoTalle.precio) } : {}),
+        ...(Number(nuevoTalle.precio) > 0 && rate > 0 ? { price: Math.round(Number(nuevoTalle.precio) * rate) } : {}),
       });
       setNuevoTalle({ talle: "", stock: "1", precio: "" });
       push(`Talle ${t} agregado`, "success");
@@ -519,10 +531,15 @@ function ProductoDrawer({
 
         {/* ===== Precio y stock POR TALLE (PUT /variants) ===== */}
         <div className="mt-4 rounded-2xl border border-graph/[0.08] bg-graph/[0.02] p-4">
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-graph-400">Precio y stock por talle</p>
+          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-graph-400">Precio y stock por talle</p>
+          {rate > 0 && (
+            <p className="mb-3 text-xs text-graph-400">
+              El precio va en <strong>dólares</strong> — los pesos de la tienda se calculan solos (US$ 1 = $ {Math.round(rate).toLocaleString("es-AR")}).
+            </p>
+          )}
           <div className="space-y-2">
             <div className="grid grid-cols-[56px_1fr_72px_36px] items-center gap-2 px-1 text-[10px] font-semibold uppercase tracking-wide text-graph-400">
-              <span>Talle</span><span>Precio (ARS)</span><span>Stock</span><span />
+              <span>Talle</span><span>Precio US$</span><span>Stock</span><span />
             </div>
             {p.variants.map((v) => {
               const e = vf[v.id] || { precio: "", stock: "" };
@@ -566,7 +583,7 @@ function ProductoDrawer({
             <input
               value={nuevoTalle.precio}
               onChange={(e) => setNuevoTalle((s) => ({ ...s, precio: e.target.value.replace(/[^\d]/g, "") }))}
-              placeholder="Precio (opcional: hereda)"
+              placeholder="US$ (opcional: hereda)"
               inputMode="numeric"
               className={INP_SM}
             />
