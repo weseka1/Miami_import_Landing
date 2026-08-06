@@ -66,8 +66,15 @@
       -webkit-backdrop-filter:blur(22px) saturate(150%);backdrop-filter:blur(22px) saturate(150%);
       box-shadow:0 30px 70px rgba(0,0,0,.55);
       opacity:0;visibility:hidden;transform:translate(-50%,22px);
-      transition:opacity .28s cubic-bezier(.16,1,.3,1),transform .28s cubic-bezier(.16,1,.3,1),visibility 0s .28s;
+      /* El delay al SALIR (.18s) da tolerancia: si el mouse roza fuera un
+         instante, el panel no se cierra en la cara. Al entrar abre sin demora
+         (transition-delay:0s en el :hover de abajo). */
+      transition:opacity .28s cubic-bezier(.16,1,.3,1) .18s,transform .28s cubic-bezier(.16,1,.3,1) .18s,visibility 0s .46s;
       pointer-events:none}
+    /* Puente invisible sobre el hueco de 12px que deja el translate: sin esto
+       el mouse cruza tierra de nadie al bajar del link al panel, se pierde el
+       :hover y el menú se cierra antes de poder elegir nada. */
+    .mi-nav__panel::before{content:"";position:absolute;left:0;right:0;top:-16px;height:16px}
     .mi-nav__item:hover>.mi-nav__panel,.mi-nav__item:focus-within>.mi-nav__panel{
       opacity:1;visibility:visible;transform:translate(-50%,12px);transition-delay:0s;pointer-events:auto}
     .mi-nav__all{display:block;font-size:10px;letter-spacing:.22em;text-transform:uppercase;font-weight:600;
