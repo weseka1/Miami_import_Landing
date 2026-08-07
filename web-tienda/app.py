@@ -457,22 +457,68 @@ def tipo_page(nombre: str, request: Request, db: Session = Depends(get_db)):
     )
 
 
+# El cliente busca como habla: "canguro" por buzo, "chancletas" por ojotas.
+# Cada término se expande a sus sinónimos ANTES de ir a la base, así una sola
+# palabra encuentra lo que está cargado con el otro nombre.
+SINONIMOS_BUSQUEDA = {
+    "buzo": ("hoodie", "canguro", "sudadera", "sweater", "sweatshirt"),
+    "campera": ("jacket", "chaqueta", "abrigo", "rompeviento", "puffer"),
+    "remera": ("camiseta", "tshirt", "t-shirt", "playera", "musculosa"),
+    "gorra": ("cap", "visera", "gorro"),
+    "ojotas": ("chancletas", "sandalias", "slides", "chinelas"),
+    "pantalon": ("pantalón", "jogger", "jogging", "jean", "cargo"),
+    "zapatillas": ("sneakers", "tenis", "championes", "calzado"),
+    "conjunto": ("set", "equipo", "traje"),
+    "riñonera": ("rinonera", "banano", "cangurera"),
+}
+# El diccionario se usa en los dos sentidos: quien escribe "canguro" también
+# tiene que encontrar los buzos.
+_SINONIMOS_INVERSO: dict[str, tuple[str, ...]] = {}
+for _base, _alias in SINONIMOS_BUSQUEDA.items():
+    for _a in _alias:
+        _SINONIMOS_INVERSO.setdefault(_a, ())
+        _SINONIMOS_INVERSO[_a] = _SINONIMOS_INVERSO[_a] + (_base,)
+
+
+def _terminos_expandidos(q: str) -> list[str]:
+    """Palabras de la consulta + sus sinónimos, en minúscula y sin duplicados."""
+    palabras = [p for p in re.split(r"\s+", q.lower().strip()) if len(p) >= 2]
+    out: list[str] = []
+    for p in palabras[:6]:            # tope: una consulta larga no dispara 50 LIKE
+        for t in (p, *SINONIMOS_BUSQUEDA.get(p, ()), *_SINONIMOS_INVERSO.get(p, ())):
+            if t not in out:
+                out.append(t)
+    return out
+
+
 @app.get("/buscar", response_class=HTMLResponse)
 def search(request: Request, q: str = "", db: Session = Depends(get_db)):
+    """Buscador de la tienda.
+
+    SIN `q` NO es un error: es la pantalla del buscador (la lupa del mobile
+    entra por acá). Antes caía en category.html y mostraba "No encontramos
+    productos" sin un campo donde escribir — Diego no podía buscar nada.
+    """
     productos = []
-    if q.strip():
-        like = f"%{q.lower()}%"
+    terminos = _terminos_expandidos(q) if q.strip() else []
+    if terminos:
         from sqlalchemy import func, or_
+        cond = []
+        for t in terminos:
+            like = f"%{t}%"
+            cond += [func.lower(Product.name).like(like),
+                     func.lower(Product.brand).like(like),
+                     func.lower(Product.description).like(like)]
         productos = (
             db.query(Product)
-            .filter(Product.published.is_(True))
-            .filter(or_(func.lower(Product.name).like(like),
-                        func.lower(Product.brand).like(like)))
+            .filter(Product.published.is_(True), Product.a_pedido.is_(False))
+            .filter(or_(*cond))
             .order_by(Product.id.desc())
+            .limit(120)
             .all()
         )
     return templates.TemplateResponse(
-        request, "category.html",
+        request, "search.html",
         base_context(request, db, categoria=None, productos=productos,
                      search_query=q, template_class="search"),
     )

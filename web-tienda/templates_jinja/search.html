@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% from "_card.html" import product_card %}
+{% block title %}{% if search_query %}Buscar: {{ search_query }}{% else %}Buscador{% endif %} — {{ STORE_NAME }}{% endblock %}
+{% block meta_description %}Buscá entre las piezas importadas de {{ STORE_NAME }}.{% endblock %}
+
+{% block content %}
+<div class="mi-container" style="padding-top:48px">
+  <h1 class="mi-section-title" style="margin-top:0">
+    {% if search_query %}Resultados para “{{ search_query }}”{% else %}¿Qué estás buscando?{% endif %}
+  </h1>
+
+  {# El campo va SIEMPRE, con o sin resultados: la lupa del mobile entra acá y
+     antes caía en una pantalla sin dónde escribir. #}
+  <form action="/buscar" method="get" role="search" class="mi-searchbox">
+    <input type="search" name="q" value="{{ search_query or '' }}" autofocus
+           placeholder="Marca, prenda o color — ej: Balenciaga, canguro negro"
+           aria-label="Buscar productos"/>
+    <button type="submit">Buscar</button>
+  </form>
+
+  {% if productos %}
+    <p style="color:rgba(245,243,238,.4);font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin:26px 0 24px">
+      {{ productos|length }} producto{{ 's' if productos|length != 1 else '' }}</p>
+    <div class="mi-grid">
+      {% for p in productos %}{{ product_card(p, usd_rate) }}{% endfor %}
+    </div>
+  {% elif search_query %}
+    <div style="text-align:center;padding:40px 0 10px">
+      <p style="color:rgba(245,243,238,.62);font-size:15px;line-height:1.7;margin:0 0 6px">
+        No tenemos nada cargado para “{{ search_query }}”.</p>
+      <p style="color:rgba(245,243,238,.45);font-size:14px;line-height:1.7;margin:0 0 26px">
+        Puede estar en camino o conseguirse a pedido: escribinos y te lo averiguamos.</p>
+      <a href="https://wa.me/5491162321391?text={{ ('Hola Diego! Estoy buscando: ' ~ search_query) | urlencode }}"
+         target="_blank" rel="noopener"
+         style="display:inline-block;padding:15px 34px;border-radius:999px;background:var(--miami-gold,#b99b63);
+                color:#0a0a0a;letter-spacing:.16em;text-transform:uppercase;font-size:12px;font-weight:700">
+        Preguntar por WhatsApp</a>
+    </div>
+  {% endif %}
+
+  {# Atajos: sin resultados (o sin búsqueda) el cliente nunca queda en una
+     pantalla muerta — siempre tiene por dónde seguir. #}
+  {% if nav_tipos %}
+  <div style="margin:44px 0 10px">
+    <p style="font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--miami-gold,#c6a768);margin-bottom:16px">
+      {% if productos %}Seguí mirando{% else %}Explorá por categoría{% endif %}</p>
+    <div style="display:flex;flex-wrap:wrap;gap:10px">
+      {% for t in nav_tipos %}
+      <a href="/tipo/{{ t.slug }}" class="mi-chip">{{ t.nombre }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+  .mi-searchbox{display:flex;gap:10px;max-width:640px;margin:26px 0 0}
+  .mi-searchbox input{flex:1;min-width:0;height:52px;padding:0 20px;border-radius:999px;
+    border:1px solid rgba(245,243,238,.16);background:rgba(255,255,255,.05);color:#fff;font-size:15px;
+    -webkit-appearance:none;appearance:none;outline:none;transition:border-color .3s,background .3s}
+  .mi-searchbox input:focus{border-color:rgba(198,167,104,.6);background:rgba(255,255,255,.08)}
+  .mi-searchbox input::placeholder{color:rgba(245,243,238,.4)}
+  .mi-searchbox input::-webkit-search-cancel-button{-webkit-appearance:none}
+  .mi-searchbox button{flex:none;height:52px;padding:0 26px;border:0;border-radius:999px;cursor:pointer;
+    background:var(--miami-gold,#b99b63);color:#0a0a0a;font-size:12px;font-weight:700;
+    letter-spacing:.16em;text-transform:uppercase}
+  .mi-chip{display:inline-block;padding:10px 18px;border-radius:999px;font-size:12px;letter-spacing:.1em;
+    text-transform:uppercase;color:rgba(242,234,217,.8);border:1px solid rgba(245,243,238,.14);
+    background:rgba(255,255,255,.04);transition:border-color .3s,color .3s}
+  .mi-chip:hover{border-color:rgba(198,167,104,.55);color:var(--miami-gold,#c6a768)}
+  @media(max-width:640px){
+    .mi-searchbox{gap:8px}
+    .mi-searchbox input{height:48px;font-size:16px}  /* 16px: iOS no hace zoom al enfocar */
+    .mi-searchbox button{padding:0 18px;font-size:11px}
+  }
+</style>
+{% endblock %}
