@@ -11,6 +11,12 @@
   <meta property="og:site_name" content="{{ STORE_NAME }}"/>
   <meta property="og:locale" content="es_AR"/>
   <meta name="twitter:card" content="summary_large_image"/>
+  {# Sin esto el navegador pedía /favicon.ico, comía un 404 y mostraba el
+     ícono gris genérico en la pestaña y en el acceso directo del celular. #}
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml"/>
+  <link rel="icon" href="/static/favicon.png" sizes="32x32" type="image/png"/>
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png"/>
+  <meta name="theme-color" content="#0E0B08"/>
   {% block head_extra %}{% endblock %}
 
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>

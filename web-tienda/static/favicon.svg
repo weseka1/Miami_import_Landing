@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="MI">
+  <rect width="64" height="64" fill="#0A0A0A"/>
+  <text x="32" y="30" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Inter, Arial, sans-serif" font-weight="500" font-size="22" letter-spacing="0.06em" fill="#FFFFFF">M</text>
+  <line x1="20" y1="36" x2="44" y2="36" stroke="#FFFFFF" stroke-width="0.6"/>
+  <text x="32" y="54" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Inter, Arial, sans-serif" font-weight="500" font-size="22" letter-spacing="0.06em" fill="#FFFFFF">I</text>
+</svg>
