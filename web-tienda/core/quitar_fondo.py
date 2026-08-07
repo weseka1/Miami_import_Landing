@@ -4,8 +4,13 @@ Diego saca las fotos en el local (percha, pared, piso de mármol) y la vitrina
 necesita la prenda flotando sobre negro. Esto lo resuelve con la misma IA que
 ya usa el probador virtual:
 
-  GEMINI_API_KEY → gemini-2.5-flash-image (franja gratuita de Google)
-  FAL_KEY        → fal.ai birefnet (recorte dedicado, más fino)
+  FAL_KEY        → fal.ai birefnet (recorte dedicado, más fino y más barato)
+  GEMINI_API_KEY → gemini-2.5-flash-image (OJO: NO tiene franja gratuita,
+                   se cobra ~USD 0,039 por imagen procesada)
+
+Cada recorte CUESTA PLATA. Como lo dispara Diego a mano desde el panel (unas
+pocas fotos por mes), el gasto es de centavos; el volumen alto está en el
+probador virtual, no acá.
 
 Si ninguna key está cargada, `disponible()` devuelve False y el panel muestra
 el modo manual (subir un PNG ya recortado). Nunca revienta la subida.

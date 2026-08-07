@@ -3,7 +3,8 @@ PROBADOR VIRTUAL — el cliente se ve la prenda puesta.
 
 Motor DOBLE, gateado por env (sin key: el botón ni aparece, nada roto):
 - FAL_KEY        → FASHN v1.6 vía fal.ai (~USD 0,08/imagen, máxima fidelidad)
-- GEMINI_API_KEY → Gemini 2.5 Flash Image / nano-banana (franja GRATUITA de Google)
+- GEMINI_API_KEY → Gemini 2.5 Flash Image / nano-banana (~USD 0,039 por imagen;
+                   NO tiene franja gratuita, cada prueba de un visitante se cobra)
 Si están las dos, FASHN manda y Gemini queda de respaldo.
 
 La foto del cliente NO se persiste: viaja al motor y el resultado se guarda
