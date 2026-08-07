@@ -28,6 +28,7 @@ import Reservas from "./pages/Reservas";
 import Pedidos from "./pages/Pedidos";
 import Estadisticas from "./pages/Estadisticas";
 import PreciosUsd from "./pages/PreciosUsd";
+import MiWeb from "./pages/MiWeb";
 import WhatsappPage from "./pages/WhatsappPage";
 import Acciones from "./pages/Acciones";
 
@@ -81,6 +82,7 @@ export default function PanelApp() {
                 <Route path="estadisticas" element={<Estadisticas />} />
                 <Route path="precios-usd" element={<PreciosUsd />} />
                 <Route path="whatsapp" element={<WhatsappPage />} />
+                <Route path="mi-web" element={<MiWeb />} />
                 <Route path="acciones" element={<Acciones />} />
                 <Route path="*" element={<Navigate to="/panel" replace />} />
               </Routes>

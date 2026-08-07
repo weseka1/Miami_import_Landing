@@ -22,107 +22,52 @@
     <button class="miami-trilogy__gender-btn" data-gender="mujer" role="tab" aria-selected="false">MUJER</button>
   </div>
 
-  {# Stage del carrusel: 4 jackets. La activa (is-center) es clickeable y va al producto. #}
+  {# Stage del carrusel. Las piezas las carga Diego desde el panel (Mi web →
+     Vitrina); sin config guardada salen las de fábrica. La activa (is-center)
+     es clickeable y va al producto; una pieza sin link va como <div>. #}
+  {% set piezas = home.vitrina.piezas %}
   <div class="miami-trilogy__stage" aria-label="Carrusel de chaquetas">
-    <a href="/tipo/camperas"
-       class="miami-trilogy__jacket is-center" data-jacket="0" data-gender="hombre"
-       aria-label="Ver Chaqueta Diesel Marrón Parches">
-      <img class="miami-trilogy__img" src="{{ 'images/trilogy-marron-v6.webp' | static_url }}" alt="Diesel Varsity Marron" loading="lazy"/>
-    </a>
-    {# Multicolor aun no esta subido al catalogo — sin link por ahora #}
-    <div class="miami-trilogy__jacket is-next" data-jacket="1" data-gender="hombre">
-      <img class="miami-trilogy__img" src="{{ 'images/trilogy-multicolor-v6.webp' | static_url }}" alt="Diesel Varsity Multicolor" loading="lazy"/>
-    </div>
-    <a href="/tipo/camperas"
-       class="miami-trilogy__jacket" data-jacket="2" data-gender="mujer"
-       aria-label="Ver Chaqueta Diesel Blanca con Strass">
-      <img class="miami-trilogy__img" src="{{ 'images/trilogy-blanco-v6.webp' | static_url }}" alt="Diesel Varsity Blanco" loading="lazy"/>
-    </a>
-    <a href="/tipo/camperas"
-       class="miami-trilogy__jacket" data-jacket="3" data-gender="mujer"
-       aria-label="Ver Chaqueta Diesel Negra con Strass">
-      <img class="miami-trilogy__img" src="{{ 'images/trilogy-negro-v6.webp' | static_url }}" alt="Diesel Varsity Negro" loading="lazy"/>
-    </a>
-    <a href="/tipo/camperas"
-       class="miami-trilogy__jacket" data-jacket="4" data-gender="hombre"
-       aria-label="Ver Chaqueta Diesel Negra Parches">
-      <img class="miami-trilogy__img" src="{{ 'images/trilogy-negra-parches-v6.webp' | static_url }}" alt="Diesel Negra Parches" loading="lazy"/>
-    </a>
+    {% for p in piezas %}
+      {% set clases = 'miami-trilogy__jacket' ~ (' is-center' if loop.first else (' is-next' if loop.index0 == 1 else '')) %}
+      {% if p.link %}
+      <a href="{{ p.link }}" class="{{ clases }}" data-jacket="{{ loop.index0 }}"
+         data-gender="{{ p.genero or 'hombre' }}" aria-label="Ver {{ p.nombre }}">
+        <img class="miami-trilogy__img" src="{{ p.imagen | media_url }}" alt="{{ p.nombre }}" loading="lazy"/>
+      </a>
+      {% else %}
+      <div class="{{ clases }}" data-jacket="{{ loop.index0 }}" data-gender="{{ p.genero or 'hombre' }}">
+        <img class="miami-trilogy__img" src="{{ p.imagen | media_url }}" alt="{{ p.nombre }}" loading="lazy"/>
+      </div>
+      {% endif %}
+    {% endfor %}
   </div>
 
-  {# 4 Overlays editoriales — solo el del jacket activo (y del genero activo) se ve #}
-  <div class="miami-trilogy__ch is-active" data-chapter="0" data-gender="hombre">
-    <h3 class="miami-trilogy__name">MARRÓN</h3>
+  {# Fichas editoriales — solo la del jacket activo (y del genero activo) se ve.
+     El nombre de dos palabras usa la variante compacta para que no desborde. #}
+  {% for p in piezas %}
+  <div class="miami-trilogy__ch{{ ' is-active' if loop.first else '' }}"
+       data-chapter="{{ loop.index0 }}" data-gender="{{ p.genero or 'hombre' }}">
+    <h3 class="miami-trilogy__name{{ ' miami-trilogy__name--compact' if p.nombre.split()|length > 1 else '' }}">{{ p.nombre }}</h3>
     <div class="miami-trilogy__glass">
-      <div class="miami-trilogy__glass-label">REF / 01 · HOMBRE</div>
-      <p>Tierra negra. La pieza se reescribe en tono cálido, con patches
-         que viran al dorado. Streetwear con vocabulario de archivo.</p>
+      {% if p.ref %}<div class="miami-trilogy__glass-label">{{ p.ref }}</div>{% endif %}
+      {% if p.descripcion %}<p>{{ p.descripcion }}</p>{% endif %}
       <div class="miami-trilogy__glass-meta">
-        <div>COLORWAY · <strong>TIERRA NEGRA</strong></div>
-        <div>TALLES · <strong>S — 2XL</strong></div>
-        <div>PESO · <strong>980 g</strong></div>
+        {% if p.colorway %}<div>COLORWAY · <strong>{{ p.colorway }}</strong></div>{% endif %}
+        {% if p.talles %}<div>TALLES · <strong>{{ p.talles }}</strong></div>{% endif %}
+        {% if p.peso %}<div>PESO · <strong>{{ p.peso }}</strong></div>{% endif %}
       </div>
     </div>
   </div>
-  <div class="miami-trilogy__ch" data-chapter="1" data-gender="hombre">
-    <h3 class="miami-trilogy__name">MULTICOLOR</h3>
-    <div class="miami-trilogy__glass">
-      <div class="miami-trilogy__glass-label">REF / 02 · HOMBRE</div>
-      <p>Pieza de archivo racing. Patches saturados, composición tipográfica
-         intensa. Rojo motor, blanco crudo y negro tinta en convivencia.</p>
-      <div class="miami-trilogy__glass-meta">
-        <div>COLORWAY · <strong>MULTICOLOR ARCHIVE</strong></div>
-        <div>TALLES · <strong>S — 2XL</strong></div>
-        <div>PESO · <strong>980 g</strong></div>
-      </div>
-    </div>
-  </div>
-  <div class="miami-trilogy__ch" data-chapter="2" data-gender="mujer">
-    <h3 class="miami-trilogy__name">BLANCO</h3>
-    <div class="miami-trilogy__glass">
-      <div class="miami-trilogy__glass-label">REF / 01 · MUJER</div>
-      <p>Crudo. Sin maquillaje. Patches bordados sobre nylon italiano,
-         hilos plateados, costura visible. Una declaración de pureza.</p>
-      <div class="miami-trilogy__glass-meta">
-        <div>COLORWAY · <strong>CRUDO MARFIL</strong></div>
-        <div>TALLES · <strong>S — 2XL</strong></div>
-        <div>PESO · <strong>980 g</strong></div>
-      </div>
-    </div>
-  </div>
-  <div class="miami-trilogy__ch" data-chapter="3" data-gender="mujer">
-    <h3 class="miami-trilogy__name">NEGRO</h3>
-    <div class="miami-trilogy__glass">
-      <div class="miami-trilogy__glass-label">REF / 02 · MUJER</div>
-      <p>Negro tinta. El bordado se vuelve tonal, el peso visual se
-         concentra. Una lectura más íntima, casi monástica.</p>
-      <div class="miami-trilogy__glass-meta">
-        <div>COLORWAY · <strong>NEGRO TINTA</strong></div>
-        <div>TALLES · <strong>S — 2XL</strong></div>
-        <div>PESO · <strong>980 g</strong></div>
-      </div>
-    </div>
-  </div>
-  <div class="miami-trilogy__ch" data-chapter="4" data-gender="hombre">
-    <h3 class="miami-trilogy__name miami-trilogy__name--compact">NEGRA PARCHES</h3>
-    <div class="miami-trilogy__glass">
-      <div class="miami-trilogy__glass-label">REF / 03 · HOMBRE</div>
-      <p>Negra estructura. Patches metálicos sobre nylon italiano, costura
-         visible y peso editorial. Streetwear con presencia de archivo.</p>
-      <div class="miami-trilogy__glass-meta">
-        <div>COLORWAY · <strong>NEGRO PARCHES</strong></div>
-        <div>TALLES · <strong>S — 2XL</strong></div>
-        <div>PESO · <strong>980 g</strong></div>
-      </div>
-    </div>
-  </div>
+  {% endfor %}
 
-  {# Nav abajo: 2 dots (mujer) o 3 dots (hombre) — JS oculta los que sobran segun genero #}
+  {# Un dot por pieza (el JS oculta los que no son del género activo). Antes
+     eran 3 fijos: con más piezas cargadas faltaban dots. #}
   <nav class="miami-trilogy__nav" aria-label="Capítulos">
     <button class="miami-trilogy__nav-arrow" data-arrow="prev" aria-label="Anterior">←</button>
-    <button data-go="0" class="is-active" aria-label="Modelo 1"></button>
-    <button data-go="1" aria-label="Modelo 2"></button>
-    <button data-go="2" aria-label="Modelo 3"></button>
+    {% for p in piezas %}
+    <button data-go="{{ loop.index0 }}"{{ ' class="is-active"' | safe if loop.first else '' }}
+            aria-label="Modelo {{ loop.index }}"></button>
+    {% endfor %}
     <button class="miami-trilogy__nav-arrow" data-arrow="next" aria-label="Siguiente">→</button>
   </nav>
 </section>

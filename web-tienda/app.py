@@ -32,6 +32,7 @@ from checkout import checkout_router, confirmar_pago_desde_stripe
 from core import storage
 from core.config import settings
 from core.db import get_db, init_db
+from core.home_config import get_home_config
 from core.models import Category, Order, Product, User
 from core.web_security import install_security
 from deps import current_user
@@ -111,6 +112,25 @@ templates.env.filters["money"] = fmt_moneda   # {{ importe | money(moneda) }}
 # Filtro del theme original: 'images/x.webp' | static_url -> /static/images/x.webp
 # Permite incluir los snipplets .tpl (miami-trilogy, etc.) casi sin tocarlos.
 templates.env.filters["static_url"] = lambda p: f"/static/{p}"
+
+
+def media_url(p: str | None) -> str:
+    """URL de una imagen de la home, venga de donde venga.
+
+    Las imágenes de fábrica son rutas del theme ('images/x.webp' o
+    '/static/images/x.webp'); las que sube Diego desde el panel son URLs
+    completas de Supabase. Este filtro acepta las tres formas para que la
+    plantilla no tenga que saber cuál es cuál.
+    """
+    p = (p or "").strip()
+    if not p:
+        return "/static/images/empty-placeholder.png"
+    if p.startswith(("http://", "https://", "/")):
+        return p
+    return f"/static/{p}"
+
+
+templates.env.filters["media_url"] = media_url
 templates.env.filters["has_custom_image"] = lambda p: False
 # {{ url | thumb(640) }} -> foto redimensionada al vuelo (ver core/storage.py)
 templates.env.filters["thumb"] = storage.thumb_url
@@ -362,6 +382,10 @@ def home(request: Request, db: Session = Depends(get_db)):
         request, "home.html",
         base_context(request, db, destacados=destacados, mas_vendidos=mas_vendidos,
                      ultimos=ultimos, marcas=marcas,
+                     # Todo lo editable de la home (lo carga Diego desde el
+                     # panel). Sin nada guardado devuelve los valores de
+                     # fábrica, que son los que estaban escritos a mano.
+                     home=get_home_config(db),
                      sections=sections, template_class="home"),
     )
 

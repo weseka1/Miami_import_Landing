@@ -26,29 +26,22 @@
 {% include "miami-trilogy.tpl" %}
 
 {# ---------- MARCAS ---------- #}
+{# Marcas: las carga Diego desde el panel (Mi web → Marcas). Sin config
+   guardada, `home.marcas` trae los valores de fábrica. #}
+{% if home.marcas.activo and home.marcas['items'] %}
 <section class="h-sec">
   <div class="h-sec__head">
-    <span class="h-eyebrow">La casa</span>
-    <h2 class="h-title">Marcas con licencia</h2>
-    <p class="h-lead">Selección curada pieza por pieza. Cada casa, sus códigos.</p>
+    <span class="h-eyebrow">{{ home.marcas.eyebrow }}</span>
+    <h2 class="h-title">{{ home.marcas.titulo }}</h2>
+    {% if home.marcas.bajada %}<p class="h-lead">{{ home.marcas.bajada }}</p>{% endif %}
   </div>
   <div class="h-brands" data-miami-carousel>
     <div class="h-brands__track" data-miami-track>
-    {% set brands = [
-      ('DIESEL','diesel','category-diesel-cut-v2.webp'),
-      ('BALENCIAGA','balenciaga','category-balenciaga-cut.webp'),
-      ('OFF-WHITE','off-white','category-off-white-cut.webp'),
-      ('AMIRI','amiri','category-amiri-cut.webp'),
-      ('PALM ANGELS','palm-angels','category-palm-angels-cut.webp'),
-      ('BALMAIN','balmain','category-balmain-cut.webp'),
-      ('HUGO BOSS','hugo-boss','category-hugo-boss-cut.webp'),
-      ('CALVIN KLEIN','calvin-klein','category-calvin-klein-cut.webp')
-    ] %}
-    {% for name, handle, img in brands %}
-    <a class="h-brand" href="/categoria/{{ handle }}">
-      <div class="h-brand__media"><img src="{{ ('images/' ~ img) | static_url }}" alt="{{ name }}" loading="lazy"/></div>
+    {% for m in home.marcas['items'] %}
+    <a class="h-brand" href="{{ m.link or '/productos' }}">
+      <div class="h-brand__media"><img src="{{ m.imagen | media_url }}" alt="{{ m.nombre }}" loading="lazy"/></div>
       <div class="h-brand__foot">
-        <span class="h-brand__name">{{ name }}</span>
+        <span class="h-brand__name">{{ m.nombre }}</span>
         <span class="h-brand__cta">Explorar →</span>
       </div>
     </a>
@@ -56,6 +49,7 @@
     </div>
   </div>
 </section>
+{% endif %}
 
 {# ---------- PRODUCTOS: 3 secciones con DATA REAL ----------
    más vendidos = unidades vendidas (order_items; fallback: más talles)
@@ -64,7 +58,7 @@
 
 <section class="h-sec">
   <div class="h-sec__head h-sec__head--row">
-    <div><span class="h-eyebrow">Lo que más vuela</span><h2 class="h-title">Más vendidos</h2></div>
+    <div><span class="h-eyebrow">{{ home.secciones.mas_vendidos_eyebrow }}</span><h2 class="h-title">{{ home.secciones.mas_vendidos_titulo }}</h2></div>
     <a class="h-textlink" href="{{ store.products_url }}">Ver todo →</a>
   </div>
   <div class="mi-grid">{% for p in mas_vendidos %}{{ product_card(p, usd_rate) }}{% endfor %}</div>
@@ -72,7 +66,7 @@
 
 <section class="h-sec">
   <div class="h-sec__head h-sec__head--row">
-    <div><span class="h-eyebrow">Selección de la casa</span><h2 class="h-title">Destacados</h2></div>
+    <div><span class="h-eyebrow">{{ home.secciones.destacados_eyebrow }}</span><h2 class="h-title">{{ home.secciones.destacados_titulo }}</h2></div>
     <a class="h-textlink" href="{{ store.products_url }}">Ver todo →</a>
   </div>
   <div class="mi-grid">{% for p in destacados %}{{ product_card(p, usd_rate) }}{% endfor %}</div>
@@ -80,37 +74,36 @@
 
 <section class="h-sec">
   <div class="h-sec__head h-sec__head--row">
-    <div><span class="h-eyebrow">Se agotan</span><h2 class="h-title">Últimos en stock</h2></div>
+    <div><span class="h-eyebrow">{{ home.secciones.ultimos_eyebrow }}</span><h2 class="h-title">{{ home.secciones.ultimos_titulo }}</h2></div>
     <a class="h-textlink" href="{{ store.products_url }}">Ver todo →</a>
   </div>
   <div class="mi-grid">{% for p in ultimos %}{{ product_card(p, usd_rate) }}{% endfor %}</div>
 </section>
 
-{# ---------- VALORES ---------- #}
+{# ---------- VALORES (editables desde el panel) ---------- #}
+{% if home.valores.activo and home.valores['items'] %}
 <section class="h-sec">
   <div class="h-values">
-    {% set vals = [
-      ('01','Doc. de origen','Comprobante de autenticidad con cada pieza.'),
-      ('02','Edición chica','Pocas unidades. Reposición sólo por pedido.'),
-      ('03','Atención 1:1','WhatsApp directo, sin formularios ni esperas.'),
-      ('04','Ruta verificada','Italia · Miami → Buenos Aires, trazable.')
-    ] %}
-    {% for no, t, d in vals %}
+    {% for v in home.valores['items'] %}
     <div class="h-value u-glass">
-      <span class="h-value__no">{{ no }}</span>
-      <h3 class="h-value__t">{{ t }}</h3>
-      <p class="h-value__d">{{ d }}</p>
+      <span class="h-value__no">{{ v.num }}</span>
+      <h3 class="h-value__t">{{ v.titulo }}</h3>
+      <p class="h-value__d">{{ v.texto }}</p>
     </div>
     {% endfor %}
   </div>
 </section>
+{% endif %}
 
-{# ---------- CTA ---------- #}
+{# ---------- CIERRE (editable desde el panel) ---------- #}
+{% if home.cierre.activo %}
 <section class="h-cta">
-  <h2 class="h-cta__title">¿Buscás una pieza puntual?</h2>
-  <p class="h-lead">Escribinos y te confirmamos disponibilidad, talle y precio en minutos.</p>
-  <a class="h-btn h-btn--gold miami-magnetic" href="https://wa.me/5491162321391?text=Hola%2C%20quiero%20consultar%20por%20una%20pieza." target="_blank" rel="noopener">Abrir WhatsApp →</a>
+  <h2 class="h-cta__title">{{ home.cierre.titulo }}</h2>
+  <p class="h-lead">{{ home.cierre.texto }}</p>
+  <a class="h-btn h-btn--gold miami-magnetic" target="_blank" rel="noopener"
+     href="https://wa.me/5491162321391?text={{ (home.cierre.wa_mensaje or 'Hola, quiero consultar por una pieza.') | urlencode }}">{{ home.cierre.cta_texto }}</a>
 </section>
+{% endif %}
 
 <style>
   /* ====== HOME — todo flow-based, todo sobre tokens (miami-ds) ====== */

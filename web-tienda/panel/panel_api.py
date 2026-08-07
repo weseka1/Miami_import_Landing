@@ -27,10 +27,18 @@ from .auth import get_current_admin
 from core import storage
 from core.config import settings
 from core.db import get_db
+from core.home_config import (
+    DEFAULTS as HOME_DEFAULTS,
+    get_home_config,
+    reset_home_config,
+    save_home_config,
+)
 from core.models import (
     Category, Order, Product, ProductImage, Reserva, Variant, Setting,
     RESERVA_STATUSES,
 )
+from core.quitar_fondo import disponible as recorte_disponible
+from core.quitar_fondo import quitar_fondo as quitar_fondo_ia
 from core.sanitize import clean_description
 from .serializers import order_to_tn, product_to_tn, reserva_to_dict
 
@@ -1139,3 +1147,84 @@ def delete_reserva(rid: int, db: Session = Depends(get_db)):
     db.delete(r)
     db.commit()
     return {"ok": True}
+
+
+# --------------------------------------------------------------------------- #
+# LA WEB — la home editable por Diego (hero, vitrina, marcas, valores, cierre)
+# --------------------------------------------------------------------------- #
+@router.get("/web/home")
+def web_home_get(db: Session = Depends(get_db)):
+    """Config actual + si hay motor de recorte disponible (el panel se adapta)."""
+    return {"config": get_home_config(db), "recorte_ia": recorte_disponible()}
+
+
+@router.put("/web/home")
+def web_home_put(body: dict, db: Session = Depends(get_db)):
+    """Guarda uno o varios bloques. Se mergea: lo que no venga, no se toca."""
+    if not isinstance(body, dict) or not body:
+        raise HTTPException(400, "No llegó ningún cambio")
+    bloques = {k: v for k, v in body.items() if k in HOME_DEFAULTS}
+    if not bloques:
+        raise HTTPException(400, "Ningún bloque válido en el pedido")
+    return {"config": save_home_config(db, bloques)}
+
+
+@router.post("/web/home/reset")
+def web_home_reset(db: Session = Depends(get_db)):
+    """Vuelve la home a como vino de fábrica."""
+    return {"config": reset_home_config(db)}
+
+
+@router.post("/web/imagen")
+async def web_imagen(
+    file: UploadFile = File(...),
+    quitar_fondo: bool = Form(True),
+    destino: str = Form("vitrina"),
+):
+    """Sube una foto para la home y (si se pide) le saca el fondo con IA.
+
+    Si el recorte falla, la foto se guarda igual TAL CUAL y se avisa en la
+    respuesta: es preferible que Diego vea su imagen con fondo y decida, a que
+    la subida se caiga y no pueda cargar nada.
+    """
+    raw = await file.read()
+    if not raw:
+        raise HTTPException(400, "Archivo vacío")
+    if len(raw) > MAX_IMAGE_BYTES:
+        raise HTTPException(413, "La imagen es demasiado grande (máx. 8 MB)")
+
+    destino = re.sub(r"[^a-z0-9_-]", "", (destino or "vitrina").lower()) or "vitrina"
+    data, motor, aviso = raw, None, None
+
+    if quitar_fondo:
+        if not recorte_disponible():
+            aviso = ("No hay IA de recorte configurada (falta GEMINI_API_KEY o "
+                     "FAL_KEY). La foto se subió con su fondo original.")
+        else:
+            try:
+                data, motor = quitar_fondo_ia(raw)
+            except Exception as exc:  # noqa: BLE001
+                log.warning("recorte falló: %s", exc)
+                aviso = ("No se pudo recortar el fondo automáticamente; la foto "
+                         "quedó con su fondo. Probá con otra o subí un PNG ya recortado.")
+    if motor is None and not quitar_fondo:
+        data = comprimir_imagen(raw)
+
+    ext = "png" if motor else (Path(file.filename or "").suffix.lower().lstrip(".") or "jpg")
+    if ext not in ("png", "jpg", "jpeg", "webp"):
+        ext = "jpg"
+    rel = f"home/{destino}/{secrets.token_hex(12)}.{ext}"
+    tipo = "image/png" if ext == "png" else f"image/{'jpeg' if ext in ('jpg', 'jpeg') else ext}"
+
+    if storage.is_enabled():
+        try:
+            url = storage.upload_bytes(data, rel, tipo)
+        except RuntimeError as exc:
+            raise HTTPException(502, f"No se pudo guardar la imagen: {exc}")
+    else:
+        dest = STORE_STATIC / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(data)
+        url = f"/static/{rel}"
+
+    return {"ok": True, "url": url, "motor": motor, "aviso": aviso}

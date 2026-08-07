@@ -4,26 +4,35 @@
    - Sin grano/grilla/marquee: menos es más.
    ============================================================ #}
 <section class="mi-hero" id="mi-hero" aria-label="Miami Import — indumentaria original importada">
+  {# Video y textos editables desde el panel (Mi web → Portada). Sin nada
+     cargado usa el video de fábrica. #}
   <video class="mi-hero__video" autoplay muted loop playsinline preload="metadata"
          poster="{{ 'videos/hero-miami-poster.jpg' | static_url }}">
-    <source src="{{ 'videos/hero-miami.mp4' | static_url }}" type="video/mp4"/>
+    <source src="{{ home.hero.video | media_url if home.hero.video else ('videos/hero-miami.mp4' | static_url) }}" type="video/mp4"/>
   </video>
   <div class="mi-hero__scrim" aria-hidden="true"></div>
 
+  {% if home.hero.eyebrow %}
   <div class="mi-hero__top">
-    <span class="mi-hero__eyebrow"><i></i>MILANO&nbsp;→&nbsp;BUENOS AIRES · MARCAS CON LICENCIA</span>
+    <span class="mi-hero__eyebrow"><i></i>{{ home.hero.eyebrow }}</span>
   </div>
+  {% endif %}
 
   <div class="mi-hero__content">
     {# El branding "MIAMI IMPORT" ya va quemado en el video (estilo Balenciaga),
        así que el overlay no repite el logo — un solo mark, minimalista. #}
     <p class="mi-hero__tag">
-      Originales importados con licencia de origen.<br/>
-      <span class="mi-hero__tag-strong">Piezas contadas — cuando no está, no vuelve.</span>
+      {{ home.hero.titulo }}<br/>
+      <span class="mi-hero__tag-strong">{{ home.hero.subtitulo }}</span>
     </p>
     <div class="mi-hero__cta">
-      <a href="{{ store.products_url }}" class="mi-hero__btn mi-hero__btn--gold miami-magnetic">Ver catálogo <span aria-hidden="true">→</span></a>
-      <a href="https://wa.me/5491162321391?text=Hola%2C%20quiero%20abrir%20un%20pedido%20puntual." target="_blank" rel="noopener" class="mi-hero__btn mi-hero__btn--ghost miami-magnetic">Pedido puntual</a>
+      {% if home.hero.cta_texto %}
+      <a href="{{ home.hero.cta_link or store.products_url }}" class="mi-hero__btn mi-hero__btn--gold miami-magnetic">{{ home.hero.cta_texto }} <span aria-hidden="true">→</span></a>
+      {% endif %}
+      {% if home.hero.cta2_texto %}
+      <a href="{{ home.hero.cta2_link or ('https://wa.me/5491162321391?text=' ~ ('Hola, quiero abrir un pedido puntual.' | urlencode)) }}"
+         target="_blank" rel="noopener" class="mi-hero__btn mi-hero__btn--ghost miami-magnetic">{{ home.hero.cta2_texto }}</a>
+      {% endif %}
     </div>
   </div>
 

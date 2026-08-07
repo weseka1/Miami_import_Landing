@@ -80,6 +80,23 @@ export interface MiamiStore {
   usd_rate: number;
 }
 
+// ---- LA WEB: la home que Diego edita desde el panel ----
+export interface HomePieza {
+  nombre: string; genero?: string; imagen: string; ref?: string;
+  colorway?: string; talles?: string; peso?: string; link?: string; descripcion?: string;
+}
+export interface HomeMarca { nombre: string; link: string; imagen: string }
+export interface HomeValor { num: string; titulo: string; texto: string }
+export interface HomeConfig {
+  hero: { activo: boolean; eyebrow: string; titulo: string; subtitulo: string;
+          cta_texto: string; cta_link: string; cta2_texto: string; cta2_link: string; video: string };
+  vitrina: { activo: boolean; eyebrow: string; titulo: string; piezas: HomePieza[] };
+  marcas: { activo: boolean; eyebrow: string; titulo: string; bajada: string; items: HomeMarca[] };
+  secciones: Record<string, string>;
+  valores: { activo: boolean; items: HomeValor[] };
+  cierre: { activo: boolean; titulo: string; texto: string; cta_texto: string; wa_mensaje: string };
+}
+
 export interface LoginRespuesta {
   ok: boolean;
   mfa_required?: boolean;
@@ -276,6 +293,30 @@ export const api = {
   /** Quita un talle (si no es el único ni está reservado). Devuelve el producto. */
   quitarTalle: (pid: number, vid: number) =>
     req<MiamiProducto>(`/variants/${pid}/${vid}`, { method: "DELETE" }),
+
+  // --- LA WEB (home editable) ---
+  /** Config de la home + si hay IA de recorte configurada en el server. */
+  webHome: () => req<{ config: HomeConfig; recorte_ia: boolean }>("/web/home"),
+
+  /** Guarda SOLO los bloques que se manden (el resto queda intacto). */
+  webHomeGuardar: (bloques: Partial<HomeConfig>) =>
+    req<{ config: HomeConfig }>("/web/home", {
+      method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(bloques),
+    }),
+
+  /** Vuelve la home a como vino de fábrica. */
+  webHomeReset: () => req<{ config: HomeConfig }>("/web/home/reset", { method: "POST" }),
+
+  /** Sube una foto de la home; con quitarFondo la IA la recorta sobre transparente. */
+  webImagen: (file: File, quitarFondo: boolean, destino: string) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("quitar_fondo", quitarFondo ? "true" : "false");
+    fd.append("destino", destino);
+    return req<{ ok: boolean; url: string; motor: string | null; aviso: string | null }>(
+      "/web/imagen", { method: "POST", body: fd });
+  },
 
   /** Alta de producto — multipart (name, brand, price, talles, stock_por_talle, images[]…). */
   crearProducto: (form: FormData) =>

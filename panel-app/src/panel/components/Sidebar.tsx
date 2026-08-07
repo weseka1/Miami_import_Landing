@@ -16,6 +16,7 @@ import {
   LogOut,
   ExternalLink,
   ChevronsLeft,
+  Globe,
 } from "lucide-react";
 import { useData } from "@/lib/DataProvider";
 import { cn } from "../ui/cn";
@@ -49,6 +50,7 @@ export default function Sidebar({
     { to: "/panel/pedidos", key: "pedidos", label: "Pedidos", icon: Receipt, badge: kpis.pedidosPendientes },
     { to: "/panel/estadisticas", key: "estadisticas", label: "Estadísticas", icon: BarChart3 },
     { to: "/panel/precios-usd", key: "precios-usd", label: "Precios USD", icon: CircleDollarSign },
+    { to: "/panel/mi-web", key: "mi-web", label: "Mi web", icon: Globe },
     { to: "/panel/whatsapp", key: "whatsapp", label: "WhatsApp", icon: MessageCircle },
     { to: "/panel/acciones", key: "acciones", label: "Acciones", icon: Zap },
   ].filter((i) => canAccess(activo, i.key));
