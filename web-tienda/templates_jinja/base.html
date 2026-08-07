@@ -135,7 +135,10 @@
     .mi-search input::placeholder{color:rgba(245,243,238,.5)}
     .mi-search input::-webkit-search-cancel-button{-webkit-appearance:none}
     /* Footer */
+    /* El padding de abajo reserva el lugar del botón flotante de Mia: sin esto
+       la burbuja se sienta encima del texto del footer en el celular. */
     .mi-footer{background:#050505;border-top:1px solid rgba(185,155,99,.18);margin-top:80px;padding:56px 0 40px}
+    @media(max-width:900px){.mi-footer{padding-bottom:108px}}
     .mi-footer__grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px}
     .mi-footer h4{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--miami-gold,#b99b63);margin:0 0 16px}
     .mi-footer a,.mi-footer p{color:rgba(245,243,238,.6);font-size:14px;line-height:2}

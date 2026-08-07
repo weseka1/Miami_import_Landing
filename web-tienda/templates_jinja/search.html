@@ -12,8 +12,9 @@
   {# El campo va SIEMPRE, con o sin resultados: la lupa del mobile entra acá y
      antes caía en una pantalla sin dónde escribir. #}
   <form action="/buscar" method="get" role="search" class="mi-searchbox">
+    {# Placeholder corto: en 390px el largo se cortaba a la mitad #}
     <input type="search" name="q" value="{{ search_query or '' }}" autofocus
-           placeholder="Marca, prenda o color — ej: Balenciaga, canguro negro"
+           placeholder="Balenciaga, buzo negro…"
            aria-label="Buscar productos"/>
     <button type="submit">Buscar</button>
   </form>
