@@ -1228,3 +1228,66 @@ async def web_imagen(
         url = f"/static/{rel}"
 
     return {"ok": True, "url": url, "motor": motor, "aviso": aviso}
+
+
+# --------------------------------------------------------------------------- #
+# ETIQUETA DE DESPACHO — hoja imprimible con los datos del envío
+# --------------------------------------------------------------------------- #
+@router.get("/orders/{oid}/etiqueta")
+def etiqueta_pedido(oid: int, db: Session = Depends(get_db)):
+    """Etiqueta lista para imprimir y pegar en el paquete (Ctrl+P desde el panel).
+
+    Diego despachaba copiando los datos a mano. Esto arma la hoja con
+    remitente, destinatario, teléfono, CP y el detalle con TALLE.
+    """
+    from fastapi.responses import HTMLResponse as _HTML
+
+    o = db.get(Order, oid)
+    if not o:
+        raise HTTPException(404, "Pedido no encontrado")
+    d = o.shipping_address or {}
+    tel = o.contact_phone or d.get("phone") or ""
+    piso = f", {d.get('floor')}" if d.get("floor") else ""
+    filas = "".join(
+        f"<tr><td>{html.escape(it.product_name)}</td>"
+        f"<td class='talle'>{html.escape(it.variant_value or '—')}</td>"
+        f"<td>×{it.quantity}</td></tr>"
+        for it in o.items
+    )
+    pagina = f"""<!doctype html><html lang="es"><head><meta charset="utf-8"/>
+<title>Etiqueta pedido #{o.number}</title>
+<style>
+  @page {{ size: A5 landscape; margin: 8mm; }}
+  body {{ font-family: Arial, Helvetica, sans-serif; color: #111; margin: 0; padding: 16px; }}
+  .caja {{ border: 2.5px solid #111; border-radius: 10px; padding: 18px 22px; max-width: 640px; }}
+  .fila {{ display: flex; justify-content: space-between; align-items: baseline;
+           border-bottom: 1.5px solid #111; padding-bottom: 10px; margin-bottom: 12px; }}
+  .marca {{ font-weight: 800; letter-spacing: .28em; font-size: 15px; }}
+  .nro {{ font-size: 22px; font-weight: 800; }}
+  .rotulo {{ font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: #666; margin: 10px 0 2px; }}
+  .dest {{ font-size: 19px; font-weight: 800; }}
+  .dir {{ font-size: 15px; line-height: 1.5; }}
+  .cp {{ font-size: 26px; font-weight: 800; border: 2px solid #111; border-radius: 8px;
+         display: inline-block; padding: 2px 14px; margin-top: 4px; }}
+  table {{ width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 13px; }}
+  td {{ padding: 4px 6px 4px 0; border-bottom: 1px dashed #bbb; }}
+  .talle {{ font-weight: 800; font-size: 15px; white-space: nowrap; }}
+  .pie {{ margin-top: 12px; font-size: 11px; color: #555; }}
+  .noprint {{ margin: 14px 0 0; }}
+  @media print {{ .noprint {{ display: none; }} }}
+</style></head><body>
+<div class="caja">
+  <div class="fila"><span class="marca">MIAMI IMPORT</span><span class="nro">PEDIDO #{o.number}</span></div>
+  <div class="rotulo">Destinatario</div>
+  <div class="dest">{html.escape(o.contact_name or 'Sin nombre')}</div>
+  <div class="dir">{html.escape((d.get('street') or '') + ' ' + (d.get('number') or ''))}{html.escape(piso)}<br/>
+    {html.escape(d.get('city') or '')}{', ' + html.escape(d.get('province') or '') if d.get('province') else ''}
+    &nbsp;·&nbsp; Tel: {html.escape(tel or 's/d')}</div>
+  {f'<div class="cp">CP {html.escape(str(d.get("zipcode")))}</div>' if d.get('zipcode') else ''}
+  <div class="rotulo">Contenido</div>
+  <table>{filas}</table>
+  <div class="pie">Remitente: MIAMI IMPORT · miamiimport.com.ar · WhatsApp 11 6232-1391</div>
+</div>
+<button class="noprint" onclick="window.print()">🖨️ Imprimir</button>
+</body></html>"""
+    return _HTML(pagina)

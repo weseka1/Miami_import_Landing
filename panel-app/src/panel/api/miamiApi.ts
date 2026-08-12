@@ -109,6 +109,8 @@ export interface MiamiPedidoItem {
   product_id: number | null;
   variant_id: number | null;
   name: string;
+  /** El talle, explícito (antes había que adivinarlo dentro del SKU). */
+  talle: string | null;
   sku: string | null;
   quantity: number;
   price: string | null;

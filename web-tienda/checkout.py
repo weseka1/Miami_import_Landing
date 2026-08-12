@@ -40,6 +40,7 @@ from sqlalchemy.orm import Session
 
 from auth_store import current_user
 from cart import get_or_create_cart, resolve_cart
+from core import mailer
 from core.config import settings
 from core.db import get_db
 from core.models import (
@@ -347,6 +348,11 @@ def _create_intent_once(body: dict, request: Request, db: Session,
                     ip=request.client.host if request.client else None))
     db.commit()
 
+    # Aviso a la tienda YA, con el pago todavía pendiente: el pedido de Celeste
+    # (#1016) estuvo un día entero invisible porque nadie se enteraba de los
+    # checkouts sin pagar — y ese es justo el momento de escribirle al cliente.
+    mailer.avisar_pedido_nuevo(order)
+
     return {
         "client_secret": intent.client_secret,
         "publishable_key": settings.STRIPE_PUBLISHABLE_KEY,
@@ -517,6 +523,8 @@ def confirmar_pago_desde_stripe(db: Session, order: Order, pi_id: str) -> bool:
     db.add(AuditLog(user_id=order.user_id, action="payment_succeeded_por_retorno",
                     entity="order", entity_id=str(order.id)))
     db.commit()
+    mailer.confirmar_al_cliente(order)
+    mailer.avisar_pago_acreditado(order)
     log.info("Orden %s acreditada por consulta directa a Stripe", order.id)
     return True
 
@@ -654,6 +662,10 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
                             entity="order", entity_id=str(order.id)))
             if not _commit():
                 return {"received": True, "duplicate": True}
+            # Solo después del commit exitoso (si fue duplicado, el otro camino
+            # ya mandó los mails): confirmación al cliente + aviso a la tienda.
+            mailer.confirmar_al_cliente(order)
+            mailer.avisar_pago_acreditado(order)
         else:
             _commit()  # ya estaba pagada; solo persistir el WebhookEvent
 

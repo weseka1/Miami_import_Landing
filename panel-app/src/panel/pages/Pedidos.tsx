@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, RefreshCw, MessageCircle, ChevronDown, CreditCard, Undo2 } from "lucide-react";
-import { api, ApiError, ESTADOS_PEDIDO, waLink, type MiamiPedido, type WaTemplates } from "../api/miamiApi";
+import { Loader2, RefreshCw, MessageCircle, ChevronDown, CreditCard, Undo2, Printer } from "lucide-react";
+import { api, ApiError, ESTADOS_PEDIDO, type MiamiPedido } from "../api/miamiApi";
 import { fmtARS } from "@/lib/format";
 import { PageHeader, EmptyState } from "../components/PageShell";
 import { Segmented } from "../components/Controls";
@@ -37,7 +37,6 @@ export default function Pedidos() {
   const [error, setError] = useState<string | null>(null);
   const [filtro, setFiltro] = useState("todos");
   const [abierto, setAbierto] = useState<number | null>(null);
-  const [tpls, setTpls] = useState<WaTemplates>({});
   const [reconciliando, setReconciliando] = useState(false);
   const [reconcilInfo, setReconcilInfo] = useState("");
 
@@ -53,7 +52,6 @@ export default function Pedidos() {
 
   useEffect(() => {
     void cargar();
-    api.waTemplates().then(setTpls, () => {}); // plantillas para el botón de WhatsApp
   }, []);
 
   const filtrados = useMemo(() => {
@@ -107,8 +105,21 @@ export default function Pedidos() {
 
   const abrirWhatsapp = (p: MiamiPedido) => {
     const phone = p.contact_phone || (p.shipping_address?.phone as string) || "";
-    const tpl = tpls.coordinar_caba || "Hola {name}, te aviso por tu pedido #{order}.";
-    window.open(waLink(phone, tpl, { name: p.contact_name || "", order: p.number }), "_blank");
+    // Mensaje con el DETALLE del pedido (producto + talle + total): antes iba
+    // una plantilla genérica y Diego tenía que tipear todo de nuevo.
+    const items = p.products
+      .map((it) => `• ${it.name}${it.talle ? ` (talle ${it.talle})` : ""} ×${it.quantity}`)
+      .join("\n");
+    const nombre = (p.contact_name || "").split(" ")[0];
+    const pendiente = p.payment_status === "pending";
+    const msg = pendiente
+      ? `¡Hola${nombre ? " " + nombre : ""}! Te escribo de Miami Import por tu pedido #${p.number}:\n${items}\nTotal: ${fmtARS(parseFloat(p.total || "0"))}\nVi que el pago quedó pendiente, ¿te ayudo a terminarlo?`
+      : `¡Hola${nombre ? " " + nombre : ""}! Te escribo de Miami Import por tu pedido #${p.number}:\n${items}\nTotal: ${fmtARS(parseFloat(p.total || "0"))}\n¡Ya lo estamos preparando! Te aviso apenas salga el envío.`;
+    window.open(`https://wa.me/${phone.replace(/\D/g, "").replace(/^0/, "").replace(/^(?!54)/, "54")}?text=${encodeURIComponent(msg)}`, "_blank");
+  };
+
+  const imprimirEtiqueta = (p: MiamiPedido) => {
+    window.open(`/panel/api/orders/${p.id}/etiqueta`, "_blank");
   };
 
   return (
@@ -184,20 +195,28 @@ export default function Pedidos() {
                   <div className="border-t border-graph/[0.07] bg-graph/[0.02] px-4 py-4">
                     <div className="grid gap-4 md:grid-cols-2">
                       <div>
-                        <p className="text-[11px] font-semibold uppercase tracking-wide text-graph-400">Enviar a</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-graph-400">Cliente</p>
+                        <p className="mt-1 text-sm font-semibold text-graph">{p.contact_name || "—"}</p>
+                        {p.contact_email && <p className="text-sm text-graph-500">{p.contact_email}</p>}
+                        {phone && <p className="text-sm text-graph-500">Tel: {phone}</p>}
+                        <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-graph-400">Enviar a</p>
                         <p className="mt-1 text-sm text-graph">
                           {calle.trim() || loc ? `${calle.trim()}${calle.trim() && loc ? " — " : ""}${loc}` : <span className="text-graph-400">sin dirección cargada{esLocal ? " (venta en el local)" : ""}</span>}
                         </p>
-                        {phone && <p className="mt-1 text-sm text-graph-500">Tel: {phone}</p>}
                         {d.vendedor && <p className="mt-1 text-xs text-graph-400">Vendió: {String(d.vendedor)}</p>}
                       </div>
                       <div>
                         <p className="text-[11px] font-semibold uppercase tracking-wide text-graph-400">Productos</p>
-                        <ul className="mt-1 space-y-0.5 text-sm text-graph">
+                        <ul className="mt-1 space-y-1.5 text-sm text-graph">
                           {p.products.map((it, i) => (
-                            <li key={i}>
-                              {it.name}{it.sku ? <span className="text-graph-400"> ({it.sku})</span> : null} × {it.quantity}
-                              {it.price && <span className="text-graph-400"> — {fmtARS(parseFloat(it.price))}</span>}
+                            <li key={i} className="flex flex-wrap items-center gap-2">
+                              <span>{it.name} × {it.quantity}</span>
+                              {it.talle && (
+                                <span className="rounded-md bg-brand/10 px-2 py-0.5 font-display text-xs font-bold text-brand-700">
+                                  Talle {it.talle}
+                                </span>
+                              )}
+                              {it.price && <span className="text-graph-400">{fmtARS(parseFloat(it.price))}</span>}
                             </li>
                           ))}
                         </ul>
@@ -207,11 +226,14 @@ export default function Pedidos() {
                     <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-graph/[0.07] pt-3">
                       {phone ? (
                         <button onClick={() => abrirWhatsapp(p)} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-sea/10 px-3 text-xs font-semibold text-sea ring-1 ring-inset ring-sea/25 transition hover:bg-sea hover:text-white">
-                          <MessageCircle size={14} /> WhatsApp
+                          <MessageCircle size={14} /> WhatsApp con el pedido
                         </button>
                       ) : (
                         <span className="text-xs text-graph-400">Sin teléfono para WhatsApp</span>
                       )}
+                      <button onClick={() => imprimirEtiqueta(p)} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-graph/15 px-3 text-xs font-semibold text-graph transition hover:bg-graph/[0.05]" title="Hoja con destinatario, CP y contenido, lista para pegar en el paquete">
+                        <Printer size={14} /> Etiqueta
+                      </button>
 
                       <div className="ml-auto flex items-center gap-2">
                         <span className="text-[11px] font-medium uppercase tracking-wide text-graph-400">Estado</span>

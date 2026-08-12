@@ -73,6 +73,24 @@ export default function Dashboard() {
         subtitle={`Resumen real de MIAMI IMPORT · ${hoyLargo}`}
       />
 
+      {/* Pedidos que esperan acción — clickeable. Diego veía "pendiente" en un
+          KPI que no llevaba a ningún lado y no encontraba el pedido (el de
+          Celeste estuvo un día entero así). */}
+      {!loading && kpis.pedidosPendientes > 0 && (
+        <Link
+          to="/panel/pedidos"
+          className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-amber-400/40 bg-amber-50 px-4 py-3 transition hover:border-amber-500/60 hover:bg-amber-100/70"
+        >
+          <span className="flex items-center gap-2.5 text-sm font-semibold text-amber-900">
+            <AlertTriangle size={17} className="shrink-0 text-amber-600" />
+            {kpis.pedidosPendientes === 1
+              ? "Hay 1 pedido pendiente de pago — tocá para ver quién es y qué pidió"
+              : `Hay ${kpis.pedidosPendientes} pedidos pendientes de pago — tocá para ver quiénes son y qué pidieron`}
+          </span>
+          <ArrowRight size={16} className="shrink-0 text-amber-700" />
+        </Link>
+      )}
+
       {/* KPIs — directo de /panel/api/stats */}
       <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-3 xl:grid-cols-6">
         <KpiCard

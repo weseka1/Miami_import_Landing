@@ -116,6 +116,9 @@ def order_to_tn(o: Order) -> dict:
                 "product_id": it.product_id,
                 "variant_id": it.variant_id,
                 "name": it.product_name,
+                # El talle IBA escondido dentro del SKU (…OVER NEGR-L) y Diego
+                # tenía que adivinarlo. Es EL dato para despachar ropa.
+                "talle": it.variant_value,
                 "sku": it.sku,
                 "quantity": it.quantity,
                 "price": _money(it.unit_price),
