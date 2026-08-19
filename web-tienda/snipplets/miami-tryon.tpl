@@ -111,7 +111,10 @@
       if(!res.ok||!res.j.ok){ paso(1); err.textContent=(res.j&&res.j.detail)||'No pudimos generar la prueba. Probá con otra foto.'; return; }
       $('mi-tryon-result').src=res.j.image_url;
       $('mi-tryon-dl').href=res.j.image_url;
-      $('mi-tryon-wa').href='https://wa.me/5491162321391?text='+encodeURIComponent('Hola Diego! Me probé virtualmente "{{ product.name }}" y lo quiero. ¿Está disponible?');
+      // Igual que en los chips de talle: el #ID identifica la pieza aunque no
+      // cargue la preview. (wa.me no puede adjuntar la imagen generada.)
+      $('mi-tryon-wa').href='https://wa.me/5491162321391?text='+encodeURIComponent('Hola Diego! Me la probé virtual y la quiero: {{ product.name }} #{{ product.id }}. ¿Está disponible?
+{{ tienda_url }}/p/{{ product.id }}');
       paso(3);
     }).catch(function(){ clearInterval(dotsTimer); paso(1); err.textContent='Se cortó la conexión. Probá de nuevo.'; });
   });

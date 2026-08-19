@@ -3,8 +3,22 @@
 {% block title %}{{ product.seo_title or product.name }} — {{ STORE_NAME }}{% endblock %}
 {% block meta_description %}{{ product.seo_description or product.name }}{% endblock %}
 {% block head_extra %}
+  {# Preview de WhatsApp: cuando alguien comparte (o consulta por) una pieza,
+     del otro lado se tiene que ver la FOTO y la marca. Diego recibía consultas
+     con solo el nombre y no podía saber cuál era (hay nombres repetidos). #}
   <meta property="og:type" content="product"/>
-  <meta property="og:title" content="{{ product.name }}"/>
+  <meta property="og:title" content="{{ product.name }} · #{{ product.id }}"/>
+  <meta property="og:url" content="{{ tienda_url }}/p/{{ product.id }}"/>
+  {# Dimensiones declaradas: sin esto el celular tiene que bajar la foto
+     entera antes de decidir si arma la tarjeta grande, y con el servidor
+     dormido esa demora hace que el preview no llegue a tiempo. #}
+  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:height" content="1600"/>
+  <meta property="og:image:alt" content="{{ product.name }}"/>
+  {# `usd` se calcula en el bloque content y NO llega hasta acá (cada bloque de
+     Jinja tiene su propio alcance), así que se recalcula al vuelo. #}
+  {% set og_usd = product.variants[0].usd_price if product.variants and product.variants[0].usd_price else None %}
+  <meta property="og:description" content="{% if og_usd %}{{ og_usd | usd }} · {% endif %}{{ product.brand or STORE_NAME }} · Pieza #{{ product.id }}"/>
   {% if product.images %}<meta property="og:image" content="{{ product.images[0].url | thumb(1200, 80) }}"/>{% endif %}
 {% endblock %}
 
@@ -15,6 +29,17 @@
 {% set usd = product.variants[0].usd_price if product.variants and product.variants[0].usd_price
              else (ars | float / usd_rate if ars and usd_rate else None) %}
 <div class="mi-container" style="padding-top:48px">
+  {# Pieza ya vendida: se llega por el link corto /p/{id} que quedó en un
+     WhatsApp viejo. Se muestra la ficha igual (para que Diego y el cliente
+     sepan de qué pieza hablan) pero avisando que no está más. #}
+  {% if vendida %}
+  <div style="background:rgba(198,167,104,.1);border:1px solid rgba(198,167,104,.35);
+              border-radius:12px;padding:14px 18px;margin-bottom:24px">
+    <p style="margin:0;color:var(--miami-gold,#c6a768);font-size:13px;letter-spacing:.06em">
+      <strong>Esta pieza ya no está disponible.</strong>
+      Podemos conseguirla a pedido — escribinos y la buscamos.</p>
+  </div>
+  {% endif %}
   <nav style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,243,238,.4);margin-bottom:28px">
     <a href="/">Inicio</a>
     {% if product.categories %} / <a href="/categoria/{{ product.categories[0].handle }}">{{ product.categories[0].name }}</a>{% endif %}
@@ -90,7 +115,13 @@
                   border-radius:8px;cursor:pointer;letter-spacing:.05em">
                   {{ v.value }}</button>
               {% else %}
-                <a href="https://wa.me/5491162321391?text={{ ('Hola Diego! Quiero ' ~ product.name ~ ' en talle ' ~ t ~ ', ¿me lo conseguís?') | urlencode }}"
+                {# El mensaje lleva el #ID y el link corto: hay nombres repetidos
+                   en el catálogo (cinco "Remera Karl Lagerfeld"), así que con el
+                   nombre solo Diego no sabe cuál pieza le están pidiendo. El ID
+                   va en el texto ADEMÁS del link porque la preview de WhatsApp
+                   puede no cargar (sitio dormido) o el cliente borrar la URL. #}
+                <a href="https://wa.me/5491162321391?text={{ ('Hola Diego! Quiero la ' ~ product.name ~ ' #' ~ product.id ~ ', talle ' ~ t ~ '. ¿Me la conseguís?
+' ~ tienda_url ~ '/p/' ~ product.id) | urlencode }}"
                    target="_blank" rel="noopener" title="Conseguilo a pedido"
                    style="min-width:52px;padding:12px 14px;border:1px dashed rgba(198,167,104,.5);color:rgba(242,234,217,.7);
                    border-radius:8px;letter-spacing:.05em;display:inline-flex;align-items:center;justify-content:center;text-decoration:none">

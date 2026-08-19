@@ -220,6 +220,9 @@ def nav_tipos(db: Session) -> list[dict]:
 def base_context(request: Request, db: Session, **extra) -> dict:
     ctx = {
         "request": request,
+        # Dominio real (no settings.STORE_BASE_URL, que en prod apunta al host
+        # viejo de Render). Lo usan los links de WhatsApp de las fichas.
+        "tienda_url": f"{request.url.scheme}://{request.url.netloc}".rstrip("/"),
         "nav_categories": nav_categories(db),
         "nav_tipos": nav_tipos(db),
         "usd_rate": settings.USD_TO_ARS_RATE,
@@ -402,14 +405,29 @@ def home(request: Request, db: Session = Depends(get_db)):
     )
 
 
-@app.get("/productos/{handle}/", response_class=HTMLResponse)
-@app.get("/productos/{handle}", response_class=HTMLResponse)
-def product_detail(handle: str, request: Request, db: Session = Depends(get_db)):
-    prod = _con_relaciones(db).filter(Product.handle == handle).one_or_none()
-    if not prod or not prod.published:
-        # Nunca mostrarle al cliente un JSON crudo: un producto que ya no está
-        # (vendido/renombrado/link viejo) lo lleva al catálogo vivo.
+@app.get("/p/{pid}", response_class=HTMLResponse)
+@app.get("/p/{pid}/", response_class=HTMLResponse)
+def product_por_id(pid: int, request: Request, db: Session = Depends(get_db)):
+    """Link corto y estable de una pieza: /p/286
+
+    Es el que viaja en los mensajes de WhatsApp. Ventajas sobre el handle:
+      - corto y legible, con el MISMO número que ve Diego en el mensaje (#286),
+        así identifica la pieza aunque el preview no cargue;
+      - sobrevive a un cambio de nombre del producto;
+      - una pieza YA VENDIDA (despublicada) sigue mostrando su ficha en vez de
+        rebotar al catálogo — si no, el link viejo le mostraba a Diego una
+        preview genérica de otra cosa.
+    """
+    prod = _con_relaciones(db).filter(Product.id == pid).one_or_none()
+    if not prod:
         return RedirectResponse("/productos", status_code=302)
+    if prod.published:
+        return RedirectResponse(f"/productos/{prod.handle}/", status_code=302)
+    return _ficha(prod, request, db, vendida=True)
+
+
+def _ficha(prod: Product, request: Request, db: Session, vendida: bool = False):
+    """Render de la ficha (la comparten /productos/{handle} y el link corto /p/{id})."""
     relacionados = (
         _con_relaciones(db)
         .filter(Product.brand == prod.brand, Product.id != prod.id,
@@ -418,14 +436,26 @@ def product_detail(handle: str, request: Request, db: Session = Depends(get_db))
         .all()
     )
     import os as _os
-    tryon_enabled = bool((_os.environ.get("FAL_KEY") or _os.environ.get("GEMINI_API_KEY") or "").strip()) \
-        or (settings.DEV_MODE and request.query_params.get("tryon_preview") == "1")
+    tryon_enabled = (not vendida) and (
+        bool((_os.environ.get("FAL_KEY") or _os.environ.get("GEMINI_API_KEY") or "").strip())
+        or (settings.DEV_MODE and request.query_params.get("tryon_preview") == "1"))
     return templates.TemplateResponse(
         request, "product.html",
         base_context(request, db, product=prod, relacionados=relacionados,
-                     tryon_enabled=tryon_enabled,
+                     tryon_enabled=tryon_enabled, vendida=vendida,
                      template_class="product"),
     )
+
+
+@app.get("/productos/{handle}/", response_class=HTMLResponse)
+@app.get("/productos/{handle}", response_class=HTMLResponse)
+def product_detail(handle: str, request: Request, db: Session = Depends(get_db)):
+    prod = _con_relaciones(db).filter(Product.handle == handle).one_or_none()
+    if not prod or not prod.published:
+        # Nunca mostrarle al cliente un JSON crudo: un producto que ya no está
+        # (vendido/renombrado/link viejo) lo lleva al catálogo vivo.
+        return RedirectResponse("/productos", status_code=302)
+    return _ficha(prod, request, db)
 
 
 @app.get("/productos", response_class=HTMLResponse)
@@ -689,7 +719,7 @@ def account_page(request: Request, db: Session = Depends(get_db),
 
 
 @app.get("/robots.txt", response_class=PlainTextResponse)
-def robots():
+def robots(request: Request):
     return (
         "User-agent: *\n"
         "Allow: /\n"
@@ -697,13 +727,24 @@ def robots():
         "Disallow: /carrito\n"
         "Disallow: /checkout\n"
         "Disallow: /api/\n"
-        f"Sitemap: {settings.STORE_BASE_URL}/sitemap.xml\n"
+        f"Sitemap: {_base_publica(request)}/sitemap.xml\n"
     )
 
 
+def _base_publica(request: Request) -> str:
+    """Dominio real desde el que se está sirviendo la tienda.
+
+    NO usar settings.STORE_BASE_URL: en producción quedó apuntando al host
+    viejo de Render, y el sitemap publicaba las 261 fichas como
+    miami-import-landing.onrender.com — todo el SEO se lo llevaba el dominio
+    provisorio en vez de miamiimport.com.ar.
+    """
+    return f"{request.url.scheme}://{request.url.netloc}".rstrip("/")
+
+
 @app.get("/sitemap.xml")
-def sitemap(db: Session = Depends(get_db)):
-    base = settings.STORE_BASE_URL.rstrip("/")
+def sitemap(request: Request, db: Session = Depends(get_db)):
+    base = _base_publica(request)
     urls = [f"{base}/", f"{base}/productos"]
     for c in db.query(Category).all():
         urls.append(f"{base}/categorias/{c.handle}")

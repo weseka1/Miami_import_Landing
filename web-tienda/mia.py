@@ -95,7 +95,17 @@ def _wa_link(texto: str) -> str:
     return f"https://wa.me/{WA_NUMERO}?text={quote(texto)}"
 
 
-def _wa_producto(nombre: str) -> str:
+def _wa_producto(nombre: str, pid: int | None = None, base: str = "") -> str:
+    """Link de WhatsApp que identifica la pieza SIN ambigüedad.
+
+    Con el nombre solo no alcanza: hay productos con nombre repetido (cinco
+    "Remera Karl Lagerfeld"), así que Diego recibía consultas que no podía
+    identificar. Va el #ID en el texto y el link corto abajo.
+    """
+    if pid:
+        url = f"{base.rstrip('/')}/p/{pid}" if base else f"https://miamiimport.com.ar/p/{pid}"
+        return _wa_link(f"Hola Diego! Vengo de la web. Me interesa la {nombre} #{pid}. "
+                        f"¿La tenés?\n{url}")
     return _wa_link(f"Hola Diego, vengo de la web. Me interesa: {nombre}. ¿Lo tenés disponible?")
 
 
@@ -150,6 +160,11 @@ def _build_context(db: Session) -> dict:
             m["max"] = fp if m["max"] is None else max(m["max"], fp)
 
         productos.append({
+            # El id y el link corto van en el contexto para que Mia pueda
+            # derivar a Diego identificando la pieza exacta: hay nombres
+            # repetidos en el catálogo y con el nombre solo no se sabe cuál es.
+            "id": p.id,
+            "link": f"/p/{p.id}",
             "name": p.name,
             "brand": brand,
             "handle": p.handle,
@@ -197,7 +212,7 @@ CÓMO HABLÁS:
 QUÉ HACÉS:
 - Recomendá piezas CONCRETAS del catálogo de abajo, con precio y link en formato [Nombre de la pieza](/productos/handle/). Usá SOLO productos, precios y talles que figuren en el catálogo: nunca inventes stock, precios ni modelos.
 - Si algo no está en el catálogo, ofrecé el pedido puntual a importación: 10 a 15 días desde Italia o Miami, lo gestiona Diego.
-- Si hay intención de compra, consulta de talle o de stock, cerrá derivando a Diego por WhatsApp con un link así: [Escribile a Diego](https://wa.me/{WA_NUMERO}?text=TEXTO_URL_ENCODED) — el texto prellenado nombra la pieza puntual.
+- Si hay intención de compra, consulta de talle o de stock, cerrá derivando a Diego por WhatsApp con un link así: [Escribile a Diego](https://wa.me/{WA_NUMERO}?text=TEXTO_URL_ENCODED) — el texto prellenado DEBE incluir el nombre, el #id de la pieza y el link https://miamiimport.com.ar/p/{id} (cada producto del catálogo trae su "id" y su "link"). Sin el #id Diego no puede saber de qué pieza le hablan, porque hay nombres repetidos.
 - Envíos, pagos y cambios: respondé SOLO con la info de la casa de abajo, sin inventar condiciones.
 - Nuestro Instagram es {IG_HANDLE}.
 
@@ -329,12 +344,12 @@ def _fallback_reply(user_msg: str, ctx: dict) -> str:
     if matches:
         if len(matches) == 1:
             p = matches[0]
-            wa = _wa_producto(p["name"])
+            wa = _wa_producto(p["name"], p.get("id"))
             return (f"Tenemos {_linea_producto(p)}. Original con comprobante de "
                     f"origen, unidades contadas. Si lo querés, te lo aparta "
                     f"Diego: [Escribile por WhatsApp]({wa}).")
         lineas = " · ".join(_linea_producto(p) for p in matches)
-        wa = _wa_producto(matches[0]["name"])
+        wa = _wa_producto(matches[0]["name"], matches[0].get("id"))
         return (f"De eso tenemos: {lineas}. Todo original con licencia y "
                 f"unidades contadas. Para reservar el tuyo, "
                 f"[escribile a Diego por WhatsApp]({wa}).")
