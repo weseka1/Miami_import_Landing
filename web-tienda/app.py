@@ -188,11 +188,23 @@ def nav_tipos(db: Session) -> list[dict]:
         return _tipos_cache["data"]
 
     padres = {c.id: c for c in db.query(Category).filter(Category.parent_id.is_(None))}
+
+    # Categorías que HOY tienen algo publicado. La migración dejó varias
+    # vacías (cintos, remeras, pantalones1…) y el menú las mostraba igual:
+    # el cliente clickeaba y caía en una página en blanco.
+    from core.models import product_categories
+    con_stock = {
+        cid for (cid,) in db.query(product_categories.c.category_id)
+        .join(Product, Product.id == product_categories.c.product_id)
+        .filter(Product.published.is_(True))
+        .distinct()
+    }
+
     grupos: dict[str, list[dict]] = {}
     for hija in db.query(Category).filter(Category.parent_id.isnot(None)):
         marca = padres.get(hija.parent_id)
         nombre = (hija.name or "").strip().title()
-        if not marca or not nombre:
+        if not marca or not nombre or hija.id not in con_stock:
             continue
         grupos.setdefault(nombre, []).append({"marca": marca.name, "handle": hija.handle})
 
