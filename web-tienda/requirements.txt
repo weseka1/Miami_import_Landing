@@ -23,7 +23,9 @@ qrcode>=7.4                # QR del MFA y del cobro POS
 bleach>=6.1                # sanitizar HTML de descripciones
 
 # --- Pagos ---
-stripe>=8.0
+stripe>=8.0,<14  # OJO: sin techo entró una versión donde los objetos
+                 # de Stripe dejaron de soportar .get() y se rompió
+                 # el webhook (los pagos no se acreditaban nunca).
 
 # --- Build de CSS (compilar .scss -> .css una vez) ---
 libsass>=0.22

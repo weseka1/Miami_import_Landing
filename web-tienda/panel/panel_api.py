@@ -782,7 +782,8 @@ def reconciliar_pagos(db: Session = Depends(get_db)):
         if not pago:
             continue
         try:
-            intent = stripe.PaymentIntent.retrieve(pago.stripe_payment_intent_id)
+            from checkout import _sd
+            intent = _sd(stripe.PaymentIntent.retrieve(pago.stripe_payment_intent_id))
         except Exception as e:  # noqa: BLE001
             errores.append({"pedido": o.number, "error": str(e)[:120]})
             continue

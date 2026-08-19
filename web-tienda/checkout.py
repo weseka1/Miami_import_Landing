@@ -49,6 +49,32 @@ from core.models import (
 
 log = logging.getLogger("checkout")
 
+
+def _sd(obj) -> dict:
+    """Objeto de Stripe -> dict plano.
+
+    A partir de stripe-python 8 los recursos (PaymentIntent, Event...) dejaron
+    de soportar `.get()` y tiran AttributeError. Ese error rompía el webhook y
+    la reconciliación: un pago cobrado de verdad NUNCA se acreditaba y el
+    pedido quedaba "sin pagar" para siempre. Todo lo que vuelve de Stripe pasa
+    por acá antes de leerse.
+    """
+    if obj is None:
+        return {}
+    if isinstance(obj, dict):
+        return obj
+    for metodo in ("to_dict_recursive", "to_dict"):
+        fn = getattr(obj, metodo, None)
+        if callable(fn):
+            try:
+                return fn()
+            except Exception:  # noqa: BLE001
+                pass
+    try:
+        return dict(obj)
+    except Exception:  # noqa: BLE001
+        return {}
+
 checkout_router = APIRouter(tags=["checkout"])
 
 # Campos de envío aceptados y su largo máximo. Todo lo que no esté acá se
@@ -205,7 +231,7 @@ def _create_intent_once(body: dict, request: Request, db: Session,
         if pay and pay.stripe_payment_intent_id:
             try:
                 intent = stripe.PaymentIntent.retrieve(pay.stripe_payment_intent_id)
-                if intent.get("status") in ("requires_payment_method",
+                if _sd(intent).get("status") in ("requires_payment_method",
                                             "requires_confirmation",
                                             "requires_action"):
                     return {
@@ -405,7 +431,7 @@ def pagar_pedido(body: dict, db: Session = Depends(get_db)):
     if pago:
         try:
             intent = stripe.PaymentIntent.retrieve(pago.stripe_payment_intent_id)
-            estado = intent.get("status")
+            estado = _sd(intent).get("status")
             # Ya cobrado: NO generar otro intent (sería un segundo cobro por la
             # misma compra). Se acredita la orden y se avisa que está pagada.
             if estado in ("succeeded", "processing"):
@@ -484,6 +510,7 @@ def confirmar_pago_desde_stripe(db: Session, order: Order, pi_id: str) -> bool:
         log.exception("No se pudo consultar el PaymentIntent %s", pi_id)
         return False
 
+    intent = _sd(intent)
     if intent.get("status") != "succeeded":
         return False
 
@@ -548,6 +575,7 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
         log.warning("Firma de webhook inválida: %s", exc)
         raise HTTPException(400, "Firma inválida")  # sin filtrar el detalle
 
+    event = _sd(event)
     event_id = event.get("id") or ""
     etype = event.get("type") or ""
     obj = (event.get("data") or {}).get("object") or {}
