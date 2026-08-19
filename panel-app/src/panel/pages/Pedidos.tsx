@@ -18,12 +18,24 @@ import Select from "@/components/Select";
 //  ya sabía hacer y el viejo no mostraba: cambio de estado y reembolso.
 // ============================================================================
 
+// El rótulo dice SIEMPRE si entró la plata. Diego preguntó por audio
+// "figura pendiente... ¿porque no lo entregué o porque no pagó?": el estado
+// del PAGO y el del ENVÍO son dos cosas distintas y hay que verlas separadas.
 const badgePago: Record<string, { label: string; tone: Tone }> = {
-  paid: { label: "Pagado", tone: "green" },
-  pending: { label: "Pendiente", tone: "amber" },
+  paid: { label: "PAGADO", tone: "green" },
+  pending: { label: "SIN PAGAR", tone: "amber" },
   cancelled: { label: "Cancelado", tone: "neutral" },
   refunded: { label: "Reembolsado", tone: "blue" },
-  failed: { label: "Falló", tone: "red" },
+  failed: { label: "Pago rechazado", tone: "red" },
+};
+
+// Qué significa cada estado de pago, en criollo, dentro del detalle.
+const explicaPago: Record<string, string> = {
+  paid: "La plata entró. Se puede despachar.",
+  pending: "El cliente NO pagó todavía. No despachar hasta que figure PAGADO.",
+  cancelled: "El pedido se canceló. No se cobró nada.",
+  refunded: "Se le devolvió la plata al cliente.",
+  failed: "La tarjeta fue rechazada. No entró plata.",
 };
 
 const rotuloEstado: Record<string, string> = {
@@ -152,8 +164,8 @@ export default function Pedidos() {
           onChange={setFiltro}
           options={[
             { value: "todos", label: "Todos", count: pedidos?.length ?? 0 },
-            { value: "paid", label: "Pagados", count: conteo("paid") },
-            { value: "pending", label: "Pendientes", count: conteo("pending") },
+            { value: "paid", label: "Pagados ✓", count: conteo("paid") },
+            { value: "pending", label: "Sin pagar", count: conteo("pending") },
             { value: "cancelled", label: "Cancelados", count: conteo("cancelled") },
             { value: "refunded", label: "Reembolsados", count: conteo("refunded") },
           ]}
@@ -193,6 +205,15 @@ export default function Pedidos() {
 
                 {open && (
                   <div className="border-t border-graph/[0.07] bg-graph/[0.02] px-4 py-4">
+                    <div className={cn(
+                      "mb-4 rounded-xl px-3 py-2 text-sm font-medium",
+                      p.payment_status === "paid" ? "bg-green-500/10 text-green-800"
+                        : p.payment_status === "pending" ? "bg-amber-500/10 text-amber-900"
+                        : "bg-graph/[0.05] text-graph-500",
+                    )}>
+                      {explicaPago[p.payment_status] || p.payment_status}
+                    </div>
+
                     <div className="grid gap-4 md:grid-cols-2">
                       <div>
                         <p className="text-[11px] font-semibold uppercase tracking-wide text-graph-400">Cliente</p>

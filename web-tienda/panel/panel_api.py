@@ -757,8 +757,12 @@ def reconciliar_pagos(db: Session = Depends(get_db)):
     """
     if not settings.STRIPE_SECRET_KEY:
         raise HTTPException(503, "Stripe no está configurado")
-    import stripe
-    stripe.api_key = settings.STRIPE_SECRET_KEY
+    try:
+        import stripe
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+    except Exception as exc:  # noqa: BLE001
+        log.exception("reconciliar: no se pudo inicializar Stripe")
+        raise HTTPException(502, f"No se pudo hablar con Stripe: {exc}") from exc
 
     from core.models import AuditLog, CartItem, Payment
 
@@ -770,6 +774,7 @@ def reconciliar_pagos(db: Session = Depends(get_db)):
     minor = settings.currency_minor_units
 
     for o in pendientes:
+      try:
         pago = (db.query(Payment)
                 .filter(Payment.order_id == o.id,
                         Payment.stripe_payment_intent_id.isnot(None))
@@ -804,8 +809,16 @@ def reconciliar_pagos(db: Session = Depends(get_db)):
         db.add(AuditLog(user_id=o.user_id, action="payment_reconciled",
                         entity="order", entity_id=str(o.id)))
         acreditados.append({"pedido": o.number, "monto": f"{cobrado} {moneda}"})
+      except Exception as exc:  # noqa: BLE001 — un pedido roto no frena el resto
+        log.exception("reconciliar: falló el pedido %s", o.number)
+        errores.append({"pedido": o.number, "error": f"{type(exc).__name__}: {str(exc)[:160]}"})
 
-    db.commit()
+    try:
+        db.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.rollback()
+        log.exception("reconciliar: no se pudo guardar")
+        raise HTTPException(500, f"No se pudieron guardar los cambios: {exc}") from exc
     return {
         "ok": True,
         "revisados": len(pendientes),
