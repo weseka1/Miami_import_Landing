@@ -1305,3 +1305,110 @@ def etiqueta_pedido(oid: int, db: Session = Depends(get_db)):
 <button class="noprint" onclick="window.print()">🖨️ Imprimir</button>
 </body></html>"""
     return _HTML(pagina)
+
+
+@router.get("/orders/{oid}/comprobante")
+def comprobante_pedido(oid: int, db: Session = Depends(get_db)):
+    """Comprobante de la venta, para compartir y archivar.
+
+    Diego (audio 19-ago): *"necesito los comprobantes de cada compra para ir
+    compartiéndolos y tener un respaldo de las transacciones"*. Incluye el ID
+    de la transacción en Stripe, que es lo que permite rastrear la plata.
+    """
+    from fastapi.responses import HTMLResponse as _HTML
+    from core.models import Payment
+
+    o = db.get(Order, oid)
+    if not o:
+        raise HTTPException(404, "Pedido no encontrado")
+    pago = (db.query(Payment).filter(Payment.order_id == o.id)
+            .order_by(Payment.id.desc()).first())
+    d = o.shipping_address or {}
+    pagado = o.payment_status == "paid"
+
+    def _money(x) -> str:
+        return "$ " + f"{float(x or 0):,.2f}".replace(",", "@").replace(".", ",").replace("@", ".")
+
+    filas = "".join(
+        f"<tr><td>{html.escape(it.product_name)}"
+        f"{f'<br><small>Talle {html.escape(it.variant_value)}</small>' if it.variant_value else ''}</td>"
+        f"<td class='c'>{it.quantity}</td>"
+        f"<td class='r'>{_money(it.unit_price)}</td>"
+        f"<td class='r'>{_money((it.unit_price or 0) * it.quantity)}</td></tr>"
+        for it in o.items
+    )
+    fecha = o.created_at.strftime("%d/%m/%Y %H:%M") if o.created_at else "—"
+    tel = o.contact_phone or d.get("phone") or "—"
+    envio = ("Retiro / venta en el local" if d.get("canal") == "local" else
+             " · ".join(p for p in [f"{d.get('street','')} {d.get('number','')}".strip(),
+                                    d.get("floor") or "", d.get("city") or "",
+                                    d.get("province") or "",
+                                    f"CP {d.get('zipcode')}" if d.get("zipcode") else ""] if p)
+             or "—")
+    sello = ("PAGADO" if pagado else "PAGO PENDIENTE")
+    color = "#1a7f37" if pagado else "#b45309"
+    trx = (pago.stripe_payment_intent_id if pago and pago.stripe_payment_intent_id
+           else ("venta de mostrador" if d.get("canal") == "local" else "—"))
+
+    pagina = f"""<!doctype html><html lang="es"><head><meta charset="utf-8"/>
+<title>Comprobante #{o.number} — MIAMI IMPORT</title>
+<style>
+  @page {{ size: A4; margin: 14mm; }}
+  body {{ font-family: Arial, Helvetica, sans-serif; color: #111; margin: 0; padding: 24px; }}
+  .hoja {{ max-width: 720px; margin: 0 auto; }}
+  .top {{ display: flex; justify-content: space-between; align-items: flex-start;
+          border-bottom: 3px solid #111; padding-bottom: 14px; }}
+  .marca {{ font-weight: 800; letter-spacing: .3em; font-size: 17px; }}
+  .sub {{ font-size: 11px; color: #666; margin-top: 4px; }}
+  .nro {{ text-align: right; }}
+  .nro b {{ font-size: 22px; }}
+  .sello {{ display: inline-block; margin-top: 6px; padding: 5px 14px; border-radius: 6px;
+            color: #fff; font-weight: 800; font-size: 12px; letter-spacing: .1em;
+            background: {color}; }}
+  .bloques {{ display: flex; gap: 28px; margin: 20px 0 6px; }}
+  .bloque {{ flex: 1; }}
+  .rot {{ font-size: 9px; letter-spacing: .18em; text-transform: uppercase;
+          color: #888; margin-bottom: 4px; }}
+  .dato {{ font-size: 13px; line-height: 1.6; }}
+  table {{ width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13px; }}
+  th {{ text-align: left; font-size: 9px; letter-spacing: .16em; text-transform: uppercase;
+        color: #888; border-bottom: 1.5px solid #111; padding: 6px 4px; }}
+  td {{ padding: 9px 4px; border-bottom: 1px solid #e5e5e5; vertical-align: top; }}
+  td small {{ color: #777; }}
+  .c {{ text-align: center; }} .r {{ text-align: right; white-space: nowrap; }}
+  .total {{ text-align: right; font-size: 19px; font-weight: 800; margin-top: 14px; }}
+  .trx {{ margin-top: 20px; padding: 10px 12px; background: #f6f6f6; border-radius: 8px;
+          font-size: 11px; color: #555; word-break: break-all; }}
+  .pie {{ margin-top: 24px; padding-top: 12px; border-top: 1px solid #ddd;
+          font-size: 11px; color: #777; text-align: center; }}
+  .noprint {{ margin-top: 18px; text-align: center; }}
+  @media print {{ .noprint {{ display: none; }} }}
+</style></head><body><div class="hoja">
+  <div class="top">
+    <div><div class="marca">MIAMI IMPORT</div>
+      <div class="sub">Indumentaria original importada<br/>miamiimport.com.ar · WhatsApp 11 6232-1391</div></div>
+    <div class="nro"><div class="rot">Comprobante</div><b>#{o.number}</b>
+      <div class="sub">{fecha}</div><div class="sello">{sello}</div></div>
+  </div>
+
+  <div class="bloques">
+    <div class="bloque"><div class="rot">Cliente</div>
+      <div class="dato"><b>{html.escape(o.contact_name or '—')}</b><br/>
+        {html.escape(o.email or '—')}<br/>{html.escape(tel)}</div></div>
+    <div class="bloque"><div class="rot">Envío</div>
+      <div class="dato">{html.escape(envio)}</div></div>
+  </div>
+
+  <table>
+    <tr><th>Producto</th><th class="c">Cant.</th><th class="r">Precio</th><th class="r">Subtotal</th></tr>
+    {filas}
+  </table>
+  <div class="total">TOTAL &nbsp; {_money(o.total)} {html.escape(o.currency or 'ARS')}</div>
+
+  <div class="trx"><b>Transacción:</b> {html.escape(str(trx))}<br/>
+    <b>Estado del pago:</b> {sello}{'' if pagado else ' — la plata todavía no ingresó'}</div>
+
+  <div class="pie">Comprobante generado por el sistema de MIAMI IMPORT · {fecha}</div>
+  <div class="noprint"><button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button></div>
+</div></body></html>"""
+    return _HTML(pagina)

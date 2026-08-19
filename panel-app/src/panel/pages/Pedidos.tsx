@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, RefreshCw, MessageCircle, ChevronDown, CreditCard, Undo2, Printer } from "lucide-react";
+import { Loader2, RefreshCw, MessageCircle, ChevronDown, CreditCard, Undo2, Printer, FileText } from "lucide-react";
 import { api, ApiError, ESTADOS_PEDIDO, type MiamiPedido } from "../api/miamiApi";
 import { fmtARS } from "@/lib/format";
 import { PageHeader, EmptyState } from "../components/PageShell";
@@ -134,6 +134,12 @@ export default function Pedidos() {
     window.open(`/panel/api/orders/${p.id}/etiqueta`, "_blank");
   };
 
+  // Comprobante de la venta, con el ID de la transacción: es el respaldo que
+  // Diego pidió para archivar y compartir cada compra.
+  const verComprobante = (p: MiamiPedido) => {
+    window.open(`/panel/api/orders/${p.id}/comprobante`, "_blank");
+  };
+
   return (
     <div>
       <PageHeader
@@ -254,6 +260,9 @@ export default function Pedidos() {
                       )}
                       <button onClick={() => imprimirEtiqueta(p)} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-graph/15 px-3 text-xs font-semibold text-graph transition hover:bg-graph/[0.05]" title="Hoja con destinatario, CP y contenido, lista para pegar en el paquete">
                         <Printer size={14} /> Etiqueta
+                      </button>
+                      <button onClick={() => verComprobante(p)} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-graph/15 px-3 text-xs font-semibold text-graph transition hover:bg-graph/[0.05]" title="Comprobante de la venta con el número de transacción — para guardar o compartir">
+                        <FileText size={14} /> Comprobante
                       </button>
 
                       <div className="ml-auto flex items-center gap-2">
