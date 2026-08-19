@@ -37,6 +37,7 @@ from core.models import (
     Category, Order, Product, ProductImage, Reserva, Variant, Setting,
     RESERVA_STATUSES,
 )
+from core.categorizar import categorizar_producto, marca_canonica
 from core.quitar_fondo import disponible as recorte_disponible
 from core.quitar_fondo import quitar_fondo as quitar_fondo_ia
 from core.sanitize import clean_description
@@ -655,6 +656,15 @@ async def create_product(
                    published=publicado, a_pedido=a_pedido)
     db.add(prod)
     db.flush()
+
+    # Categorización automática: sin esto el producto no aparece en el menú de
+    # la tienda (pasó con 113 de 248 productos, el 45% del catálogo).
+    if not a_pedido:
+        try:
+            categorizar_producto(db, prod)
+            db.flush()
+        except Exception:  # noqa: BLE001 — nunca frenar un alta por esto
+            log.exception("no se pudo categorizar el producto %s", prod.id)
 
     talles_iter = talles_list or [None]
     for i, t in enumerate(talles_iter, 1):
@@ -1412,3 +1422,69 @@ def comprobante_pedido(oid: int, db: Session = Depends(get_db)):
   <div class="noprint"><button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button></div>
 </div></body></html>"""
     return _HTML(pagina)
+
+
+# --------------------------------------------------------------------------- #
+# MANTENIMIENTO: ordenar el catálogo heredado de Tiendanube
+# --------------------------------------------------------------------------- #
+@router.post("/catalogo/ordenar")
+def catalogo_ordenar(body: dict | None = None, db: Session = Depends(get_db)):
+    """Normaliza marcas y categoriza los productos que quedaron sueltos.
+
+    La migración desde Tiendanube (y las cargas nuevas) dejaron productos sin
+    categoría — invisibles en el menú de la tienda — y la misma marca escrita
+    de varias formas, lo que partía su catálogo en pedazos.
+
+    Con `{"dry": true}` NO toca nada: solo informa qué haría. Es lo primero
+    que hay que correr.
+    """
+    dry = bool((body or {}).get("dry"))
+    forzar = bool((body or {}).get("forzar"))
+
+    productos = db.query(Product).order_by(Product.id).all()
+    marcas_cambiadas, categorizados, sin_resolver = [], [], []
+
+    for prod in productos:
+        antes_marca, antes_cats = prod.brand, len(prod.categories or [])
+        try:
+            cambios = categorizar_producto(db, prod, forzar=forzar)
+        except Exception as exc:  # noqa: BLE001
+            log.exception("ordenar: falló el producto %s", prod.id)
+            sin_resolver.append({"id": prod.id, "nombre": prod.name,
+                                 "motivo": f"error: {str(exc)[:120]}"})
+            continue
+
+        if "marca" in cambios:
+            marcas_cambiadas.append({"id": prod.id, "nombre": prod.name,
+                                     "cambio": cambios["marca"]})
+        if "categoria" in cambios:
+            categorizados.append({"id": prod.id, "nombre": prod.name,
+                                  "categoria": cambios["categoria"]})
+        if "sin_categoria" in cambios and not antes_cats:
+            sin_resolver.append({"id": prod.id, "nombre": prod.name,
+                                 "motivo": cambios["sin_categoria"]})
+        if dry:
+            # deshacer lo que la función haya tocado en memoria
+            prod.brand = antes_marca
+
+    if dry:
+        db.rollback()
+    else:
+        try:
+            db.commit()
+        except Exception as exc:  # noqa: BLE001
+            db.rollback()
+            log.exception("ordenar: no se pudo guardar")
+            raise HTTPException(500, f"No se pudo guardar: {exc}") from exc
+
+    return {
+        "ok": True,
+        "dry": dry,
+        "revisados": len(productos),
+        "marcas_normalizadas": marcas_cambiadas,
+        "categorizados": categorizados,
+        "sin_resolver": sin_resolver,
+        "resumen": (f"{len(marcas_cambiadas)} marcas normalizadas · "
+                    f"{len(categorizados)} productos categorizados · "
+                    f"{len(sin_resolver)} sin resolver"),
+    }
