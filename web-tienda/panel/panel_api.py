@@ -1410,6 +1410,10 @@ def comprobante_pedido(oid: int, db: Session = Depends(get_db)):
         partes.append(f"<b>Cobro Stripe:</b> {html.escape(pago.stripe_charge_id)}")
     if pago and getattr(pago, "card_brand", None) and getattr(pago, "card_last4", None):
         partes.append(f"<b>Tarjeta:</b> {html.escape(pago.card_brand.upper())} ....{html.escape(pago.card_last4)}")
+    elif pago and getattr(pago, "metodo", None):
+        from panel.serializers import _MEDIOS
+        medio = _MEDIOS.get(pago.metodo, pago.metodo.replace("_", " ").title())
+        partes.append(f"<b>Medio de pago:</b> {html.escape(medio)}")
     if pago and getattr(pago, "paid_at", None):
         partes.append(f"<b>Acreditado:</b> {pago.paid_at.strftime('%d/%m/%Y %H:%M')} hs")
     if pago and getattr(pago, "receipt_url", None):
