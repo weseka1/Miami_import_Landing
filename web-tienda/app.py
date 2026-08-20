@@ -18,6 +18,7 @@ import time
 import unicodedata
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
+from types import SimpleNamespace
 
 import uvicorn
 from fastapi import Cookie, Depends, FastAPI, HTTPException, Request
@@ -150,14 +151,62 @@ def _con_relaciones(db: Session):
                      selectinload(Product.images)))
 
 
-def nav_categories(db: Session) -> list[Category]:
-    """Categorías de primer nivel (marcas) con sus subcategorías, para el menú."""
-    return (
-        db.query(Category)
+# --------------------------------------------------------------------------- #
+# Caché en proceso de lo que se repite en CADA visita
+# --------------------------------------------------------------------------- #
+# La base está en São Paulo y el servidor en Oregon: cada consulta cuesta unos
+# 180 ms de ida y vuelta. Estas dos (las marcas del footer y la configuración
+# de la home) devuelven lo mismo para todos los visitantes y cambian solo
+# cuando Diego edita algo, así que pedirlas en cada visita es regalar 360 ms.
+#
+# El panel corre en ESTE MISMO proceso (app.mount("/panel", panel_app)) y con
+# un solo worker, así que al guardar desde el panel se limpia el caché y el
+# cambio se ve al instante, sin esperar el TTL.
+# ⚠️ Si algún día se levantan varios workers o el panel se separa a otro
+# servicio, esa invalidación deja de alcanzar: ahí cada worker tendría su
+# propia copia y habría que bajar el TTL o usar un caché compartido.
+_CACHE_TTL = 60
+_cache_navcat: dict = {"ts": 0.0, "data": None}
+_cache_homecfg: dict = {"ts": 0.0, "data": None}
+
+
+def limpiar_caches_web() -> None:
+    """Tira el caché de la tienda. La llama el panel al guardar."""
+    _cache_navcat.update(ts=0.0, data=None)
+    _cache_homecfg.update(ts=0.0, data=None)
+    _tipos_cache.update(ts=0.0, data=None)
+
+
+def nav_categories(db: Session) -> list[SimpleNamespace]:
+    """Marcas de primer nivel para el footer. Cacheadas.
+
+    Se guardan como objetos PLANOS (name/handle), no filas del ORM: una fila
+    cacheada queda atada a la sesión que la trajo, y al reusarla en el request
+    siguiente —con esa sesión ya cerrada— SQLAlchemy intenta refrescarla y
+    revienta con DetachedInstanceError. Con datos planos no hay sorpresa.
+    """
+    ahora = time.time()
+    if _cache_navcat["data"] is not None and ahora - _cache_navcat["ts"] < _CACHE_TTL:
+        return _cache_navcat["data"]
+    data = [
+        SimpleNamespace(name=c.name, handle=c.handle, id=c.id)
+        for c in db.query(Category)
         .filter(Category.parent_id.is_(None))
         .order_by(Category.name)
         .all()
-    )
+    ]
+    _cache_navcat.update(ts=ahora, data=data)
+    return data
+
+
+def home_config_cacheada(db: Session) -> dict:
+    """Configuración de la home (la que edita Diego). Cacheada."""
+    ahora = time.time()
+    if _cache_homecfg["data"] is not None and ahora - _cache_homecfg["ts"] < _CACHE_TTL:
+        return _cache_homecfg["data"]
+    data = get_home_config(db)
+    _cache_homecfg.update(ts=ahora, data=data)
+    return data
 
 
 # --------------------------------------------------------------------------- #
@@ -345,63 +394,73 @@ def home(request: Request, db: Session = Depends(get_db)):
     from sqlalchemy import func
     from core.models import OrderItem, Variant
 
+    # Cada sección se resuelve en DOS pasos: primero se piden solo los IDs
+    # (consulta liviana) y al final se traen TODOS los productos juntos con
+    # sus fotos y talles en una sola pasada. Antes cada sección hacía su
+    # propia consulta + dos más para las relaciones: 9 viajes a São Paulo
+    # (~180 ms cada uno) para mostrar 16 productos.
     def _base():
-        return _con_relaciones(db).filter(Product.published.is_(True))
+        return db.query(Product.id).filter(Product.published.is_(True))
 
     # MÁS VENDIDOS — curación manual desde el panel (mas_vendido=True). Si no
     # hay ninguno marcado, cae la lógica automática de siempre: unidades
     # vendidas reales (order_items) y, sin historial, los productos con más
     # talles cargados (proxy de "producto insignia"). Nunca queda vacía.
-    mas_vendidos = (_base().filter(Product.mas_vendido.is_(True))
-                    .order_by(Product.id.desc()).limit(8).all())
-    if not mas_vendidos:
+    ids_mv = [r[0] for r in _base().filter(Product.mas_vendido.is_(True))
+              .order_by(Product.id.desc()).limit(8)]
+    if not ids_mv:
         ventas = (
             db.query(OrderItem.product_id, func.sum(OrderItem.quantity).label("q"))
             .group_by(OrderItem.product_id).subquery()
         )
-        mas_vendidos = (
-            _base().join(ventas, ventas.c.product_id == Product.id)
-            .order_by(ventas.c.q.desc()).limit(8).all()
-        )
-        if len(mas_vendidos) < 4:
+        ids_mv = [r[0] for r in _base().join(ventas, ventas.c.product_id == Product.id)
+                  .order_by(ventas.c.q.desc()).limit(8)]
+        if len(ids_mv) < 4:
             talles = (
                 db.query(Variant.product_id, func.count(Variant.id).label("n"))
                 .group_by(Variant.product_id).subquery()
             )
-            mas_vendidos = (
-                _base().join(talles, talles.c.product_id == Product.id)
-                .order_by(talles.c.n.desc(), Product.id.desc()).limit(8).all()
-            )
+            ids_mv = [r[0] for r in _base().join(talles, talles.c.product_id == Product.id)
+                      .order_by(talles.c.n.desc(), Product.id.desc()).limit(8)]
 
     # DESTACADOS — los que Diego marcó desde el panel (destacado=True). Si no
     # hay ninguno marcado, caen los más nuevos: la sección nunca queda vacía.
-    destacados = (_base().filter(Product.destacado.is_(True))
-                  .order_by(Product.id.desc()).limit(8).all())
-    if not destacados:
-        destacados = _base().order_by(Product.id.desc()).limit(8).all()
+    ids_dest = [r[0] for r in _base().filter(Product.destacado.is_(True))
+                .order_by(Product.id.desc()).limit(8)]
+    if not ids_dest:
+        ids_dest = [r[0] for r in _base().order_by(Product.id.desc()).limit(8)]
 
     # ÚLTIMOS EN STOCK — quedan pocas unidades (suma de stock ascendente, > 0).
     stock_sq = (
         db.query(Variant.product_id, func.sum(Variant.stock).label("s"))
         .group_by(Variant.product_id).subquery()
     )
-    ultimos = (
-        _base().join(stock_sq, stock_sq.c.product_id == Product.id)
-        .filter(stock_sq.c.s > 0)
-        .order_by(stock_sq.c.s.asc(), Product.id.desc()).limit(8).all()
-    )
+    ids_ult = [r[0] for r in _base().join(stock_sq, stock_sq.c.product_id == Product.id)
+               .filter(stock_sq.c.s > 0)
+               .order_by(stock_sq.c.s.asc(), Product.id.desc()).limit(8)]
 
-    marcas = nav_categories(db)
-    sections = {"primary": {"products": destacados}}
+    # Una sola consulta (+2 de relaciones) para las tres secciones juntas, y
+    # después se rearma cada lista respetando SU orden.
+    necesarios = list({*ids_mv, *ids_dest, *ids_ult})
+    porid = {p.id: p for p in _con_relaciones(db)
+             .filter(Product.id.in_(necesarios)).all()} if necesarios else {}
+    mas_vendidos = [porid[i] for i in ids_mv if i in porid]
+    destacados = [porid[i] for i in ids_dest if i in porid]
+    ultimos = [porid[i] for i in ids_ult if i in porid]
+
+    # OJO con agregar variables acá: la base está en São Paulo y el servidor en
+    # Oregon, así que CADA consulta cuesta ~180 ms de ida y vuelta. Se sacaron
+    # `marcas` (nav_categories) y `sections` porque home.html no los usa: la
+    # sección de marcas se arma con `home.marcas`, que sale de home_config.
     return templates.TemplateResponse(
         request, "home.html",
         base_context(request, db, destacados=destacados, mas_vendidos=mas_vendidos,
-                     ultimos=ultimos, marcas=marcas,
+                     ultimos=ultimos,
                      # Todo lo editable de la home (lo carga Diego desde el
                      # panel). Sin nada guardado devuelve los valores de
                      # fábrica, que son los que estaban escritos a mano.
-                     home=get_home_config(db),
-                     sections=sections, template_class="home"),
+                     home=home_config_cacheada(db),
+                     template_class="home"),
     )
 
 

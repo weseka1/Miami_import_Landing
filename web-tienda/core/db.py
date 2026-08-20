@@ -15,13 +15,22 @@ from .config import settings
 
 _is_sqlite = settings.DATABASE_URL.startswith("sqlite")
 
-engine = create_engine(
-    settings.DATABASE_URL,
-    echo=False,
-    future=True,
-    pool_pre_ping=True,
-    connect_args={"check_same_thread": False} if _is_sqlite else {},
-)
+if _is_sqlite:
+    _opciones = {"pool_pre_ping": True,
+                 "connect_args": {"check_same_thread": False}}
+else:
+    # `pool_pre_ping` manda un SELECT 1 cada vez que se saca una conexión del
+    # pool, o sea en CADA visita. Con la base en São Paulo y el servidor en
+    # Oregon ese chequeo cuesta ~180 ms — lo mismo que una consulta útil.
+    # `pool_recycle` cubre el mismo caso (que el pooler haya cerrado una
+    # conexión ociosa) descartándola por tiempo, sin pagar el viaje de ida y
+    # vuelta: 5 minutos queda bien por debajo del corte del pooler.
+    # El pool más grande evita que, con los anuncios mandando visitas, las
+    # peticiones hagan cola esperando conexión.
+    _opciones = {"pool_pre_ping": False, "pool_recycle": 300,
+                 "pool_size": 10, "max_overflow": 20, "connect_args": {}}
+
+engine = create_engine(settings.DATABASE_URL, echo=False, future=True, **_opciones)
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
 

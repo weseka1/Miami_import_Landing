@@ -140,6 +140,20 @@ def _merge(base: dict, encima: dict) -> dict:
     return out
 
 
+def _invalidar_cache_web() -> None:
+    """Avisa a la tienda que su caché quedó viejo.
+
+    El panel corre en el mismo proceso que la tienda, así que al guardar acá
+    se limpia el caché de allá y Diego ve el cambio al instante, sin esperar
+    el TTL. El import va adentro para no crear un ciclo (app importa esto).
+    """
+    try:
+        import app as _tienda
+        _tienda.limpiar_caches_web()
+    except Exception:  # noqa: BLE001 — que nunca rompa un guardado
+        pass
+
+
 def get_home_config(db: Session) -> dict:
     """Config completa para las plantillas (siempre con todas las claves)."""
     fila = db.get(Setting, CLAVE)
@@ -161,6 +175,7 @@ def save_home_config(db: Session, parcial: dict) -> dict:
         db.add(fila)
     fila.value = nuevo
     db.commit()
+    _invalidar_cache_web()
     return _merge(DEFAULTS, nuevo)
 
 
@@ -170,4 +185,5 @@ def reset_home_config(db: Session) -> dict:
     if fila:
         db.delete(fila)
         db.commit()
+    _invalidar_cache_web()
     return copy.deepcopy(DEFAULTS)
