@@ -634,8 +634,12 @@ def search(request: Request, q: str = "", db: Session = Depends(get_db)):
             cond += [func.lower(Product.name).like(like),
                      func.lower(Product.brand).like(like),
                      func.lower(Product.description).like(like)]
+        # _con_relaciones (no db.query pelado): las tarjetas leen la foto, el
+        # precio y el stock de cada resultado, y sin precargar eso SQLAlchemy
+        # pedía dos consultas MÁS por producto. Con la base en São Paulo
+        # (~180 ms por viaje) una búsqueda de 51 resultados tardaba 23 s.
         productos = (
-            db.query(Product)
+            _con_relaciones(db)
             .filter(Product.published.is_(True), Product.a_pedido.is_(False))
             .filter(or_(*cond))
             .order_by(Product.id.desc())
