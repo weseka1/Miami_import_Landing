@@ -21,7 +21,7 @@ import requests
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy import case, func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from .auth import get_current_admin
 from core import storage
@@ -896,7 +896,10 @@ def refund_order(oid: int, db: Session = Depends(get_db)):
 @router.get("/orders")
 def list_orders(per_page: int = 50, page: int = 1, status: Optional[str] = None,
                 db: Session = Depends(get_db)):
-    query = db.query(Order)
+    # selectinload: el serializer recorre `o.items` de cada pedido. Sin esto
+    # SQLAlchemy los pedia de a UNO — 22 pedidos = 22 viajes de ida y vuelta a
+    # Sao Paulo (~180 ms cada uno) y la pantalla de Pedidos tardaba 4,7 s.
+    query = db.query(Order).options(selectinload(Order.items))
     if status:
         query = query.filter(Order.payment_status == status)
     items = query.order_by(Order.created_at.desc()).offset((page - 1) * per_page).limit(per_page).all()
@@ -905,14 +908,17 @@ def list_orders(per_page: int = 50, page: int = 1, status: Optional[str] = None,
 
 @router.get("/stats")
 def stats(db: Session = Depends(get_db)):
-    productos = _productos_completos(db).all()
+    # Para los numeros del tablero alcanza con las variantes (de ahi sale el
+    # stock) y el nombre. Traer ademas las imagenes y las categorias de los 261
+    # productos era arrastrar miles de filas al pedo en cada apertura.
+    productos = db.query(Product).options(selectinload(Product.variants)).all()
     total_productos = len(productos)
     total_publicados = sum(1 for p in productos if p.published)
     total_variantes = db.query(Variant).count()
     total_stock = db.query(func.coalesce(func.sum(Variant.stock), 0)).scalar() or 0
     productos_sin_stock = sum(1 for p in productos if p.total_stock == 0)
 
-    pedidos = db.query(Order).all()
+    pedidos = db.query(Order).options(selectinload(Order.items)).all()
     total_pedidos = len(pedidos)
     total_facturado = float(sum((o.total or 0) for o in pedidos))
     pedidos_pagados = sum(1 for o in pedidos if o.payment_status == "paid")
