@@ -9,7 +9,9 @@ Diego se enteraba de las ventas de casualidad (el pedido de Celeste quedó
   - PAGO ACREDITADO → confirmación linda al cliente + aviso a la tienda
 
 Config por env (sin credenciales configuradas NO manda nada y NO rompe nada):
-  SMTP_USER  → cuenta que envía (ej: miamiimport@gmail.com)
+  SMTP_USER  → cuenta que envía. OJO: la casilla de la tienda es
+               miiamiimport@gmail.com — con DOS ÍES. Asumirla con una sola
+               ya costo dos rondas de 535 BadCredentials.
   SMTP_PASS  → app password de Gmail (Cuenta Google → Seguridad → Contraseñas
                de aplicaciones; requiere verificación en dos pasos activa)
   SMTP_HOST  → default smtp.gmail.com   ·  SMTP_PORT → default 587
