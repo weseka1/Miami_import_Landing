@@ -81,6 +81,11 @@ _ADDED_COLUMNS = {
         "card_brand": "VARCHAR(30)",
         "card_last4": "VARCHAR(4)",
         "paid_at": "TIMESTAMP WITH TIME ZONE",
+        "fee": "NUMERIC(12,2)",
+        "neto": "NUMERIC(12,2)",
+        "moneda_liquidacion": "VARCHAR(3)",
+        "disponible_el": "TIMESTAMP WITH TIME ZONE",
+        "payout_id": "VARCHAR(255)",
     },
     "products": {
         "a_pedido": "BOOLEAN DEFAULT FALSE",

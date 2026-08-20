@@ -383,6 +383,17 @@ class Payment(Base):
     card_last4: Mapped[str | None] = mapped_column(String(4))
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
+    # --- Liquidacion: lo que Diego le reclama a la LLC --------------------
+    # La cuenta de Stripe esta a nombre de la LLC que se la abrio, asi que el
+    # dinero cae en el banco de ELLOS. Para reclamarlo hay que poder decir
+    # cuanto entro, cuanto se llevo Stripe y cuanto quedo neto, con fecha.
+    # Sale del balance_transaction del cobro.
+    fee: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
+    neto: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
+    moneda_liquidacion: Mapped[str | None] = mapped_column(String(3))
+    disponible_el: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    payout_id: Mapped[str | None] = mapped_column(String(255), index=True)
+
     raw: Mapped[dict | None] = mapped_column(JSON)  # payload bruto del evento
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)

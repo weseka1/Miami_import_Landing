@@ -17,6 +17,7 @@ import {
   ExternalLink,
   ChevronsLeft,
   Globe,
+  Landmark,
 } from "lucide-react";
 import { useData } from "@/lib/DataProvider";
 import { cn } from "../ui/cn";
@@ -48,6 +49,7 @@ export default function Sidebar({
     { to: "/panel/apedido", key: "apedido", label: "A pedido", icon: PackageSearch },
     { to: "/panel/reservas", key: "reservas", label: "Reservas", icon: Bookmark },
     { to: "/panel/pedidos", key: "pedidos", label: "Pedidos", icon: Receipt, badge: kpis.pedidosPendientes },
+    { to: "/panel/dinero", key: "dinero", label: "Mi plata", icon: Landmark },
     { to: "/panel/estadisticas", key: "estadisticas", label: "Estadísticas", icon: BarChart3 },
     { to: "/panel/precios-usd", key: "precios-usd", label: "Precios USD", icon: CircleDollarSign },
     { to: "/panel/mi-web", key: "mi-web", label: "Mi web", icon: Globe },

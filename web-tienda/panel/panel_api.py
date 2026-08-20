@@ -12,7 +12,7 @@ import logging
 import re
 import secrets
 import unicodedata
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import List, Optional
@@ -873,6 +873,171 @@ def reconciliar_pagos(db: Session = Depends(get_db)):
         "sellados": sellados,
         "errores": errores,
     }
+
+
+
+# --------------------------------------------------------------------------- #
+# EL DINERO - lo que Diego le reclama a la LLC
+# --------------------------------------------------------------------------- #
+# La cuenta de Stripe esta a nombre de la LLC que se la abrio: la plata cae en
+# el banco de ELLOS y despues se la giran a Diego. Para reclamar hay que poder
+# decir, con numeros y con pruebas: cuanto entro, cuanto se llevo Stripe,
+# cuanto quedo neto, y que Stripe YA lo deposito tal dia. Eso arma esta vista.
+
+def _cobro_a_dict(o, pago) -> dict:
+    medio = None
+    if pago.card_brand and pago.card_last4:
+        medio = f"{pago.card_brand.upper()} ....{pago.card_last4}"
+    elif pago.metodo:
+        from panel.serializers import _MEDIOS
+        medio = _MEDIOS.get(pago.metodo, pago.metodo.replace("_", " ").title())
+    return {
+        "pedido": o.number,
+        "order_id": o.id,
+        "fecha": pago.paid_at.isoformat() if pago.paid_at else None,
+        "cliente": o.contact_name,
+        "email": o.email,
+        "bruto": float(pago.amount or 0),
+        "moneda": pago.currency,
+        "comision": float(pago.fee) if pago.fee is not None else None,
+        "neto": float(pago.neto) if pago.neto is not None else None,
+        "moneda_neto": pago.moneda_liquidacion,
+        "disponible_el": pago.disponible_el.isoformat() if pago.disponible_el else None,
+        "medio": medio,
+        "cobro_id": pago.stripe_charge_id,
+        "recibo_url": pago.receipt_url,
+    }
+
+
+def _rango(desde: Optional[str], hasta: Optional[str]):
+    """Convierte los filtros de fecha del panel. Vacio = todo."""
+    d1 = d2 = None
+    try:
+        if desde:
+            d1 = datetime.fromisoformat(desde).replace(tzinfo=timezone.utc)
+        if hasta:
+            d2 = datetime.fromisoformat(hasta).replace(
+                tzinfo=timezone.utc, hour=23, minute=59, second=59)
+    except ValueError as exc:
+        raise HTTPException(400, "Fecha invalida: usa AAAA-MM-DD") from exc
+    return d1, d2
+
+
+@router.get("/dinero")
+def dinero(desde: Optional[str] = None, hasta: Optional[str] = None,
+           db: Session = Depends(get_db)):
+    from core.models import Payment
+    d1, d2 = _rango(desde, hasta)
+
+    q = (db.query(Order, Payment)
+         .join(Payment, Payment.order_id == Order.id)
+         .filter(Payment.status == "paid")
+         .order_by(Payment.paid_at.desc(), Order.id.desc()))
+    if d1:
+        q = q.filter(Payment.paid_at >= d1)
+    if d2:
+        q = q.filter(Payment.paid_at <= d2)
+
+    cobros, bruto, comision, neto = [], 0.0, 0.0, 0.0
+    monedas, monedas_neto, sin_datos = set(), set(), 0
+    for o, pago in q.limit(500).all():
+        cobros.append(_cobro_a_dict(o, pago))
+        bruto += float(pago.amount or 0)
+        if pago.currency:
+            monedas.add(pago.currency.upper())
+        if pago.neto is None:
+            sin_datos += 1
+        else:
+            comision += float(pago.fee or 0)
+            neto += float(pago.neto)
+            if pago.moneda_liquidacion:
+                monedas_neto.add(pago.moneda_liquidacion.upper())
+
+    def _una(ms):
+        if not ms:
+            return None
+        return ms.pop() if len(ms) == 1 else "mixta"
+
+    resumen = {
+        "cantidad": len(cobros),
+        "bruto": round(bruto, 2),
+        "moneda": _una(monedas),
+        "comision": round(comision, 2),
+        "neto": round(neto, 2),
+        "moneda_neto": _una(monedas_neto),
+        # Cobros sin detalle de liquidacion: si es > 0, el neto esta incompleto
+        # y hay que apretar Reconciliar para completarlo.
+        "sin_liquidacion": sin_datos,
+    }
+
+    # --- Lo que Stripe YA deposito en el banco de la LLC ---------------------
+    # Esto es lo mas fuerte para reclamar: no es lo que decimos nosotros que se
+    # cobro, es lo que Stripe informa que giro, con fecha.
+    saldo, giros, error_stripe = None, [], None
+    if settings.STRIPE_SECRET_KEY:
+        try:
+            import stripe
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+            from checkout import _sd
+            b = _sd(stripe.Balance.retrieve())
+
+            def _plata(lista):
+                return [{"monto": (_sd(x).get("amount") or 0) / 100,
+                         "moneda": (_sd(x).get("currency") or "").upper()}
+                        for x in (lista or [])]
+
+            saldo = {"disponible": _plata(b.get("available")),
+                     "pendiente": _plata(b.get("pending"))}
+            for po in (_sd(stripe.Payout.list(limit=25)).get("data") or []):
+                po = _sd(po)
+                llega = po.get("arrival_date")
+                giros.append({
+                    "id": po.get("id"),
+                    "monto": (po.get("amount") or 0) / 100,
+                    "moneda": (po.get("currency") or "").upper(),
+                    "estado": po.get("status"),
+                    "llega_el": (datetime.fromtimestamp(int(llega), tz=timezone.utc)
+                                 .isoformat() if llega else None),
+                })
+        except Exception as exc:  # noqa: BLE001 - la pantalla igual tiene que abrir
+            log.exception("dinero: no se pudo consultar Stripe")
+            error_stripe = f"{type(exc).__name__}: {str(exc)[:140]}"
+
+    return {"resumen": resumen, "cobros": cobros, "saldo_stripe": saldo,
+            "giros_al_banco": giros, "error_stripe": error_stripe,
+            "desde": desde, "hasta": hasta}
+
+
+@router.get("/dinero/export")
+def dinero_export(desde: Optional[str] = None, hasta: Optional[str] = None,
+                  db: Session = Depends(get_db)):
+    """El mismo detalle en CSV, para mandarselo a la LLC como reclamo."""
+    import csv
+    datos = dinero(desde=desde, hasta=hasta, db=db)
+    buf = io.StringIO()
+    w = csv.writer(buf, delimiter=";")
+    w.writerow(["Pedido", "Fecha", "Cliente", "Email", "Bruto", "Moneda",
+                "Comision Stripe", "Neto", "Moneda neto", "Disponible el",
+                "Medio", "ID de cobro en Stripe", "Recibo oficial"])
+    for c in datos["cobros"]:
+        w.writerow([c["pedido"], (c["fecha"] or "")[:19].replace("T", " "),
+                    c["cliente"] or "", c["email"] or "", c["bruto"],
+                    c["moneda"] or "",
+                    c["comision"] if c["comision"] is not None else "",
+                    c["neto"] if c["neto"] is not None else "",
+                    c["moneda_neto"] or "", (c["disponible_el"] or "")[:10],
+                    c["medio"] or "", c["cobro_id"] or "", c["recibo_url"] or ""])
+    r = datos["resumen"]
+    w.writerow([])
+    w.writerow(["TOTALES", str(r["cantidad"]) + " cobros", "", "",
+                r["bruto"], r["moneda"] or "", r["comision"], r["neto"],
+                r["moneda_neto"] or "", "", "", "", ""])
+    nombre = "cobros_miamiimport_" + (desde or "inicio") + "_" + (hasta or "hoy") + ".csv"
+    # BOM para que Excel abra bien los acentos.
+    return StreamingResponse(
+        iter(["\ufeff" + buf.getvalue()]),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="' + nombre + '"'})
 
 
 @router.post("/orders/{oid}/refund")

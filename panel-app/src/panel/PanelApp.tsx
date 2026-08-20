@@ -26,6 +26,7 @@ import Vender from "./pages/Vender";
 import APedido from "./pages/APedido";
 import Reservas from "./pages/Reservas";
 import Pedidos from "./pages/Pedidos";
+import MiPlata from "./pages/MiPlata";
 import Estadisticas from "./pages/Estadisticas";
 import PreciosUsd from "./pages/PreciosUsd";
 import MiWeb from "./pages/MiWeb";
@@ -79,6 +80,7 @@ export default function PanelApp() {
                 <Route path="apedido" element={<APedido />} />
                 <Route path="reservas" element={<Reservas />} />
                 <Route path="pedidos" element={<Pedidos />} />
+                <Route path="dinero" element={<MiPlata />} />
                 <Route path="estadisticas" element={<Estadisticas />} />
                 <Route path="precios-usd" element={<PreciosUsd />} />
                 <Route path="whatsapp" element={<WhatsappPage />} />

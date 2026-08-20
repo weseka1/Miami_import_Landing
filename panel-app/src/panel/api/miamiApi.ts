@@ -287,6 +287,15 @@ export const api = {
   // --- tienda ---
   store: () => req<MiamiStore>("/store"),
 
+  // --- el dinero (pantalla Mi plata) ---
+  dinero: (desde?: string, hasta?: string) => {
+    const q = new URLSearchParams();
+    if (desde) q.set("desde", desde);
+    if (hasta) q.set("hasta", hasta);
+    const cola = q.toString();
+    return req<MiamiDinero>("/dinero" + (cola ? "?" + cola : ""));
+  },
+
   // --- productos ---
   productos: () => req<MiamiProducto[]>("/products/all"),
   producto: (id: number) => req<MiamiProducto>(`/products/${id}`),
@@ -406,6 +415,52 @@ export const api = {
 };
 
 /** URL directa del Excel completo (descarga con la cookie de sesión). */
+
+/** ---- EL DINERO: lo que Diego le reclama a la LLC ---- */
+export interface MiamiCobro {
+  pedido: number;
+  order_id: number;
+  fecha: string | null;
+  cliente: string | null;
+  email: string | null;
+  bruto: number;
+  moneda: string | null;
+  /** Comision de Stripe. null = todavia no se consulto (apretar Reconciliar). */
+  comision: number | null;
+  neto: number | null;
+  moneda_neto: string | null;
+  disponible_el: string | null;
+  medio: string | null;
+  cobro_id: string | null;
+  recibo_url: string | null;
+}
+export interface MiamiGiro {
+  id: string;
+  monto: number;
+  moneda: string;
+  estado: string;
+  llega_el: string | null;
+}
+export interface MiamiDinero {
+  resumen: {
+    cantidad: number;
+    bruto: number;
+    moneda: string | null;
+    comision: number;
+    neto: number;
+    moneda_neto: string | null;
+    /** Cobros sin detalle de liquidacion: si es > 0 el neto esta incompleto. */
+    sin_liquidacion: number;
+  };
+  cobros: MiamiCobro[];
+  saldo_stripe: { disponible: { monto: number; moneda: string }[];
+                  pendiente: { monto: number; moneda: string }[] } | null;
+  giros_al_banco: MiamiGiro[];
+  error_stripe: string | null;
+  desde: string | null;
+  hasta: string | null;
+}
+
 export const EXPORT_EXCEL_URL = `${BASE}/export/excel`;
 
 /** Link wa.me con una plantilla aplicada ({name}/{order} reemplazados). */
@@ -416,3 +471,6 @@ export function waLink(phone: string, plantilla: string, datos: { name?: string;
     .replace(/{order}/g, String(datos.order ?? ""));
   return `https://wa.me/${digits}?text=${encodeURIComponent(txt)}`;
 }
+
+/** CSV de cobros para mandarle a la LLC como reclamo. */
+export const DINERO_EXPORT_URL = `${BASE}/dinero/export`;

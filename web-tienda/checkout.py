@@ -109,7 +109,9 @@ def _sellar_cobro(payment, intent: dict) -> None:
                 cargo = _sd(datos[0])
                 cargo_id = cargo.get("id")
         if cargo_id and cargo is None:
-            cargo = _sd(stripe.Charge.retrieve(cargo_id))
+            # expand del balance_transaction: en la MISMA llamada viene la
+            # comision y el neto. Sin expand haria falta un viaje mas.
+            cargo = _sd(stripe.Charge.retrieve(cargo_id, expand=["balance_transaction"]))
 
         payment.stripe_charge_id = cargo_id
         if cargo:
@@ -122,6 +124,29 @@ def _sellar_cobro(payment, intent: dict) -> None:
             creado = cargo.get("created")
             if creado:
                 payment.paid_at = datetime.fromtimestamp(int(creado), tz=timezone.utc)
+
+            # --- Liquidacion: cuanto queda de verdad -----------------------
+            # El balance_transaction esta en la moneda de LIQUIDACION de la
+            # cuenta (la de la LLC), que no tiene por que ser la del cobro.
+            # `net` = lo cobrado menos la comision de Stripe: ese es el numero
+            # que Diego le reclama a la LLC.
+            bt = cargo.get("balance_transaction")
+            if isinstance(bt, str) and bt:
+                try:
+                    bt = _sd(stripe.BalanceTransaction.retrieve(bt))
+                except Exception:  # noqa: BLE001
+                    bt = None
+            bt = _sd(bt) if bt else {}
+            if bt:
+                menor = Decimal(100)   # centavos; Stripe informa en unidad menor
+                if bt.get("fee") is not None:
+                    payment.fee = Decimal(bt["fee"]) / menor
+                if bt.get("net") is not None:
+                    payment.neto = Decimal(bt["net"]) / menor
+                payment.moneda_liquidacion = (bt.get("currency") or "").upper()[:3] or None
+                if bt.get("available_on"):
+                    payment.disponible_el = datetime.fromtimestamp(
+                        int(bt["available_on"]), tz=timezone.utc)
     except Exception:  # noqa: BLE001
         log.exception("No se pudo sellar el rastro del cobro (intent %s)",
                       intent.get("id") if isinstance(intent, dict) else "?")

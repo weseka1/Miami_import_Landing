@@ -12,6 +12,8 @@ export const SECCIONES = [
   { key: "apedido", label: "A pedido", basic: true },
   { key: "reservas", label: "Reservas", basic: true },
   { key: "pedidos", label: "Pedidos", basic: true },
+  // basic:false a proposito — la plata la ve Diego (admin), no el equipo.
+  { key: "dinero", label: "Mi plata (cobros)", basic: false },
   { key: "estadisticas", label: "Estadísticas", basic: false },
   { key: "precios-usd", label: "Precios USD", basic: false },
   { key: "whatsapp", label: "WhatsApp", basic: false },
