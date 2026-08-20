@@ -775,6 +775,7 @@ def reconciliar_pagos(db: Session = Depends(get_db)):
         raise HTTPException(502, f"No se pudo hablar con Stripe: {exc}") from exc
 
     from core.models import AuditLog, CartItem, Payment
+    from checkout import _sd
 
     pendientes = (db.query(Order)
                   .filter(Order.payment_status == "pending")
@@ -792,7 +793,6 @@ def reconciliar_pagos(db: Session = Depends(get_db)):
         if not pago:
             continue
         try:
-            from checkout import _sd
             intent = _sd(stripe.PaymentIntent.retrieve(pago.stripe_payment_intent_id))
         except Exception as e:  # noqa: BLE001
             errores.append({"pedido": o.number, "error": str(e)[:120]})
@@ -829,6 +829,32 @@ def reconciliar_pagos(db: Session = Depends(get_db)):
         log.exception("reconciliar: falló el pedido %s", o.number)
         errores.append({"pedido": o.number, "error": f"{type(exc).__name__}: {str(exc)[:160]}"})
 
+    # --- Sellado retroactivo -------------------------------------------------
+    # Los pedidos que se cobraron ANTES de que guardaramos el rastro figuran
+    # como pagados pero sin con que probarlo. Se les completa el id del cobro,
+    # el recibo de Stripe y la tarjeta. NO se toca ningun estado: si ya estaba
+    # pagado, sigue pagado; esto solo agrega la evidencia que falta.
+    from checkout import _sellar_cobro
+    sellados = []
+    viejos = (db.query(Order)
+              .options(selectinload(Order.payments))
+              .filter(Order.payment_status == "paid")
+              .order_by(Order.id.desc()).limit(200).all())
+    for o in viejos:
+        pago = next((x for x in reversed(list(o.payments or []))
+                     if x.stripe_payment_intent_id and not x.stripe_charge_id), None)
+        if not pago:
+            continue
+        try:
+            intent = _sd(stripe.PaymentIntent.retrieve(pago.stripe_payment_intent_id))
+            _sellar_cobro(pago, intent)
+            if pago.stripe_charge_id:
+                sellados.append({"pedido": o.number, "cobro": pago.stripe_charge_id})
+        except Exception as exc:  # noqa: BLE001
+            log.exception("reconciliar: no se pudo sellar el pedido %s", o.number)
+            errores.append({"pedido": o.number,
+                            "error": f"sellado: {type(exc).__name__}: {str(exc)[:120]}"})
+
     try:
         db.commit()
     except Exception as exc:  # noqa: BLE001
@@ -841,6 +867,7 @@ def reconciliar_pagos(db: Session = Depends(get_db)):
         "acreditados": acreditados,
         "sin_pagar": sin_pagar,
         "para_revisar": revisar,
+        "sellados": sellados,
         "errores": errores,
     }
 
