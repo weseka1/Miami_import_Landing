@@ -156,6 +156,8 @@ def _bloque_stripe(order, para_cliente: bool = False) -> str:
         filas.append(("Acreditado", pago.paid_at.strftime("%d/%m/%Y %H:%M") + " hs"))
     if getattr(pago, "card_brand", None) and getattr(pago, "card_last4", None):
         filas.append(("Tarjeta", f"{pago.card_brand.upper()} ....{pago.card_last4}"))
+    elif getattr(pago, "metodo", None):
+        filas.append(("Medio", pago.metodo.replace("_", " ").title()))
     if not para_cliente and getattr(pago, "stripe_charge_id", None):
         filas.append(("Cobro Stripe", pago.stripe_charge_id))
     if not filas and not getattr(pago, "receipt_url", None):

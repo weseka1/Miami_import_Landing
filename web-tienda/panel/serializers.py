@@ -96,6 +96,12 @@ def reserva_to_dict(r: Reserva) -> dict:
     }
 
 
+_MEDIOS = {
+    "card": "Tarjeta", "link": "Link de Stripe", "bank_transfer": "Transferencia",
+    "customer_balance": "Saldo del cliente", "boleto": "Boleto",
+}
+
+
 def _pago_to_dict(o: Order) -> dict:
     """El rastro del cobro, para que Diego pueda PROBAR que entro la plata.
 
@@ -110,6 +116,10 @@ def _pago_to_dict(o: Order) -> dict:
     tarjeta = None
     if pago.card_brand and pago.card_last4:
         tarjeta = f"{pago.card_brand.upper()} ....{pago.card_last4}"
+    elif getattr(pago, "metodo", None):
+        # No todo cobro es con tarjeta. Mostrar el medio real es mejor que un
+        # guion: le dice a Diego por donde entro la plata.
+        tarjeta = _MEDIOS.get(pago.metodo, pago.metodo.replace("_", " ").title())
     return {
         "estado": pago.status,
         "intent_id": pago.stripe_payment_intent_id,

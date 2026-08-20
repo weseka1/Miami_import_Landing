@@ -842,7 +842,10 @@ def reconciliar_pagos(db: Session = Depends(get_db)):
               .order_by(Order.id.desc()).limit(200).all())
     for o in viejos:
         pago = next((x for x in reversed(list(o.payments or []))
-                     if x.stripe_payment_intent_id and not x.stripe_charge_id), None)
+                     # tambien los ya sellados a los que les falta el medio de
+                     # pago (se sellaron antes de que existiera esa columna)
+                     if x.stripe_payment_intent_id
+                     and not (x.stripe_charge_id and x.metodo)), None)
         if not pago:
             continue
         try:

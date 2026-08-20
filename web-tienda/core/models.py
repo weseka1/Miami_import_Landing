@@ -376,6 +376,9 @@ class Payment(Base):
     # contestar mas que nuestra propia palabra.
     stripe_charge_id: Mapped[str | None] = mapped_column(String(255), index=True)
     receipt_url: Mapped[str | None] = mapped_column(Text)
+    # Con que se pago: "card", "link", "bank_transfer"... No todo cobro es con
+    # tarjeta (el de Celeste no lo fue) y sin esto el panel mostraba un guion.
+    metodo: Mapped[str | None] = mapped_column(String(40))
     card_brand: Mapped[str | None] = mapped_column(String(30))
     card_last4: Mapped[str | None] = mapped_column(String(4))
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

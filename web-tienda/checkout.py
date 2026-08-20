@@ -114,7 +114,9 @@ def _sellar_cobro(payment, intent: dict) -> None:
         payment.stripe_charge_id = cargo_id
         if cargo:
             payment.receipt_url = cargo.get("receipt_url")
-            tarjeta = _sd(_sd(cargo.get("payment_method_details")).get("card"))
+            detalles = _sd(cargo.get("payment_method_details"))
+            payment.metodo = ((detalles.get("type") or "")[:40]) or None
+            tarjeta = _sd(detalles.get("card"))
             payment.card_brand = ((tarjeta.get("brand") or "")[:30]) or None
             payment.card_last4 = ((tarjeta.get("last4") or "")[:4]) or None
             creado = cargo.get("created")

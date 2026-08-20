@@ -77,6 +77,7 @@ _ADDED_COLUMNS = {
         # El rastro del cobro real de Stripe (ver core/models.py:Payment).
         "stripe_charge_id": "VARCHAR(255)",
         "receipt_url": "TEXT",
+        "metodo": "VARCHAR(40)",
         "card_brand": "VARCHAR(30)",
         "card_last4": "VARCHAR(4)",
         "paid_at": "TIMESTAMP WITH TIME ZONE",
