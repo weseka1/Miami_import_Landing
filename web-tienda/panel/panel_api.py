@@ -842,10 +842,12 @@ def reconciliar_pagos(db: Session = Depends(get_db)):
               .order_by(Order.id.desc()).limit(200).all())
     for o in viejos:
         pago = next((x for x in reversed(list(o.payments or []))
-                     # tambien los ya sellados a los que les falta el medio de
-                     # pago (se sellaron antes de que existiera esa columna)
-                     if x.stripe_payment_intent_id
-                     and not (x.stripe_charge_id and x.metodo)), None)
+                     # Se re-sella si falta CUALQUIERA de los datos: cada vez
+                     # que agregamos un campo nuevo (medio, comision, neto) los
+                     # cobros viejos quedan a medias, y una condicion que solo
+                     # mire el charge_id no los vuelve a tocar nunca.
+                     if x.stripe_payment_intent_id and not (
+                         x.stripe_charge_id and x.metodo and x.neto is not None)), None)
         if not pago:
             continue
         try:
