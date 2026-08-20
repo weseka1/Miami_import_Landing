@@ -367,6 +367,19 @@ class Payment(Base):
     currency: Mapped[str] = mapped_column(String(3), default="ARS")
     status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
     error_message: Mapped[str | None] = mapped_column(Text)
+
+    # --- Rastro DURO del cobro ------------------------------------------------
+    # `status='paid'` es una palabra nuestra. Lo que prueba que la plata entro
+    # es lo que devuelve Stripe: el id del cobro, el recibo que Stripe hospeda
+    # (link publico, verificable por el cliente y por el banco) y con que
+    # tarjeta se pago. Sin esto, ante un "¿me cobraste?" no hay con que
+    # contestar mas que nuestra propia palabra.
+    stripe_charge_id: Mapped[str | None] = mapped_column(String(255), index=True)
+    receipt_url: Mapped[str | None] = mapped_column(Text)
+    card_brand: Mapped[str | None] = mapped_column(String(30))
+    card_last4: Mapped[str | None] = mapped_column(String(4))
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
     raw: Mapped[dict | None] = mapped_column(JSON)  # payload bruto del evento
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)

@@ -133,6 +133,53 @@ def _total(order) -> str:
 # --------------------------------------------------------------------------- #
 # Los tres avisos
 # --------------------------------------------------------------------------- #
+def _pago_acreditado(order):
+    """La fila del pago realmente cobrado, o None."""
+    for pago in reversed(list(getattr(order, "payments", None) or [])):
+        if getattr(pago, "status", None) == "paid":
+            return pago
+    return None
+
+
+def _bloque_stripe(order, para_cliente: bool = False) -> str:
+    """Recuadro con el rastro del cobro. Vacio si todavia no hay nada sellado.
+
+    Es la respuesta a "¿como se yo que entro la plata?": el id del cobro en
+    Stripe, con que tarjeta se pago y el link al recibo oficial que hospeda
+    Stripe (lo puede abrir el cliente y lo reconoce el banco).
+    """
+    pago = _pago_acreditado(order)
+    if not pago:
+        return ""
+    filas = []
+    if getattr(pago, "paid_at", None):
+        filas.append(("Acreditado", pago.paid_at.strftime("%d/%m/%Y %H:%M") + " hs"))
+    if getattr(pago, "card_brand", None) and getattr(pago, "card_last4", None):
+        filas.append(("Tarjeta", f"{pago.card_brand.upper()} ....{pago.card_last4}"))
+    if not para_cliente and getattr(pago, "stripe_charge_id", None):
+        filas.append(("Cobro Stripe", pago.stripe_charge_id))
+    if not filas and not getattr(pago, "receipt_url", None):
+        return ""
+    cuerpo = "".join(
+        f"<tr><td style='padding:3px 0;color:#777'>{k}</td>"
+        f"<td style='padding:3px 0;text-align:right;color:#1a1a1a;"
+        f"font-family:monospace;font-size:12px'>{v}</td></tr>"
+        for k, v in filas)
+    boton = ""
+    if getattr(pago, "receipt_url", None):
+        boton = (f"<p style='margin:12px 0 0'><a href='{pago.receipt_url}' "
+                 f"style='color:#0a7d34;font-size:13px;font-weight:bold'>"
+                 f"Ver el recibo oficial de Stripe &rarr;</a></p>")
+    return f"""
+      <div style="margin:18px 0 0;padding:14px 16px;background:#f2f9f4;
+                  border:1px solid #cfe8d6;border-radius:10px">
+        <p style="margin:0 0 8px;font-size:13px;color:#0a7d34;font-weight:bold">
+          PAGO VERIFICADO EN STRIPE</p>
+        <table style="width:100%;border-collapse:collapse;font-size:13px">{cuerpo}</table>
+        {boton}
+      </div>"""
+
+
 def avisar_pedido_nuevo(order) -> None:
     """A la tienda, apenas se crea el pedido (pago aún pendiente)."""
     conf = _conf()
@@ -162,6 +209,7 @@ def avisar_pago_acreditado(order) -> None:
     tel = order.contact_phone or (order.shipping_address or {}).get("phone") or "s/tel"
     cuerpo = f"""
       <p style="color:#444;line-height:1.6">💰 <strong>Pago acreditado.</strong> El pedido queda listo para despachar.</p>
+      {_bloque_stripe(order)}
       <table style="width:100%;border-collapse:collapse;font-size:14px;color:#1a1a1a">{_filas_items(order)}</table>
       <p style="font-size:16px;margin:14px 0 4px"><strong>Total: {_total(order)}</strong></p>
       <p style="color:#444;font-size:14px;line-height:1.7;margin:14px 0 0">
@@ -184,6 +232,7 @@ def confirmar_al_cliente(order) -> None:
       Tu pago quedó acreditado y ya estamos preparando tu pedido.</p>
       <table style="width:100%;border-collapse:collapse;font-size:14px;color:#1a1a1a">{_filas_items(order)}</table>
       <p style="font-size:16px;margin:14px 0 4px"><strong>Total: {_total(order)}</strong></p>
+      {_bloque_stripe(order, para_cliente=True)}
       <p style="color:#444;font-size:14px;line-height:1.7;margin:14px 0 0">
         <strong>Envío a:</strong><br/>{_direccion(order)}</p>
       <p style="color:#444;font-size:14px;line-height:1.7">Cualquier duda respondé este

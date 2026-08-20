@@ -814,6 +814,11 @@ def reconciliar_pagos(db: Session = Depends(get_db)):
         o.status = "processing"
         pago.status = "paid"
         pago.raw = {"confirmado_por": "reconciliacion_manual"}
+        # Mismo rastro que en el webhook: id del cobro, recibo de Stripe y
+        # tarjeta. Un pedido acreditado a mano tiene que quedar tan probado
+        # como uno acreditado solo.
+        from checkout import _sellar_cobro
+        _sellar_cobro(pago, intent)
         if o.cart_id:
             db.query(CartItem).filter(CartItem.cart_id == o.cart_id).delete(
                 synchronize_session=False)
@@ -899,7 +904,8 @@ def list_orders(per_page: int = 50, page: int = 1, status: Optional[str] = None,
     # selectinload: el serializer recorre `o.items` de cada pedido. Sin esto
     # SQLAlchemy los pedia de a UNO — 22 pedidos = 22 viajes de ida y vuelta a
     # Sao Paulo (~180 ms cada uno) y la pantalla de Pedidos tardaba 4,7 s.
-    query = db.query(Order).options(selectinload(Order.items))
+    query = db.query(Order).options(selectinload(Order.items),
+                                    selectinload(Order.payments))
     if status:
         query = query.filter(Order.payment_status == status)
     items = query.order_by(Order.created_at.desc()).offset((page - 1) * per_page).limit(per_page).all()
@@ -1366,6 +1372,20 @@ def comprobante_pedido(oid: int, db: Session = Depends(get_db)):
     trx = (pago.stripe_payment_intent_id if pago and pago.stripe_payment_intent_id
            else ("venta de mostrador" if d.get("canal") == "local" else "—"))
 
+    # Rastro verificable del cobro: sin esto el comprobante dice "PAGADO"
+    # porque lo decimos nosotros. Con el id del cobro y el recibo de Stripe,
+    # cualquiera puede confirmarlo por afuera.
+    partes = []
+    if pago and getattr(pago, "stripe_charge_id", None):
+        partes.append(f"<b>Cobro Stripe:</b> {html.escape(pago.stripe_charge_id)}")
+    if pago and getattr(pago, "card_brand", None) and getattr(pago, "card_last4", None):
+        partes.append(f"<b>Tarjeta:</b> {html.escape(pago.card_brand.upper())} ....{html.escape(pago.card_last4)}")
+    if pago and getattr(pago, "paid_at", None):
+        partes.append(f"<b>Acreditado:</b> {pago.paid_at.strftime('%d/%m/%Y %H:%M')} hs")
+    if pago and getattr(pago, "receipt_url", None):
+        partes.append(f"<b>Recibo oficial:</b> {html.escape(pago.receipt_url)}")
+    rastro = ("<br/>".join(partes) + "<br/>") if partes else ""
+
     pagina = f"""<!doctype html><html lang="es"><head><meta charset="utf-8"/>
 <title>Comprobante #{o.number} — MIAMI IMPORT</title>
 <style>
@@ -1422,7 +1442,7 @@ def comprobante_pedido(oid: int, db: Session = Depends(get_db)):
   <div class="total">TOTAL &nbsp; {_money(o.total)} {html.escape(o.currency or 'ARS')}</div>
 
   <div class="trx"><b>Transacción:</b> {html.escape(str(trx))}<br/>
-    <b>Estado del pago:</b> {sello}{'' if pagado else ' — la plata todavía no ingresó'}</div>
+    {rastro}<b>Estado del pago:</b> {sello}{'' if pagado else ' — la plata todavía no ingresó'}</div>
 
   <div class="pie">Comprobante generado por el sistema de MIAMI IMPORT · {fecha}</div>
   <div class="noprint"><button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button></div>

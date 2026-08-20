@@ -128,6 +128,22 @@ export interface MiamiPedido {
   contact_phone: string | null;
   shipping_address: Record<string, any>;
   products: MiamiPedidoItem[];
+  /** Rastro del cobro en Stripe: la prueba de que la plata entro. */
+  pago?: MiamiPago;
+}
+
+/** Lo que Stripe devuelve del cobro. `recibo_url` es el recibo oficial que
+ *  hospeda Stripe: lo abre el cliente y lo reconoce el banco. */
+export interface MiamiPago {
+  estado: string;
+  intent_id: string | null;
+  cobro_id: string | null;
+  recibo_url: string | null;
+  tarjeta: string | null;
+  acreditado_en: string | null;
+  monto: string | null;
+  moneda: string | null;
+  detalle: string | null;
 }
 
 /** Estados de pedido que el backend acepta (core.models.ORDER_STATUSES).

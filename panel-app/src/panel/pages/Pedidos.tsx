@@ -220,6 +220,48 @@ export default function Pedidos() {
                       {explicaPago[p.payment_status] || p.payment_status}
                     </div>
 
+                    {/* La prueba de que entro la plata. Un "PAGADO" es palabra
+                        nuestra; esto es lo que devolvio Stripe, con el link al
+                        recibo oficial que el cliente y el banco pueden abrir. */}
+                    {p.pago?.estado === "paid" && (
+                      <div className="mb-4 rounded-xl border border-green-600/20 bg-green-500/[0.06] px-3 py-3">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-green-800">
+                          Pago verificado en Stripe
+                        </p>
+                        <dl className="mt-2 space-y-1 text-xs text-graph-600">
+                          {p.pago.acreditado_en && (
+                            <div className="flex justify-between gap-3">
+                              <dt className="text-graph-400">Acreditado</dt>
+                              <dd className="font-medium text-graph">
+                                {new Date(p.pago.acreditado_en).toLocaleString("es-AR", {
+                                  day: "2-digit", month: "2-digit", year: "numeric",
+                                  hour: "2-digit", minute: "2-digit",
+                                })} hs
+                              </dd>
+                            </div>
+                          )}
+                          {p.pago.tarjeta && (
+                            <div className="flex justify-between gap-3">
+                              <dt className="text-graph-400">Tarjeta</dt>
+                              <dd className="font-medium text-graph">{p.pago.tarjeta}</dd>
+                            </div>
+                          )}
+                          {p.pago.cobro_id && (
+                            <div className="flex justify-between gap-3">
+                              <dt className="text-graph-400">Cobro</dt>
+                              <dd className="truncate font-mono text-[11px] text-graph">{p.pago.cobro_id}</dd>
+                            </div>
+                          )}
+                        </dl>
+                        {p.pago.recibo_url && (
+                          <a href={p.pago.recibo_url} target="_blank" rel="noreferrer"
+                             className="mt-2.5 inline-block text-xs font-semibold text-green-800 underline underline-offset-2">
+                            Ver el recibo oficial de Stripe →
+                          </a>
+                        )}
+                      </div>
+                    )}
+
                     <div className="grid gap-4 md:grid-cols-2">
                       <div>
                         <p className="text-[11px] font-semibold uppercase tracking-wide text-graph-400">Cliente</p>

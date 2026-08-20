@@ -96,6 +96,33 @@ def reserva_to_dict(r: Reserva) -> dict:
     }
 
 
+def _pago_to_dict(o: Order) -> dict:
+    """El rastro del cobro, para que Diego pueda PROBAR que entro la plata.
+
+    Se prefiere el pago acreditado; si no hay, se muestra el ultimo intento
+    (asi tambien se ve por que NO entro). Un pedido sin fila de pago devuelve
+    {} y el panel simplemente no dibuja el bloque.
+    """
+    pagos = list(o.payments or [])
+    if not pagos:
+        return {}
+    pago = next((x for x in reversed(pagos) if x.status in ("paid", "refunded")), pagos[-1])
+    tarjeta = None
+    if pago.card_brand and pago.card_last4:
+        tarjeta = f"{pago.card_brand.upper()} ....{pago.card_last4}"
+    return {
+        "estado": pago.status,
+        "intent_id": pago.stripe_payment_intent_id,
+        "cobro_id": pago.stripe_charge_id,
+        "recibo_url": pago.receipt_url,
+        "tarjeta": tarjeta,
+        "acreditado_en": pago.paid_at.isoformat() if pago.paid_at else None,
+        "monto": _money(pago.amount),
+        "moneda": pago.currency,
+        "detalle": pago.error_message,
+    }
+
+
 def order_to_tn(o: Order) -> dict:
     return {
         "id": o.id,
@@ -111,6 +138,9 @@ def order_to_tn(o: Order) -> dict:
         # Sin esto el operador no tiene a dónde mandar el pedido: el checkout
         # pide calle/ciudad/CP pero nada los exponía. El front ya los esperaba.
         "shipping_address": o.shipping_address or {},
+        # Rastro del cobro en Stripe: sin esto, "esta pagado" es solo nuestra
+        # palabra y no hay con que responder un reclamo.
+        "pago": _pago_to_dict(o),
         "products": [
             {
                 "product_id": it.product_id,

@@ -86,6 +86,47 @@ _SHIPPING_FIELDS = {
 }
 
 
+def _sellar_cobro(payment, intent: dict) -> None:
+    """Deja en la fila del pago el rastro VERIFICABLE del cobro.
+
+    `status='paid'` es una palabra nuestra. Lo que prueba que la plata entro es
+    lo que devuelve Stripe: el id del cobro, el recibo que Stripe hospeda (link
+    publico que el cliente y el banco pueden abrir) y con que tarjeta se pago.
+    Sin esto, ante un "¿me cobraste?" no hay con que contestar.
+
+    Nunca levanta: si Stripe no contesta, el pago se acredita igual. Quedarse
+    sin el rastro es molesto; no acreditar una venta ya cobrada es grave.
+    """
+    try:
+        cargo = None
+        cargo_id = intent.get("latest_charge")
+        if isinstance(cargo_id, dict):          # vino expandido
+            cargo = _sd(cargo_id)
+            cargo_id = cargo.get("id")
+        if not cargo_id:                        # API vieja: charges.data[0]
+            datos = (_sd(intent.get("charges")).get("data") or [])
+            if datos:
+                cargo = _sd(datos[0])
+                cargo_id = cargo.get("id")
+        if cargo_id and cargo is None:
+            cargo = _sd(stripe.Charge.retrieve(cargo_id))
+
+        payment.stripe_charge_id = cargo_id
+        if cargo:
+            payment.receipt_url = cargo.get("receipt_url")
+            tarjeta = _sd(_sd(cargo.get("payment_method_details")).get("card"))
+            payment.card_brand = ((tarjeta.get("brand") or "")[:30]) or None
+            payment.card_last4 = ((tarjeta.get("last4") or "")[:4]) or None
+            creado = cargo.get("created")
+            if creado:
+                payment.paid_at = datetime.fromtimestamp(int(creado), tz=timezone.utc)
+    except Exception:  # noqa: BLE001
+        log.exception("No se pudo sellar el rastro del cobro (intent %s)",
+                      intent.get("id") if isinstance(intent, dict) else "?")
+    if not payment.paid_at:
+        payment.paid_at = datetime.now(timezone.utc)
+
+
 def _stripe_ready() -> bool:
     if not settings.STRIPE_SECRET_KEY:
         return False
@@ -535,6 +576,7 @@ def confirmar_pago_desde_stripe(db: Session, order: Order, pi_id: str) -> bool:
             order.status = "backorder"
             payment.status = "paid"
             payment.error_message = "Pago acreditado sin stock: " + ", ".join(faltantes)
+            _sellar_cobro(payment, intent)
             db.add(AuditLog(user_id=order.user_id, action="paid_without_stock",
                             entity="order", entity_id=str(order.id)))
             db.commit()
@@ -544,6 +586,7 @@ def confirmar_pago_desde_stripe(db: Session, order: Order, pi_id: str) -> bool:
     order.status = "processing"
     payment.status = "paid"
     payment.raw = {"confirmado_por": "retorno_del_cliente", "intent": pi_id}
+    _sellar_cobro(payment, intent)
     if order.cart_id:
         db.query(CartItem).filter(CartItem.cart_id == order.cart_id).delete(
             synchronize_session=False)
@@ -671,6 +714,7 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
                     payment.status = "paid"
                     payment.error_message = ("Pago acreditado sin stock: "
                                              + ", ".join(faltantes))
+                    _sellar_cobro(payment, obj)
                     db.add(AuditLog(user_id=order.user_id, action="paid_without_stock",
                                     entity="order", entity_id=str(order.id)))
                     if not _commit():
@@ -681,6 +725,7 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
             order.status = "processing"
             payment.status = "paid"
             payment.raw = {"event": etype, "event_id": event_id}
+            _sellar_cobro(payment, obj)
             # Vaciar exactamente el carrito que originó la orden (también el de
             # invitados, que antes quedaba lleno y llevaba a pagar dos veces).
             if order.cart_id:

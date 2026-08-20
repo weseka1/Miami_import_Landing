@@ -73,6 +73,14 @@ _ADDED_COLUMNS = {
     "variants": {
         "currency": "VARCHAR(3)",
     },
+    "payments": {
+        # El rastro del cobro real de Stripe (ver core/models.py:Payment).
+        "stripe_charge_id": "VARCHAR(255)",
+        "receipt_url": "TEXT",
+        "card_brand": "VARCHAR(30)",
+        "card_last4": "VARCHAR(4)",
+        "paid_at": "TIMESTAMP WITH TIME ZONE",
+    },
     "products": {
         "a_pedido": "BOOLEAN DEFAULT FALSE",
         "destacado": "BOOLEAN DEFAULT FALSE",
