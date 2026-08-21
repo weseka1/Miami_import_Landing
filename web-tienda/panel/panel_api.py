@@ -975,7 +975,7 @@ def dinero(desde: Optional[str] = None, hasta: Optional[str] = None,
     # --- Lo que Stripe YA deposito en el banco de la LLC ---------------------
     # Esto es lo mas fuerte para reclamar: no es lo que decimos nosotros que se
     # cobro, es lo que Stripe informa que giro, con fecha.
-    saldo, giros, error_stripe = None, [], None
+    saldo, giros, error_stripe, cuenta = None, [], None, None
     if settings.STRIPE_SECRET_KEY:
         try:
             import stripe
@@ -990,6 +990,41 @@ def dinero(desde: Optional[str] = None, hasta: Optional[str] = None,
 
             saldo = {"disponible": _plata(b.get("available")),
                      "pendiente": _plata(b.get("pending"))}
+            # --- Por que NO sale la plata --------------------------------
+            # Un saldo disponible sin giros puede ser tres cosas muy distintas,
+            # y el reclamo cambia segun cual sea: que no haya banco cargado,
+            # que los giros esten en manual (alguien tiene que apretar), o que
+            # Stripe tenga la cuenta trabada pidiendo documentacion.
+            try:
+                acc = _sd(stripe.Account.retrieve())
+                sched = _sd(_sd(_sd(acc.get("settings")).get("payouts")).get("schedule"))
+                reqs = _sd(acc.get("requirements"))
+                bancos = []
+                for ext in (_sd(acc.get("external_accounts")).get("data") or []):
+                    ext = _sd(ext)
+                    bancos.append({
+                        "banco": ext.get("bank_name") or ext.get("brand"),
+                        "ultimos4": ext.get("last4"),
+                        "pais": ext.get("country"),
+                        "moneda": (ext.get("currency") or "").upper(),
+                    })
+                cuenta = {
+                    "pais": acc.get("country"),
+                    "cobra": bool(acc.get("charges_enabled")),
+                    "puede_girar": bool(acc.get("payouts_enabled")),
+                    # "manual" = la plata se queda hasta que alguien la saque.
+                    "frecuencia": sched.get("interval"),
+                    "demora_dias": sched.get("delay_days"),
+                    "bancos": bancos,
+                    # Lo que Stripe esta esperando para destrabar la cuenta.
+                    "pendiente": (reqs.get("currently_due") or [])[:8],
+                    "vence": reqs.get("current_deadline"),
+                    "motivo_freno": reqs.get("disabled_reason"),
+                }
+            except Exception:  # noqa: BLE001 - dato extra, no puede tumbar la vista
+                log.exception("dinero: no se pudo leer la cuenta de Stripe")
+                cuenta = None
+
             for po in (_sd(stripe.Payout.list(limit=25)).get("data") or []):
                 po = _sd(po)
                 llega = po.get("arrival_date")
@@ -1006,8 +1041,8 @@ def dinero(desde: Optional[str] = None, hasta: Optional[str] = None,
             error_stripe = f"{type(exc).__name__}: {str(exc)[:140]}"
 
     return {"resumen": resumen, "cobros": cobros, "saldo_stripe": saldo,
-            "giros_al_banco": giros, "error_stripe": error_stripe,
-            "desde": desde, "hasta": hasta}
+            "giros_al_banco": giros, "cuenta_stripe": cuenta,
+            "error_stripe": error_stripe, "desde": desde, "hasta": hasta}
 
 
 @router.get("/dinero/export")
