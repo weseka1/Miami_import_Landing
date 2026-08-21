@@ -441,6 +441,20 @@ export interface MiamiGiro {
   estado: string;
   llega_el: string | null;
 }
+/** Estado de la cuenta de Stripe: contesta por que la plata no sale. */
+export interface MiamiCuentaStripe {
+  pais: string | null;
+  cobra: boolean;
+  puede_girar: boolean;
+  /** "manual" = la plata se queda hasta que alguien la saque a mano. */
+  frecuencia: string | null;
+  demora_dias: number | null;
+  bancos: { banco: string | null; ultimos4: string | null; pais: string | null; moneda: string }[];
+  pendiente: string[];
+  vence: number | null;
+  motivo_freno: string | null;
+}
+
 export interface MiamiDinero {
   resumen: {
     cantidad: number;
@@ -456,6 +470,7 @@ export interface MiamiDinero {
   saldo_stripe: { disponible: { monto: number; moneda: string }[];
                   pendiente: { monto: number; moneda: string }[] } | null;
   giros_al_banco: MiamiGiro[];
+  cuenta_stripe: MiamiCuentaStripe | null;
   error_stripe: string | null;
   desde: string | null;
   hasta: string | null;

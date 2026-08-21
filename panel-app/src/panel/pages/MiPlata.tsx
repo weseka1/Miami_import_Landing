@@ -219,6 +219,44 @@ export default function MiPlata() {
           </div>
         )}
 
+        {/* --- POR QUE no sale la plata: la respuesta, sin vueltas --- */}
+        {(() => {
+          const c = datos?.cuenta_stripe;
+          if (!c) return null;
+          const sinBanco = !c.bancos?.length;
+          const manual = c.frecuencia === "manual";
+          if (c.puede_girar && !sinBanco && !manual) return null;   // todo en orden
+          return (
+            <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/[0.08] px-4 py-3.5">
+              <p className="text-sm font-bold text-amber-900">Por qué no te llegó la plata</p>
+              <ul className="mt-2 space-y-1.5 text-sm text-amber-900">
+                {!c.puede_girar ? (
+                  <li>
+                    <strong>Stripe tiene los giros frenados.</strong>
+                    {c.motivo_freno ? ` Motivo: ${c.motivo_freno}.` : ""}
+                    {c.pendiente?.length ? ` Está pidiendo: ${c.pendiente.join(", ")}.` : ""}
+                  </li>
+                ) : (
+                  <li>Stripe <strong>no está bloqueando nada</strong>: la cuenta puede girar.</li>
+                )}
+                {sinBanco && (
+                  <li><strong>No hay ninguna cuenta bancaria cargada.</strong> Sin banco de destino,
+                      Stripe no tiene a dónde mandar la plata.</li>
+                )}
+                {manual && (
+                  <li><strong>Los giros están en modo manual.</strong> La plata no sale sola:
+                      alguien tiene que sacarla desde el panel de Stripe.</li>
+                )}
+              </ul>
+              <p className="mt-2.5 text-sm text-amber-900">
+                Las dos cosas las controla <strong>quien administra la cuenta</strong> (la LLC).
+                Esto es lo que hay que pedirles: que carguen la cuenta bancaria y que pasen
+                los giros a automáticos — o que hagan el giro a mano.
+              </p>
+            </div>
+          );
+        })()}
+
         {!!datos?.saldo_stripe?.disponible?.length && (
           <p className="mt-4 text-sm text-graph-500">
             Esperando en Stripe:{" "}
