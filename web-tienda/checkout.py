@@ -276,6 +276,12 @@ def _reap_abandoned_reservations(db: Session) -> None:
             _release_stock(db, order)
             order.status = "cancelled"
             order.payment_status = "cancelled"
+            if pay:
+                # Que quede escrito POR QUE se cancelo. "Cancelado" a secas se
+                # lee como venta muerta; esto no es una venta muerta, es una
+                # reserva que vencio y el cliente puede volver a comprar.
+                pay.raw = {"cancelado_por": "reserva_vencida",
+                           "minutos": _RESERVATION_TTL_MIN}
             db.commit()
             log.info("Barrido: liberada la reserva de la orden %s", order.id)
         except Exception:  # noqa: BLE001
@@ -803,7 +809,10 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
             _commit()
             return {"received": True, "ignored": "orden ya pagada"}
         payment.status = "failed"
-        payment.error_message = (obj.get("last_payment_error") or {}).get("message")
+        _err = _sd(obj.get("last_payment_error"))
+        payment.error_message = _err.get("message")
+        payment.error_code = ((_err.get("decline_code") or _err.get("code") or "")[:60]) or None
+        payment.estado_stripe = (obj.get("status") or "")[:40] or None
         order.payment_status = "failed"
         # OJO: en Stripe un `payment_failed` NO es terminal — el mismo
         # PaymentIntent vuelve a `requires_payment_method` y el cliente reintenta

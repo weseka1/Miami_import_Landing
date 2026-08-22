@@ -108,16 +108,61 @@ _MOTIVOS = {
 }
 
 
+# Los motivos de rechazo mas comunes, en castellano. Stripe los manda en
+# ingles; el `decline_code` es estable y se traduce sin ambiguedad.
+_RECHAZOS = {
+    "insufficient_funds": "la tarjeta no tenía fondos",
+    "generic_decline": "el banco la rechazó sin dar motivo",
+    "do_not_honor": "el banco la rechazó (tiene que llamar al banco)",
+    "card_declined": "el banco rechazó la tarjeta",
+    "expired_card": "la tarjeta está vencida",
+    "incorrect_cvc": "el código de seguridad estaba mal",
+    "incorrect_number": "el número de tarjeta estaba mal",
+    "invalid_expiry_year": "la fecha de vencimiento estaba mal",
+    "invalid_expiry_month": "la fecha de vencimiento estaba mal",
+    "processing_error": "hubo un error del procesador; puede reintentar",
+    "lost_card": "la tarjeta figura como perdida",
+    "stolen_card": "la tarjeta figura como robada",
+    "call_issuer": "el banco pide que lo llame para autorizarla",
+    "transaction_not_allowed": "el banco no permite este tipo de compra",
+    "currency_not_supported": "la tarjeta no opera en esa moneda",
+    "card_not_supported": "la tarjeta no sirve para compras por internet",
+    "authentication_required": "el banco pidió una verificación que no completó",
+}
+
+
+def _texto_rechazo(pago) -> str:
+    """El motivo del rechazo en castellano; si no lo conocemos, el de Stripe."""
+    codigo = (getattr(pago, "error_code", None) or "").strip()
+    if codigo in _RECHAZOS:
+        return _RECHAZOS[codigo]
+    # Los mensajes de Stripe ya vienen con punto final; se lo sacamos para que
+    # la frase no termine en "..".
+    return (pago.error_message or "").strip().rstrip(".")
+
+
 def _motivo_humano(pago) -> str | None:
     """Una frase que contesta '¿por que no entro la plata?'."""
-    estado = getattr(pago, "estado_stripe", None)
-    if not estado or pago.status == "paid":
+    if pago.status == "paid":
         return None
-    detalle = (pago.error_message or "").strip()
+
+    # Reserva vencida: NO es una venta perdida, es una venta a rescatar.
+    raw = pago.raw if isinstance(pago.raw, dict) else {}
+    if raw.get("cancelado_por") == "reserva_vencida":
+        base = (f"Pasaron {raw.get('minutos', 30)} minutos sin que pagara, así que la "
+                "prenda volvió a estar a la venta. El pedido sigue acá: si lo "
+                "contactás y quiere, tiene que hacer la compra de nuevo.")
+        detalle = _texto_rechazo(pago)
+        return f"{base} Antes de eso: {detalle}." if detalle else base
+
+    estado = getattr(pago, "estado_stripe", None)
+    if not estado:
+        return None
+    detalle = _texto_rechazo(pago)
     clave = _MOTIVOS.get(estado)
     if clave == "no_intento":
         if detalle:
-            return f"Intentó pagar y no pudo: {detalle}"
+            return f"Intentó pagar y no pudo: {detalle}."
         return ("Llegó hasta el checkout y no llegó a intentar el pago. "
                 "Nunca se le cobró nada.")
     if clave == "espera_banco":

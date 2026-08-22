@@ -383,6 +383,9 @@ class Payment(Base):
     # "el cliente intento pagar y le rebotó la tarjeta" de "llego al checkout
     # y nunca llego a intentar", que es exactamente lo que pregunto Diego.
     estado_stripe: Mapped[str | None] = mapped_column(String(40))
+    # Codigo del rechazo (decline_code de Stripe). El texto que manda Stripe
+    # viene en ingles; el codigo es estable y se puede traducir bien.
+    error_code: Mapped[str | None] = mapped_column(String(60))
     card_brand: Mapped[str | None] = mapped_column(String(30))
     card_last4: Mapped[str | None] = mapped_column(String(4))
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

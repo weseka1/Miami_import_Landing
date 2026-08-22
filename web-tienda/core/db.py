@@ -79,6 +79,7 @@ _ADDED_COLUMNS = {
         "receipt_url": "TEXT",
         "metodo": "VARCHAR(40)",
         "estado_stripe": "VARCHAR(40)",
+        "error_code": "VARCHAR(60)",
         "card_brand": "VARCHAR(30)",
         "card_last4": "VARCHAR(4)",
         "paid_at": "TIMESTAMP WITH TIME ZONE",

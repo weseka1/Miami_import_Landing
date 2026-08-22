@@ -841,6 +841,8 @@ def reconciliar_pagos(db: Session = Depends(get_db)):
             err = _sd(intent.get("last_payment_error"))
             if err:
                 pago.error_message = (err.get("message") or "")[:500] or None
+                pago.error_code = ((err.get("decline_code") or err.get("code")
+                                    or "")[:60]) or None
             sin_pagar.append({"pedido": o.number, "estado_stripe": intent.get("status")})
             continue
 
@@ -870,6 +872,33 @@ def reconciliar_pagos(db: Session = Depends(get_db)):
       except Exception as exc:  # noqa: BLE001 — un pedido roto no frena el resto
         log.exception("reconciliar: falló el pedido %s", o.number)
         errores.append({"pedido": o.number, "error": f"{type(exc).__name__}: {str(exc)[:160]}"})
+
+    # --- Por que NO pagaron (tambien los ya cancelados) ----------------------
+    # El barrido pasa los abandonados a 'cancelled', asi que el bucle de arriba
+    # (que solo mira 'pending') ya no los alcanza y nunca les escribia el
+    # motivo. Diego abria un pedido cancelado y no tenia forma de saber si el
+    # cliente habia intentado pagar — justo el dato que necesita para decidir
+    # si sale a rescatar la venta.
+    for o in (db.query(Order)
+              .options(selectinload(Order.payments))
+              .filter(Order.payment_status.in_(("cancelled", "failed")))
+              .order_by(Order.id.desc()).limit(100).all()):
+        pago = next((x for x in reversed(list(o.payments or []))
+                     if x.stripe_payment_intent_id and not x.estado_stripe), None)
+        if not pago:
+            continue
+        try:
+            intent = _sd(stripe.PaymentIntent.retrieve(pago.stripe_payment_intent_id))
+            pago.estado_stripe = (intent.get("status") or "")[:40] or None
+            err = _sd(intent.get("last_payment_error"))
+            if err:
+                pago.error_message = (err.get("message") or "")[:500] or None
+                pago.error_code = ((err.get("decline_code") or err.get("code")
+                                    or "")[:60]) or None
+        except Exception as exc:  # noqa: BLE001
+            log.exception("reconciliar: no se pudo leer el motivo del pedido %s", o.number)
+            errores.append({"pedido": o.number,
+                            "error": f"motivo: {type(exc).__name__}: {str(exc)[:110]}"})
 
     # --- Sellado retroactivo -------------------------------------------------
     # Los pedidos que se cobraron ANTES de que guardaramos el rastro figuran
