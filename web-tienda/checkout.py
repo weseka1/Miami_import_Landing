@@ -238,23 +238,48 @@ def _reap_abandoned_reservations(db: Session) -> None:
                      Order.created_at < cutoff)
              .limit(50)
              .all())
+    # Estados en los que la plata puede estar en juego: acá NO se toca el stock
+    # pase lo que pase, porque liberar una reserva de algo que se está cobrando
+    # es vender dos veces la misma prenda.
+    COBRABLES = {"succeeded", "processing", "requires_capture"}
+
     for order in stale:
         try:
-            pay = order.payments[0] if order.payments else None
+            pay = next((p for p in reversed(list(order.payments or []))
+                        if p.stripe_payment_intent_id), None)
             if pay and pay.stripe_payment_intent_id:
-                # cancel() dispara payment_intent.canceled; si ya no es
-                # cancelable (p.ej. ya se cobró) Stripe lanza y NO liberamos.
-                stripe.PaymentIntent.cancel(pay.stripe_payment_intent_id)
-                pay.status = "cancelled"
+                try:
+                    # cancel() dispara payment_intent.canceled.
+                    stripe.PaymentIntent.cancel(pay.stripe_payment_intent_id)
+                    pay.status = "cancelled"
+                except stripe.StripeError:
+                    # Que Stripe rechace el cancel NO significa que se haya
+                    # cobrado: puede estar ya cancelado, o ser un error de red.
+                    # Antes cualquiera de esos casos abortaba el barrido y la
+                    # prenda quedaba trabada para siempre. Ahora se pregunta el
+                    # estado REAL y solo se frena si hay plata en juego.
+                    try:
+                        estado = _sd(stripe.PaymentIntent.retrieve(
+                            pay.stripe_payment_intent_id)).get("status")
+                    except stripe.StripeError:
+                        log.warning("Barrido: no se pudo consultar el intent %s; "
+                                    "no se libera la reserva de la orden %s",
+                                    pay.stripe_payment_intent_id, order.id)
+                        db.rollback()
+                        continue
+                    if estado in COBRABLES:
+                        log.info("Barrido: la orden %s tiene un pago en curso (%s): "
+                                 "no se libera", order.id, estado)
+                        db.rollback()
+                        continue
+                    pay.status = "cancelled"
             _release_stock(db, order)
             order.status = "cancelled"
             order.payment_status = "cancelled"
             db.commit()
-        except stripe.StripeError:
-            # El intent no era cancelable (posible cobro en curso): dejar la
-            # orden como está; el webhook resolverá el estado real.
-            db.rollback()
+            log.info("Barrido: liberada la reserva de la orden %s", order.id)
         except Exception:  # noqa: BLE001
+            log.exception("Barrido: falló la orden %s", order.id)
             db.rollback()
             log.exception("Fallo liberando reserva de la orden %s", order.id)
 

@@ -144,6 +144,8 @@ export interface MiamiPago {
   monto: string | null;
   moneda: string | null;
   detalle: string | null;
+  /** Frase lista para leer que contesta "¿intentó pagar y no pudo?". */
+  motivo: string | null;
 }
 
 /** Estados de pedido que el backend acepta (core.models.ORDER_STATUSES).
@@ -371,7 +373,8 @@ export const api = {
   pedidos: (perPage = 100) => req<MiamiPedido[]>(`/orders?per_page=${perPage}`),
   pedido: (oid: number) => req<MiamiPedido>(`/orders/${oid}`),
   setEstadoPedido: (oid: number, status: string) =>
-    req<{ ok: boolean; status: string }>(`/orders/${oid}/status`, json({ status })),
+    req<{ ok: boolean; status: string; payment_status: string; aviso: string | null }>(
+      `/orders/${oid}/status`, json({ status })),
   reembolsarPedido: (oid: number) =>
     req<{ ok: boolean; status: string }>(`/orders/${oid}/refund`, { method: "POST" }),
   /** Pregunta a Stripe por los pendientes y acredita los ya cobrados. */

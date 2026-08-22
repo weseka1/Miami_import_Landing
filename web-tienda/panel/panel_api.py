@@ -749,9 +749,45 @@ def set_order_status(oid: int, body: dict, db: Session = Depends(get_db)):
     if new == "refunded":
         raise HTTPException(409, "Usá el botón de reembolso: marcarlo a mano no "
                                  "devuelve el dinero en Stripe")
+
+    from checkout import _release_stock, _try_reserve
+    anterior = o.status
+    aviso = None
+
+    # --- Cancelar devuelve la mercaderia a la venta -------------------------
+    # El stock se descuenta al arrancar el checkout, no al cobrarse. Si al
+    # cancelar no se devolvia, la prenda quedaba descontada PARA SIEMPRE:
+    # figuraba agotada en la web sin haberse vendido nunca. El reembolso ya lo
+    # hacia bien; el desplegable de estado, no. Diego lo vio y lo reporto.
+    if new == "cancelled" and anterior != "cancelled":
+        devueltos = sum(it.quantity for it in o.items) if o.stock_reserved else 0
+        _release_stock(db, o)          # idempotente: mira el flag stock_reserved
+        # Un pedido cancelado no puede seguir figurando "esperando pago": deja
+        # de aparecer en la lista de los que hay que ir a cobrar.
+        if o.payment_status == "pending":
+            o.payment_status = "cancelled"
+        if devueltos:
+            aviso = f"Volvieron {devueltos} unidad(es) al stock."
+
+    # --- Reactivar un pedido cancelado tiene que volver a TOMAR la mercaderia
+    # Si no, se promete algo que en el medio se le pudo haber vendido a otro.
+    # Es todo o nada: si falta una unidad, no se reactiva y se dice cual falta.
+    if anterior == "cancelled" and new != "cancelled":
+        faltantes = _try_reserve(db, o)
+        if faltantes:
+            db.rollback()
+            raise HTTPException(409, "No se puede reactivar: ya no queda stock de "
+                                     + ", ".join(faltantes))
+        # El pago vuelve a estar pendiente, no "cancelado": si no, el pedido
+        # reactivado desaparecia de la lista de los que hay que ir a cobrar.
+        if o.payment_status == "cancelled":
+            o.payment_status = "pending"
+        aviso = "Se volvió a descontar la mercadería del stock."
+
     o.status = new
     db.commit()
-    return {"ok": True, "status": o.status}
+    return {"ok": True, "status": o.status, "payment_status": o.payment_status,
+            "aviso": aviso}
 
 
 @router.post("/orders/reconciliar")
@@ -799,6 +835,12 @@ def reconciliar_pagos(db: Session = Depends(get_db)):
             continue
 
         if intent.get("status") != "succeeded":
+            # Guardar POR QUE no entro: sin esto el panel solo podia decir
+            # "no pago", que es justo lo que a Diego no le alcanzaba.
+            pago.estado_stripe = (intent.get("status") or "")[:40] or None
+            err = _sd(intent.get("last_payment_error"))
+            if err:
+                pago.error_message = (err.get("message") or "")[:500] or None
             sin_pagar.append({"pedido": o.number, "estado_stripe": intent.get("status")})
             continue
 
@@ -1133,6 +1175,17 @@ def refund_order(oid: int, db: Session = Depends(get_db)):
 @router.get("/orders")
 def list_orders(per_page: int = 50, page: int = 1, status: Optional[str] = None,
                 db: Session = Depends(get_db)):
+    # El barrido de reservas abandonadas corría SOLO al arrancar un checkout
+    # nuevo. Si no entraba otra venta, las prendas de un carrito abandonado
+    # quedaban descontadas por días y figuraban agotadas. Abrir Pedidos es el
+    # otro momento natural para limpiarlas, y es lo que Diego hace todo el día.
+    try:
+        from checkout import _reap_abandoned_reservations
+        _reap_abandoned_reservations(db)
+    except Exception:  # noqa: BLE001 — la lista tiene que abrir igual
+        log.exception("No se pudo barrer las reservas abandonadas")
+        db.rollback()
+
     # selectinload: el serializer recorre `o.items` de cada pedido. Sin esto
     # SQLAlchemy los pedia de a UNO — 22 pedidos = 22 viajes de ida y vuelta a
     # Sao Paulo (~180 ms cada uno) y la pantalla de Pedidos tardaba 4,7 s.

@@ -96,6 +96,43 @@ def reserva_to_dict(r: Reserva) -> dict:
     }
 
 
+# Lo que informa Stripe -> lo que Diego necesita leer. La pregunta textual
+# fue: "¿seria porque intento pagar y no pudo o como es?".
+_MOTIVOS = {
+    "requires_payment_method": "no_intento",     # o intento y le rebotó: lo decide el error
+    "requires_confirmation": "empezo_sin_confirmar",
+    "requires_action": "espera_banco",
+    "processing": "procesando",
+    "canceled": "cancelado",
+    "requires_capture": "autorizado_sin_cobrar",
+}
+
+
+def _motivo_humano(pago) -> str | None:
+    """Una frase que contesta '¿por que no entro la plata?'."""
+    estado = getattr(pago, "estado_stripe", None)
+    if not estado or pago.status == "paid":
+        return None
+    detalle = (pago.error_message or "").strip()
+    clave = _MOTIVOS.get(estado)
+    if clave == "no_intento":
+        if detalle:
+            return f"Intentó pagar y no pudo: {detalle}"
+        return ("Llegó hasta el checkout y no llegó a intentar el pago. "
+                "Nunca se le cobró nada.")
+    if clave == "espera_banco":
+        return "Empezó a pagar y quedó esperando la confirmación del banco."
+    if clave == "empezo_sin_confirmar":
+        return "Empezó el pago y no lo confirmó."
+    if clave == "procesando":
+        return "El pago se está procesando. Esperá a que Stripe lo confirme."
+    if clave == "cancelado":
+        return "El pago se canceló. No se cobró nada."
+    if clave == "autorizado_sin_cobrar":
+        return "La tarjeta quedó autorizada pero el cobro no se completó."
+    return f"Stripe informa: {estado}." + (f" {detalle}" if detalle else "")
+
+
 _MEDIOS = {
     "card": "Tarjeta", "link": "Link de Stripe", "bank_transfer": "Transferencia",
     "customer_balance": "Saldo del cliente", "boleto": "Boleto",
@@ -130,6 +167,8 @@ def _pago_to_dict(o: Order) -> dict:
         "monto": _money(pago.amount),
         "moneda": pago.currency,
         "detalle": pago.error_message,
+        # La frase que contesta "¿intento pagar y no pudo?" sin tecnicismos.
+        "motivo": _motivo_humano(pago),
     }
 
 

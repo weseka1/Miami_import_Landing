@@ -3,6 +3,7 @@ import { Loader2, RefreshCw, MessageCircle, ChevronDown, CreditCard, Undo2, Prin
 import { api, ApiError, ESTADOS_PEDIDO, type MiamiPedido } from "../api/miamiApi";
 import { fmtARS } from "@/lib/format";
 import { PageHeader, EmptyState } from "../components/PageShell";
+import Modal from "../components/Modal";
 import { Segmented } from "../components/Controls";
 import Badge from "../components/Badge";
 import { useToast } from "../components/Toast";
@@ -50,6 +51,10 @@ export default function Pedidos() {
   const [filtro, setFiltro] = useState("todos");
   const [abierto, setAbierto] = useState<number | null>(null);
   const [reconciliando, setReconciliando] = useState(false);
+  // Devolver plata es irreversible: se confirma en un modal propio, no con el
+  // window.confirm del navegador (bloquea el hilo y queda feo en el celular).
+  const [aReembolsar, setAReembolsar] = useState<MiamiPedido | null>(null);
+  const [reembolsando, setReembolsando] = useState(false);
   const [reconcilInfo, setReconcilInfo] = useState("");
 
   const cargar = async () => {
@@ -96,22 +101,31 @@ export default function Pedidos() {
 
   const cambiarEstado = async (p: MiamiPedido, status: string) => {
     try {
-      await api.setEstadoPedido(p.id, status);
-      setPedidos((prev) => prev?.map((x) => (x.id === p.id ? { ...x, status } : x)) ?? null);
-      push(`Pedido #${p.number} → ${rotuloEstado[status] || status}`, "success");
+      const res = await api.setEstadoPedido(p.id, status);
+      // Cancelar devuelve la mercadería al stock y reactivar la vuelve a tomar.
+      // Es plata: tiene que decirlo, no pasar en silencio. Y recargamos, porque
+      // el estado del PAGO también pudo cambiar.
+      push(`Pedido #${p.number} → ${rotuloEstado[status] || status}` +
+           (res.aviso ? ` · ${res.aviso}` : ""), "success");
+      void cargar();
     } catch (e) {
       push(e instanceof ApiError ? e.message : "No se pudo cambiar el estado", "error");
     }
   };
 
-  const reembolsar = async (p: MiamiPedido) => {
-    if (!window.confirm(`¿Reembolsar el pedido #${p.number} por ${fmtARS(parseFloat(p.total || "0"))}? Se le devuelve la plata al cliente por Stripe y se repone el stock.`)) return;
+  const confirmarReembolso = async () => {
+    const p = aReembolsar;
+    if (!p) return;
+    setReembolsando(true);
     try {
       await api.reembolsarPedido(p.id);
-      push(`Pedido #${p.number} reembolsado`, "success");
+      push(`Pedido #${p.number} reembolsado · la mercadería volvió al stock`, "success");
+      setAReembolsar(null);
       void cargar();
     } catch (e) {
       push(e instanceof ApiError ? e.message : "No se pudo reembolsar", "error");
+    } finally {
+      setReembolsando(false);
     }
   };
 
@@ -218,6 +232,17 @@ export default function Pedidos() {
                         : "bg-graph/[0.05] text-graph-500",
                     )}>
                       {explicaPago[p.payment_status] || p.payment_status}
+                      {/* La pregunta textual de Diego: "¿intentó pagar y no pudo
+                          o cómo es?". Esto lo contesta con lo que dice Stripe. */}
+                      {p.pago?.motivo && (
+                        <p className="mt-1.5 font-normal opacity-90">{p.pago.motivo}</p>
+                      )}
+                      {p.payment_status === "pending" && !p.pago?.motivo && (
+                        <p className="mt-1.5 text-xs font-normal opacity-75">
+                          Para saber si llegó a intentar el pago, apretá <strong>Reconciliar</strong> arriba:
+                          le pregunta a Stripe y lo escribe acá.
+                        </p>
+                      )}
                     </div>
 
                     {/* La prueba de que entro la plata. Un "PAGADO" es palabra
@@ -316,7 +341,7 @@ export default function Pedidos() {
                           className="w-40"
                         />
                         {p.payment_status === "paid" && (
-                          <button onClick={() => reembolsar(p)} className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-graph-400 transition hover:bg-red-500/10 hover:text-red-600" title="Devuelve la plata por Stripe y repone stock">
+                          <button onClick={() => setAReembolsar(p)} className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-graph-400 transition hover:bg-red-500/10 hover:text-red-600" title="Devuelve la plata por Stripe y repone stock">
                             <Undo2 size={14} /> Reembolsar
                           </button>
                         )}
@@ -329,6 +354,47 @@ export default function Pedidos() {
           })}
         </div>
       )}
+
+      {/* Devolver plata es irreversible: modal propio, con el monto y el nombre
+          a la vista, para que no se reembolse el pedido equivocado de un click. */}
+      <Modal
+        open={!!aReembolsar}
+        onClose={() => !reembolsando && setAReembolsar(null)}
+        title={aReembolsar ? `Reembolsar el pedido #${aReembolsar.number}` : ""}
+        subtitle="Esto no se puede deshacer."
+        footer={
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setAReembolsar(null)}
+              disabled={reembolsando}
+              className="h-10 rounded-xl border border-graph/15 px-4 text-sm font-medium text-graph-500 transition hover:text-graph disabled:opacity-50"
+            >
+              No, volver
+            </button>
+            <button
+              onClick={() => void confirmarReembolso()}
+              disabled={reembolsando}
+              className="h-10 rounded-xl bg-red-600 px-4 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
+            >
+              {reembolsando ? "Reembolsando…" : "Sí, devolver la plata"}
+            </button>
+          </div>
+        }
+      >
+        {aReembolsar && (
+          <div className="space-y-3 text-sm text-graph">
+            <p>
+              Se le devuelven <strong>{fmtARS(parseFloat(aReembolsar.total || "0"))}</strong> a{" "}
+              <strong>{aReembolsar.contact_name || "el cliente"}</strong> por Stripe.
+            </p>
+            <ul className="list-disc space-y-1 pl-5 text-graph-500">
+              <li>La plata sale de la cuenta de Stripe y vuelve a su tarjeta.</li>
+              <li>La mercadería vuelve al stock y queda otra vez a la venta.</li>
+              <li>El pedido queda marcado como <strong>Reembolsado</strong>.</li>
+            </ul>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
