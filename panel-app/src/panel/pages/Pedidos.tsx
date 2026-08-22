@@ -237,10 +237,18 @@ export default function Pedidos() {
                       {p.pago?.motivo && (
                         <p className="mt-1.5 font-normal opacity-90">{p.pago.motivo}</p>
                       )}
-                      {p.payment_status === "pending" && !p.pago?.motivo && (
+                      {/* El cartel de "consultá a Stripe" solo tiene sentido si
+                          la venta pasó por la web: una venta de mostrador nunca
+                          tuvo un pago online que consultar. */}
+                      {p.payment_status === "pending" && !p.pago?.motivo && !esLocal && (
                         <p className="mt-1.5 text-xs font-normal opacity-75">
                           Para saber si llegó a intentar el pago, apretá <strong>Reconciliar</strong> arriba:
                           le pregunta a Stripe y lo escribe acá.
+                        </p>
+                      )}
+                      {esLocal && !p.pago?.motivo && (
+                        <p className="mt-1.5 text-xs font-normal opacity-75">
+                          Venta de mostrador: no pasó por la web, se cobra en el local.
                         </p>
                       )}
                     </div>
