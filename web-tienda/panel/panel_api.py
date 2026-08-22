@@ -871,9 +871,21 @@ def reconciliar_pagos(db: Session = Depends(get_db)):
             continue
 
         o.payment_status = "paid"
-        o.status = "processing"
         pago.status = "paid"
         pago.raw = {"confirmado_por": "reconciliacion_manual"}
+        # Si el barrido ya solto la reserva, acreditar sin RE-TOMAR la
+        # mercaderia deja un pedido "listo para despachar" de algo que quizas
+        # ya se vendio a otro. Los otros dos caminos de acreditacion (webhook y
+        # retorno del cliente) marcan 'backorder' en ese caso; este, que es el
+        # boton que el propio panel te sugiere apretar, no lo hacia.
+        from checkout import _try_reserve
+        if not o.stock_reserved and _try_reserve(db, o):
+            o.status = "backorder"
+            pago.error_message = "Pago acreditado sin stock (reconciliacion)"
+            db.add(AuditLog(user_id=o.user_id, action="paid_without_stock",
+                            entity="order", entity_id=str(o.id)))
+        else:
+            o.status = "processing"
         # Mismo rastro que en el webhook: id del cobro, recibo de Stripe y
         # tarjeta. Un pedido acreditado a mano tiene que quedar tan probado
         # como uno acreditado solo.
