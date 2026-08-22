@@ -38,8 +38,15 @@ def utcnow() -> datetime:
 # Estados (constantes, no enums de DB, para portabilidad)
 ORDER_STATUSES = (
     "pending", "paid", "processing", "shipped", "delivered", "cancelled", "refunded",
+    # Cobrado y SIN mercaderia para despachar. Lo escribe el checkout cuando el
+    # pago entra pero la reserva ya no estaba (checkout.py). Estaba en uso y
+    # fuera de esta lista, asi que el panel no lo sabia mostrar.
+    "backorder",
 )
-PAYMENT_STATUSES = ("pending", "authorized", "paid", "failed", "refunded", "voided")
+# 'cancelled' y 'review' se escriben en el codigo y faltaban aca. 'authorized'
+# y 'voided' no los escribe nadie; quedan por compatibilidad.
+PAYMENT_STATUSES = ("pending", "authorized", "paid", "failed", "refunded",
+                    "voided", "cancelled", "review")
 
 
 # --------------------------------------------------------------------------- #

@@ -28,6 +28,8 @@ const badgePago: Record<string, { label: string; tone: Tone }> = {
   cancelled: { label: "Cancelado", tone: "neutral" },
   refunded: { label: "Reembolsado", tone: "blue" },
   failed: { label: "Pago rechazado", tone: "red" },
+  // La plata entró por un monto que no coincide con el pedido.
+  review: { label: "REVISAR — PLATA RARA", tone: "red" },
 };
 
 // Qué significa cada estado de pago, en criollo, dentro del detalle.
@@ -37,11 +39,13 @@ const explicaPago: Record<string, string> = {
   cancelled: "El pedido se canceló. No se cobró nada.",
   refunded: "Se le devolvió la plata al cliente.",
   failed: "La tarjeta fue rechazada. No entró plata.",
+  review: "Stripe cobró un monto distinto al del pedido. La plata puede estar adentro. NO despaches hasta chequearlo en Stripe.",
 };
 
 const rotuloEstado: Record<string, string> = {
   pending: "Pendiente", paid: "Pagado", processing: "Preparando",
   shipped: "Enviado", delivered: "Entregado", cancelled: "Cancelado", refunded: "Reembolsado",
+  backorder: "COBRADO SIN STOCK",
 };
 
 export default function Pedidos() {
@@ -137,6 +141,8 @@ export default function Pedidos() {
       .map((it) => `• ${it.name}${it.talle ? ` (talle ${it.talle})` : ""} ×${it.quantity}`)
       .join("\n");
     const nombre = (p.contact_name || "").split(" ")[0];
+    // 'review' NO va aca: a ese cliente la plata ya se le movio. Mandarle
+    // "¿te ayudo a terminarlo?" es invitarlo a pagar dos veces.
     const pendiente = p.payment_status === "pending";
     const msg = pendiente
       ? `¡Hola${nombre ? " " + nombre : ""}! Te escribo de Miami Import por tu pedido #${p.number}:\n${items}\nTotal: ${fmtARS(parseFloat(p.total || "0"))}\nVi que el pago quedó pendiente, ¿te ayudo a terminarlo?`
@@ -201,7 +207,12 @@ export default function Pedidos() {
       ) : (
         <div className="space-y-2.5">
           {filtrados.map((p) => {
-            const b = badgePago[p.payment_status] || { label: p.payment_status, tone: "neutral" as Tone };
+            // "Cobrado sin stock" pisa al cartel verde de PAGADO: es el UNICO
+            // caso donde la plata entro y NO hay que despachar. Si se muestra
+            // como un pagado normal, Diego manda algo que no tiene.
+            const b = p.status === "backorder"
+              ? { label: "COBRADO SIN STOCK", tone: "red" as Tone }
+              : (badgePago[p.payment_status] || { label: p.payment_status, tone: "neutral" as Tone });
             const d = p.shipping_address || {};
             const calle = [d.street, d.number].filter(Boolean).join(" ") + (d.floor ? `, ${d.floor}` : "");
             const loc = [d.city, d.province, d.zipcode].filter(Boolean).join(" · ");
@@ -227,11 +238,15 @@ export default function Pedidos() {
                   <div className="border-t border-graph/[0.07] bg-graph/[0.02] px-4 py-4">
                     <div className={cn(
                       "mb-4 rounded-xl px-3 py-2 text-sm font-medium",
-                      p.payment_status === "paid" ? "bg-green-500/10 text-green-800"
+                      p.status === "backorder" || p.payment_status === "review"
+                        ? "bg-red-500/10 text-red-900"
+                        : p.payment_status === "paid" ? "bg-green-500/10 text-green-800"
                         : p.payment_status === "pending" ? "bg-amber-500/10 text-amber-900"
                         : "bg-graph/[0.05] text-graph-500",
                     )}>
-                      {explicaPago[p.payment_status] || p.payment_status}
+                      {p.status === "backorder"
+                        ? "Cobrado, pero NO hay mercadería para este pedido. NO despachar."
+                        : (explicaPago[p.payment_status] || p.payment_status)}
                       {/* La pregunta textual de Diego: "¿intentó pagar y no pudo
                           o cómo es?". Esto lo contesta con lo que dice Stripe. */}
                       {p.pago?.motivo && (

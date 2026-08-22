@@ -760,6 +760,14 @@ def set_order_status(oid: int, body: dict, db: Session = Depends(get_db)):
     # figuraba agotada en la web sin haberse vendido nunca. El reembolso ya lo
     # hacia bien; el desplegable de estado, no. Diego lo vio y lo reporto.
     if new == "cancelled" and anterior != "cancelled":
+        # Un pedido COBRADO no se cancela con el desplegable: devolver la
+        # mercaderia y quedarse con la plata termina en un contracargo a los
+        # ~60 dias, con multa. Para eso esta el boton de Reembolsar, que le
+        # pide la devolucion a Stripe Y repone el stock.
+        if o.payment_status == "paid":
+            raise HTTPException(409, "Este pedido está cobrado. Usá el botón "
+                                     "Reembolsar: devuelve la plata por Stripe "
+                                     "y repone el stock.")
         devueltos = sum(it.quantity for it in o.items) if o.stock_reserved else 0
         _release_stock(db, o)          # idempotente: mira el flag stock_reserved
         # Un pedido cancelado no puede seguir figurando "esperando pago": deja
@@ -772,7 +780,9 @@ def set_order_status(oid: int, body: dict, db: Session = Depends(get_db)):
     # --- Reactivar un pedido cancelado tiene que volver a TOMAR la mercaderia
     # Si no, se promete algo que en el medio se le pudo haber vendido a otro.
     # Es todo o nada: si falta una unidad, no se reactiva y se dice cual falta.
-    if anterior == "cancelled" and new != "cancelled":
+    # 'backorder' = cobrado sin stock. Al pasarlo a Preparando hay que
+    # DESCONTAR la prenda que se repuso; si no, esa unidad se revende.
+    if anterior in ("cancelled", "backorder") and new not in ("cancelled", "backorder"):
         faltantes = _try_reserve(db, o)
         if faltantes:
             db.rollback()
@@ -850,6 +860,12 @@ def reconciliar_pagos(db: Session = Depends(get_db)):
         moneda = (intent.get("currency") or "").upper()[:3]
         if cobrado != pago.amount or moneda != (pago.currency or "").upper()[:3]:
             pago.status = "review"
+            o.payment_status = "review"
+            pago.estado_stripe = (intent.get("status") or "")[:40] or None
+            pago.error_message = (f"Cobrado {cobrado} {moneda}, "
+                                  f"esperado {pago.amount} {pago.currency}")
+            db.add(AuditLog(user_id=o.user_id, action="payment_amount_mismatch",
+                            entity="order", entity_id=str(o.id)))
             revisar.append({"pedido": o.number, "cobrado": f"{cobrado} {moneda}",
                             "esperado": f"{pago.amount} {pago.currency}"})
             continue

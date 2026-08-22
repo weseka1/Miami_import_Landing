@@ -234,8 +234,18 @@ def _reap_abandoned_reservations(db: Session) -> None:
     cutoff = datetime.now(timezone.utc) - timedelta(minutes=_RESERVATION_TTL_MIN)
     stale = (db.query(Order)
              .filter(Order.stock_reserved.is_(True),
-                     Order.payment_status == "pending",
+                     # 'failed' TAMBIEN: el webhook de tarjeta rechazada deja
+                     # la reserva tomada a proposito (el cliente puede
+                     # reintentar con otra tarjeta) confiando en que "la vence
+                     # el barrido". Pero el barrido solo miraba 'pending', asi
+                     # que esa prenda no volvia NUNCA. Es seguro incluirla:
+                     # abajo se consulta el estado real en Stripe y no se
+                     # toca nada si hay un cobro en curso.
+                     Order.payment_status.in_(("pending", "failed")),
                      Order.created_at < cutoff)
+             # Sin orden, el limit(50) podia quedarse siempre con las mismas
+             # filas trabadas y no llegar nunca a las viejas.
+             .order_by(Order.created_at.asc())
              .limit(50)
              .all())
     # Estados en los que la plata puede estar en juego: acá NO se toca el stock
@@ -319,14 +329,19 @@ def _create_intent_once(body: dict, request: Request, db: Session,
     # agotar el catálogo entero repitiendo la llamada.
     vigente = (db.query(Order)
                .filter(Order.cart_id == cart.id,
-                       Order.payment_status == "pending",
+                       # 'failed' incluido: es JUSTO el caso del que reintenta
+                       # con otra tarjeta. Sin esto se le creaba un pedido
+                       # nuevo que descontaba otra unidad contra su propia
+                       # reserva anterior.
+                       Order.payment_status.in_(("pending", "failed")),
                        Order.stock_reserved.is_(True),
                        Order.created_at >= datetime.now(timezone.utc)
                        - timedelta(minutes=_RESERVATION_TTL_MIN))
                .order_by(Order.id.desc())
                .first())
     if vigente:
-        pay = vigente.payments[0] if vigente.payments else None
+        pay = next((p for p in reversed(list(vigente.payments or []))
+                    if p.stripe_payment_intent_id), None)
         if pay and pay.stripe_payment_intent_id:
             try:
                 intent = stripe.PaymentIntent.retrieve(pay.stripe_payment_intent_id)
@@ -620,6 +635,10 @@ def confirmar_pago_desde_stripe(db: Session, order: Order, pi_id: str) -> bool:
         log.error("Monto/moneda no coinciden al confirmar la orden %s: %s %s vs %s %s",
                   order.id, pagado, moneda, payment.amount, payment.currency)
         payment.status = "review"
+        # Sin esto la orden quedaba 'pending' y el panel decia "el cliente NO
+        # pago" sobre plata que SI entro. Es el peor cartel posible.
+        order.payment_status = "review"
+        payment.estado_stripe = (intent.get("status") or "")[:40] or None
         db.add(AuditLog(user_id=order.user_id, action="payment_amount_mismatch",
                         entity="order", entity_id=str(order.id)))
         db.commit()
@@ -635,6 +654,7 @@ def confirmar_pago_desde_stripe(db: Session, order: Order, pi_id: str) -> bool:
             payment.status = "paid"
             payment.error_message = "Pago acreditado sin stock: " + ", ".join(faltantes)
             _sellar_cobro(payment, intent)
+            mailer.avisar_pago_acreditado(order)   # cobrado: Diego tiene que enterarse
             db.add(AuditLog(user_id=order.user_id, action="paid_without_stock",
                             entity="order", entity_id=str(order.id)))
             db.commit()
@@ -750,6 +770,8 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
             db.add(AuditLog(user_id=order.user_id, action="payment_amount_mismatch",
                             entity="order", entity_id=str(order.id)))
             payment.status = "review"
+            order.payment_status = "review"
+            payment.estado_stripe = (obj.get("status") or "")[:40] or None
             payment.error_message = (f"Cobrado {paid} {paid_cur}, "
                                      f"esperado {payment.amount} {payment.currency}")
             if not _commit():
@@ -773,6 +795,7 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
                     payment.error_message = ("Pago acreditado sin stock: "
                                              + ", ".join(faltantes))
                     _sellar_cobro(payment, obj)
+                    mailer.avisar_pago_acreditado(order)
                     db.add(AuditLog(user_id=order.user_id, action="paid_without_stock",
                                     entity="order", entity_id=str(order.id)))
                     if not _commit():
@@ -808,12 +831,20 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
             log.info("Ignorando %s sobre orden %s ya pagada", etype, order.id)
             _commit()
             return {"received": True, "ignored": "orden ya pagada"}
-        payment.status = "failed"
         _err = _sd(obj.get("last_payment_error"))
         payment.error_message = _err.get("message")
         payment.error_code = ((_err.get("decline_code") or _err.get("code") or "")[:60]) or None
         payment.estado_stripe = (obj.get("status") or "")[:40] or None
-        order.payment_status = "failed"
+        # Cancelado NO es rechazado. El propio barrido cancela el intent en
+        # Stripe, y ese cancel vuelve como webhook: si lo marcabamos "failed",
+        # un carrito abandonado —de alguien que nunca puso una tarjeta—
+        # terminaba en rojo como "Pago rechazado". El rotulo mentia.
+        if etype == "payment_intent.canceled":
+            payment.status = "cancelled"
+            order.payment_status = "cancelled"
+        else:
+            payment.status = "failed"
+            order.payment_status = "failed"
         # OJO: en Stripe un `payment_failed` NO es terminal — el mismo
         # PaymentIntent vuelve a `requires_payment_method` y el cliente reintenta
         # con otra tarjeta. Por eso acá NO se libera el stock: si se liberaba, el

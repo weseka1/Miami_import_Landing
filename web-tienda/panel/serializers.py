@@ -141,8 +141,20 @@ def _texto_rechazo(pago) -> str:
     return (pago.error_message or "").strip().rstrip(".")
 
 
-def _motivo_humano(pago) -> str | None:
-    """Una frase que contesta '¿por que no entro la plata?'."""
+def _motivo_humano(pago, orden_status: str | None = None) -> str | None:
+    """Una frase que contesta '¿que paso con esta plata?'."""
+    # Cobrado SIN mercaderia: es el unico caso donde la plata entro y NO hay
+    # que despachar. Antes el early-return de 'paid' apagaba justo este aviso.
+    if orden_status == "backorder":
+        detalle = (pago.error_message or "").strip()
+        return ("La plata entró pero NO quedaba mercadería para este pedido. "
+                "NO despachar: conseguí la prenda o devolvele la plata."
+                + (f" ({detalle})" if detalle else ""))
+    if pago.status == "review":
+        detalle = (pago.error_message or "").strip()
+        return ("Stripe cobró un monto distinto al del pedido. La plata puede "
+                "estar adentro: revisá en Stripe antes de despachar."
+                + (f" {detalle}." if detalle else ""))
     if pago.status == "paid":
         return None
 
@@ -213,7 +225,7 @@ def _pago_to_dict(o: Order) -> dict:
         "moneda": pago.currency,
         "detalle": pago.error_message,
         # La frase que contesta "¿intento pagar y no pudo?" sin tecnicismos.
-        "motivo": _motivo_humano(pago),
+        "motivo": _motivo_humano(pago, o.status),
     }
 
 
