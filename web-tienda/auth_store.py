@@ -150,8 +150,23 @@ def list_addresses(user: User = Depends(require_user), db: Session = Depends(get
     return [_addr_json(a) for a in user.addresses]
 
 
+# Sin estos campos la direccion no sirve para despachar nada. Aceptar una
+# direccion vacia llenaba la cuenta de cajas en blanco (Diego junto 9).
+_ADDR_MINIMOS = ("street", "number", "city", "province", "zipcode")
+
+
+def _validar_direccion(body: dict) -> None:
+    faltan = [f for f in _ADDR_MINIMOS if not (body.get(f) or "").strip()]
+    if faltan:
+        nombres = {"street": "calle", "number": "número", "city": "ciudad",
+                   "province": "provincia", "zipcode": "código postal"}
+        raise HTTPException(400, "Faltan datos de la dirección: "
+                                 + ", ".join(nombres[f] for f in faltan))
+
+
 @account_router.post("/addresses")
 def create_address(body: dict, user: User = Depends(require_user), db: Session = Depends(get_db)):
+    _validar_direccion(body)
     a = Address(user_id=user.id)
     for f in _ADDR_FIELDS:
         if f in body:
@@ -169,6 +184,7 @@ def create_address(body: dict, user: User = Depends(require_user), db: Session =
 
 @account_router.put("/addresses/{aid}")
 def update_address(aid: int, body: dict, user: User = Depends(require_user), db: Session = Depends(get_db)):
+    _validar_direccion(body)
     a = db.get(Address, aid)
     if not a or a.user_id != user.id:
         raise HTTPException(404, "Dirección no encontrada")

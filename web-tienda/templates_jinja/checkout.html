@@ -19,17 +19,41 @@
         <input name="email" type="email" required value="{{ account.email if account else '' }}"/>
 
         <h3 class="mi-co-h" style="margin-top:24px">Envío</h3>
+
+        {#- La direccion guardada llegaba a esta plantilla (app.py, `addresses`)
+            y no se usaba: el cliente la cargaba en su cuenta y el checkout se
+            la volvia a pedir en blanco. Ahora se precarga la predeterminada y,
+            si hay varias, se elige de una lista. -#}
+        {% set guardadas = (addresses or []) | selectattr('street') | list %}
+        {% set predet = (guardadas | selectattr('is_default') | list | first) or (guardadas | first) %}
+
+        {% if guardadas %}
+        <label for="mi-dir-guardada">Dirección guardada</label>
+        <select id="mi-dir-guardada" class="mi-select">
+          {% for a in guardadas %}
+          <option value="{{ loop.index0 }}"
+                  data-street="{{ a.street or '' }}" data-number="{{ a.number or '' }}"
+                  data-city="{{ a.city or '' }}" data-province="{{ a.province or '' }}"
+                  data-zipcode="{{ a.zipcode or '' }}"
+                  {% if predet and a.id == predet.id %}selected{% endif %}>
+            {{ a.street }} {{ a.number }} — {{ a.city }}{% if a.province %}, {{ a.province }}{% endif %}
+          </option>
+          {% endfor %}
+          <option value="nueva">+ Usar otra dirección</option>
+        </select>
+        {% endif %}
+
         <label>Nombre y apellido</label><input name="full_name" required value="{{ account.full_name if account else '' }}"/>
         <label>Teléfono</label><input name="phone" required value="{{ account.phone if account else '' }}"/>
         <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px">
-          <div><label>Calle</label><input name="street" required/></div>
-          <div><label>Número</label><input name="number" required/></div>
+          <div><label>Calle</label><input name="street" required value="{{ predet.street if predet else '' }}"/></div>
+          <div><label>Número</label><input name="number" required value="{{ predet.number if predet else '' }}"/></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div><label>Ciudad</label><input name="city" required/></div>
-          <div><label>Provincia</label><input name="province" required/></div>
+          <div><label>Ciudad</label><input name="city" required value="{{ predet.city if predet else '' }}"/></div>
+          <div><label>Provincia</label><input name="province" required value="{{ predet.province if predet else '' }}"/></div>
         </div>
-        <label>Código postal</label><input name="zipcode" required/>
+        <label>Código postal</label><input name="zipcode" required value="{{ predet.zipcode if predet else '' }}"/>
 
         {% if stripe_enabled %}
           <button type="submit" id="btn-continue">Continuar al pago →</button>
@@ -79,8 +103,10 @@
 <style>
   .mi-co-h{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--miami-gold,#b99b63);margin:0 0 10px}
   .mi-form label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,243,238,.55);margin:12px 0 5px}
-  .mi-form input{width:100%;padding:11px 13px;background:#0d0d0d;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:8px;outline:none;font-size:14px}
-  .mi-form input:focus{border-color:var(--miami-gold,#b99b63)}
+  .mi-form input{width:100%;padding:11px 13px;background:#0d0d0d;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:8px;outline:none;/* 16px: abajo de eso iOS hace zoom al tocar el campo */font-size:16px}
+  .mi-form input:focus,.mi-select:focus{border-color:var(--miami-gold,#b99b63)}
+  .mi-select{width:100%;padding:11px 13px;background:#0d0d0d;border:1px solid rgba(255,255,255,.12);
+             color:#fff;border-radius:8px;outline:none;font-size:16px}
   .mi-form button{margin-top:22px;width:100%;padding:15px;border:0;border-radius:999px;background:var(--miami-gold,#b99b63);color:#0a0a0a;font-weight:700;letter-spacing:.15em;text-transform:uppercase;font-size:13px;cursor:pointer}
   .mi-form-msg{font-size:13px;color:#ff8a8a}
   @media(max-width:860px){.mi-checkout-grid{grid-template-columns:1fr !important}}
@@ -97,6 +123,17 @@
 <script nonce="{{ csp_nonce }}">
   const form=document.getElementById('form-checkout');
   const msg=form.querySelector('.mi-form-msg');
+
+  // Elegir una direccion guardada rellena los campos. "Usar otra" los limpia.
+  const selDir=document.getElementById('mi-dir-guardada');
+  if(selDir){
+    selDir.addEventListener('change',()=>{
+      const o=selDir.selectedOptions[0];
+      const campos=['street','number','city','province','zipcode'];
+      if(selDir.value==='nueva'){ campos.forEach(c=>{form[c].value='';}); form.street.focus(); return; }
+      campos.forEach(c=>{ form[c].value=o.dataset[c]||''; });
+    });
+  }
   let stripe, elements, clientSecret, orderNumber, orderToken;
 
   form.addEventListener('submit', async (e)=>{

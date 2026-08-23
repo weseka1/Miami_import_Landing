@@ -40,14 +40,14 @@
       </div>
       <form id="form-address" class="mi-form" style="margin-top:14px">
         <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px">
-          <div><label>Calle</label><input name="street"/></div>
-          <div><label>Número</label><input name="number"/></div>
+          <div><label>Calle</label><input name="street" required/></div>
+          <div><label>Número</label><input name="number" required/></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div><label>Ciudad</label><input name="city"/></div>
-          <div><label>Provincia</label><input name="province"/></div>
+          <div><label>Ciudad</label><input name="city" required/></div>
+          <div><label>Provincia</label><input name="province" required/></div>
         </div>
-        <label>Código postal</label><input name="zipcode"/>
+        <label>Código postal</label><input name="zipcode" required/>
         <button type="submit">Agregar dirección</button>
         <span class="mi-form-msg"></span>
       </form>
@@ -73,7 +73,7 @@
 
 <style>
   .mi-form label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,243,238,.55);margin:12px 0 5px}
-  .mi-form input{width:100%;padding:10px 12px;background:#0d0d0d;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:8px;outline:none;font-size:14px}
+  .mi-form input{width:100%;padding:10px 12px;background:#0d0d0d;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:8px;outline:none;/* 16px: abajo de eso iOS hace zoom al tocar el campo */font-size:16px}
   .mi-form input:focus{border-color:var(--miami-gold,#b99b63)}
   .mi-form button{margin-top:16px;padding:11px 22px;border:0;border-radius:999px;background:var(--miami-gold,#b99b63);color:#0a0a0a;font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:12px;cursor:pointer}
   .mi-form-msg{margin-left:12px;font-size:13px;color:var(--miami-gold,#b99b63)}
@@ -96,9 +96,24 @@
   const af=document.getElementById('form-address');
   af.addEventListener('submit',async e=>{
     e.preventDefault();
-    const body=Object.fromEntries(new FormData(af).entries());
-    const r=await fetch('/api/account/addresses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    if(r.ok) window.location.reload();
+    const m=af.querySelector('.mi-form-msg');
+    if(!af.reportValidity()) return;
+    const btn=af.querySelector('button[type=submit]');
+    btn.disabled=true; const txt=btn.textContent; btn.textContent='Guardando…';
+    m.style.color=''; m.textContent='';
+    try{
+      const body=Object.fromEntries(new FormData(af).entries());
+      const r=await fetch('/api/account/addresses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const data=await r.json().catch(()=>({}));
+      // Antes: `if(r.ok) reload()` y nada mas. Si fallaba no pasaba NADA —
+      // literalmente lo que reporto Diego: "no me deja avanzar, no nada".
+      if(!r.ok) throw new Error(data.detail||'No se pudo guardar la dirección');
+      m.textContent='✓ Dirección guardada';
+      setTimeout(()=>window.location.reload(),700);
+    }catch(err){
+      m.style.color='#ff8a8a'; m.textContent=err.message;
+      btn.disabled=false; btn.textContent=txt;
+    }
   });
   document.querySelectorAll('.mi-addr-del').forEach(b=>b.addEventListener('click',async()=>{
     await fetch('/api/account/addresses/'+b.dataset.id,{method:'DELETE'}); window.location.reload();
