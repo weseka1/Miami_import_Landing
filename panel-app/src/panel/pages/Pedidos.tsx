@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, RefreshCw, MessageCircle, ChevronDown, CreditCard, Undo2, Printer, FileText } from "lucide-react";
+import { Loader2, RefreshCw, MessageCircle, ChevronDown, CreditCard, Undo2, Printer, FileText, Link2 } from "lucide-react";
 import { api, ApiError, ESTADOS_PEDIDO, type MiamiPedido } from "../api/miamiApi";
 import { fmtARS } from "@/lib/format";
 import { PageHeader, EmptyState } from "../components/PageShell";
@@ -143,10 +143,31 @@ export default function Pedidos() {
     const nombre = (p.contact_name || "").split(" ")[0];
     // 'review' NO va aca: a ese cliente la plata ya se le movio. Mandarle
     // "¿te ayudo a terminarlo?" es invitarlo a pagar dos veces.
-    const pendiente = p.payment_status === "pending";
-    const msg = pendiente
-      ? `¡Hola${nombre ? " " + nombre : ""}! Te escribo de Miami Import por tu pedido #${p.number}:\n${items}\nTotal: ${fmtARS(parseFloat(p.total || "0"))}\nVi que el pago quedó pendiente, ¿te ayudo a terminarlo?`
-      : `¡Hola${nombre ? " " + nombre : ""}! Te escribo de Miami Import por tu pedido #${p.number}:\n${items}\nTotal: ${fmtARS(parseFloat(p.total || "0"))}\n¡Ya lo estamos preparando! Te aviso apenas salga el envío.`;
+    const pendiente = p.payment_status === "pending" || p.payment_status === "failed";
+    const cabecera = `¡Hola${nombre ? " " + nombre : ""}! Te escribo de Miami Import por tu pedido #${p.number}:
+${items}
+Total: ${fmtARS(parseFloat(p.total || "0"))}`;
+
+    // EL LINK ES LO QUE RESCATA LA VENTA. Antes decía "¿te ayudo a terminarlo?"
+    // y no mandaba nada: el cliente tenía que volver a la web y rearmar el
+    // carrito — y si era la última unidad, la veía agotada por su propia
+    // reserva. El link cobra ESTE pedido, con su precio y su talle.
+    const linkPago = p.link_pago ? window.location.origin + p.link_pago : null;
+
+    let msg: string;
+    if (pendiente && linkPago) {
+      msg = `${cabecera}
+Te dejo el link para terminar de pagarlo:
+${linkPago}`;
+    } else if (pendiente) {
+      // Sin link = la reserva venció y el pedido se cerró. Prometer que "lo
+      // terminás con este link" sería mentira: hay que rearmar la compra.
+      msg = `${cabecera}
+El pedido quedó sin pagar y se liberó. Si lo querés, avisame y lo armamos de nuevo.`;
+    } else {
+      msg = `${cabecera}
+¡Ya lo estamos preparando! Te aviso apenas salga el envío.`;
+    }
     window.open(`https://wa.me/${phone.replace(/\D/g, "").replace(/^0/, "").replace(/^(?!54)/, "54")}?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
@@ -363,6 +384,18 @@ export default function Pedidos() {
                           options={ESTADOS_PEDIDO.map((s) => ({ value: s, label: rotuloEstado[s] || s }))}
                           className="w-40"
                         />
+                        {p.link_pago && (
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(window.location.origin + p.link_pago);
+                              push("Link de pago copiado", "success");
+                            }}
+                            title="Copia el link para que el cliente pague ESTE pedido"
+                            className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-graph-500 transition hover:bg-graph/[0.06] hover:text-graph"
+                          >
+                            <Link2 size={14} /> Copiar link de pago
+                          </button>
+                        )}
                         {p.payment_status === "paid" && (
                           <button onClick={() => setAReembolsar(p)} className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-graph-400 transition hover:bg-red-500/10 hover:text-red-600" title="Devuelve la plata por Stripe y repone stock">
                             <Undo2 size={14} /> Reembolsar

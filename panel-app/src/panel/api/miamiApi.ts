@@ -130,6 +130,8 @@ export interface MiamiPedido {
   products: MiamiPedidoItem[];
   /** Rastro del cobro en Stripe: la prueba de que la plata entro. */
   pago?: MiamiPago;
+  /** Ruta para que el cliente termine de pagar. Relativa: anteponer origin. */
+  link_pago?: string | null;
 }
 
 /** Lo que Stripe devuelve del cobro. `recibo_url` es el recibo oficial que

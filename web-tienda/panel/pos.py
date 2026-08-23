@@ -22,7 +22,7 @@ import io
 import logging
 from decimal import Decimal, InvalidOperation
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Request, APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -56,6 +56,23 @@ def _qr_svg(url: str) -> str:
     except Exception:  # noqa: BLE001  (sin QR queda el link igual)
         log.exception("No se pudo generar el QR")
         return ""
+
+
+def _base_publica(request) -> str:
+    """El dominio con el que entro la peticion, no el de la variable.
+
+    Mismo criterio que el sitemap (app.py): en produccion STORE_BASE_URL quedo
+    apuntando a miami-import-landing.onrender.com, y ese no es un dominio para
+    mostrarle a un cliente que escanea el QR.
+    """
+    try:
+        proto = request.headers.get("x-forwarded-proto") or request.url.scheme
+        host = request.headers.get("x-forwarded-host") or request.headers.get("host")
+        if host:
+            return f"{proto}://{host}".rstrip("/")
+    except Exception:  # noqa: BLE001
+        pass
+    return settings.STORE_BASE_URL.rstrip("/")
 
 
 @router.get("/buscar")
@@ -105,7 +122,7 @@ def buscar_productos(q: str = "", db: Session = Depends(get_db)):
 
 
 @router.post("/venta")
-def crear_venta(body: dict, db: Session = Depends(get_db),
+def crear_venta(body: dict, request: Request, db: Session = Depends(get_db),
                 admin=Depends(get_current_admin)):
     """Crea la venta de mostrador y devuelve el QR para que el cliente pague."""
     items = body.get("items") or []
@@ -238,7 +255,10 @@ def crear_venta(body: dict, db: Session = Depends(get_db),
                               for n, pr, q in sueltos]}))
     db.commit()
 
-    base = settings.STORE_BASE_URL.rstrip("/")
+    # El dominio sale de la peticion, no de la variable: en produccion
+    # STORE_BASE_URL apunta a miami-import-landing.onrender.com (verificado
+    # 23-ago) y ese no es un dominio para mostrarle a un cliente en un QR.
+    base = _base_publica(request)
     url_pago = f"{base}/pagar/{orden.number}?t={orden.public_token}"
     return {
         "ok": True,

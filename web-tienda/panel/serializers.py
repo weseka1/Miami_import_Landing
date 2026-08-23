@@ -247,6 +247,15 @@ def order_to_tn(o: Order) -> dict:
         # Rastro del cobro en Stripe: sin esto, "esta pagado" es solo nuestra
         # palabra y no hay con que responder un reclamo.
         "pago": _pago_to_dict(o),
+        # Link para que el cliente termine de pagar ESTE pedido, sin rearmar el
+        # carrito. Solo si todavia se puede cobrar: un pedido cancelado no se
+        # paga (checkout.py lo corta), y ofrecer un link muerto es peor que no
+        # dar ninguno. Es relativo: el front le antepone su propio dominio.
+        "link_pago": (f"/pagar/{o.number}?t={o.public_token}"
+                      if o.public_token
+                      and o.payment_status in ("pending", "failed")
+                      and o.status not in ("cancelled", "refunded")
+                      else None),
         "products": [
             {
                 "product_id": it.product_id,
