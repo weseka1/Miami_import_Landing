@@ -770,6 +770,11 @@ def account_page(request: Request, db: Session = Depends(get_db),
                  user: User | None = Depends(current_user)):
     if not user:
         return RedirectResponse("/cuenta/ingresar", status_code=302)
+    # Las cuentas viejas quedaron con direcciones en blanco (la API las
+    # aceptaba). No se puede despachar a ninguna: se limpian al entrar, asi el
+    # cliente ve solo las suyas de verdad.
+    from auth_store import limpiar_direcciones_vacias
+    limpiar_direcciones_vacias(db, user)
     orders = (
         db.query(Order).filter(Order.user_id == user.id)
         .order_by(Order.created_at.desc()).all()

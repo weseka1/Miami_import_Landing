@@ -145,8 +145,25 @@ def _addr_json(a: Address) -> dict:
     return d
 
 
+def limpiar_direcciones_vacias(db: Session, user: User) -> int:
+    """Borra las direcciones sin un solo dato util.
+
+    Antes la API aceptaba guardar una direccion toda vacia, asi que las cuentas
+    quedaron con cajas en blanco (Diego junto 9 y no lo dejaban ver la suya).
+    No se puede despachar a ninguna de ellas: son basura, no datos del cliente.
+    """
+    basura = [a for a in list(user.addresses)
+              if not any((getattr(a, f, None) or "").strip() for f in _ADDR_MINIMOS)]
+    for a in basura:
+        db.delete(a)
+    if basura:
+        db.commit()
+    return len(basura)
+
+
 @account_router.get("/addresses")
 def list_addresses(user: User = Depends(require_user), db: Session = Depends(get_db)):
+    limpiar_direcciones_vacias(db, user)
     return [_addr_json(a) for a in user.addresses]
 
 
