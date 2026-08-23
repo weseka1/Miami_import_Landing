@@ -248,6 +248,17 @@ def _reap_abandoned_reservations(db: Session) -> None:
              .order_by(Order.created_at.asc())
              .limit(50)
              .all())
+
+    # La venta de MOSTRADOR queda afuera: el cliente esta ahi, con la prenda en
+    # la mano. Cancelarsela a los 30 minutos porque se fue a probar otra cosa o
+    # al cajero no protege ningun stock — solo le voltea la venta al vendedor, y
+    # el primero en enterarse era el cliente, con el QR ya escaneado. Esas se
+    # cierran a mano desde el punto de venta.
+    # Se filtra en Python y no en SQL a proposito: consultar dentro de un JSON
+    # se escribe distinto en SQLite y en Postgres, y este barrido corre en los
+    # dos. Son 50 filas como maximo.
+    stale = [o for o in stale
+             if (o.shipping_address or {}).get("canal") != "local"]
     # Estados en los que la plata puede estar en juego: acá NO se toca el stock
     # pase lo que pase, porque liberar una reserva de algo que se está cobrando
     # es vender dos veces la misma prenda.

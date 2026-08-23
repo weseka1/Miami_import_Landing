@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, RefreshCw, MessageCircle, ChevronDown, CreditCard, Undo2, Printer, FileText, Link2 } from "lucide-react";
+import { Loader2, RefreshCw, MessageCircle, ChevronDown, CreditCard, Undo2, Printer, FileText, Link2, Banknote, ArrowRightLeft } from "lucide-react";
 import { api, ApiError, ESTADOS_PEDIDO, type MiamiPedido } from "../api/miamiApi";
 import { fmtARS } from "@/lib/format";
 import { PageHeader, EmptyState } from "../components/PageShell";
@@ -114,6 +114,20 @@ export default function Pedidos() {
       void cargar();
     } catch (e) {
       push(e instanceof ApiError ? e.message : "No se pudo cambiar el estado", "error");
+    }
+  };
+
+  // Cobro por fuera de Stripe (mostrador, transferencia). Antes no habia
+  // donde anotarlo y Diego terminaba usando el desplegable de ENVIO, que no
+  // registra plata y encima dejaba que el barrido devolviera al stock algo ya
+  // entregado.
+  const registrarCobro = async (p: MiamiPedido, medio: "efectivo" | "transferencia") => {
+    try {
+      const r = await api.registrarCobroManual(p.id, medio);
+      push(r.aviso || `Cobro en ${medio} registrado`, r.estado === "backorder" ? "error" : "success");
+      void cargar();
+    } catch (e) {
+      push(e instanceof ApiError ? e.message : "No se pudo registrar el cobro", "error");
     }
   };
 
@@ -384,6 +398,25 @@ El pedido quedó sin pagar y se liberó. Si lo querés, avisame y lo armamos de 
                           options={ESTADOS_PEDIDO.map((s) => ({ value: s, label: rotuloEstado[s] || s }))}
                           className="w-40"
                         />
+                        {p.payment_status !== "paid" && p.payment_status !== "refunded"
+                          && p.status !== "cancelled" && (
+                          <>
+                            <button
+                              onClick={() => void registrarCobro(p, "efectivo")}
+                              title="Anota que lo cobraste en efectivo. Queda registrado en Mi plata."
+                              className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-graph-500 transition hover:bg-green-500/10 hover:text-green-700"
+                            >
+                              <Banknote size={14} /> Cobré en efectivo
+                            </button>
+                            <button
+                              onClick={() => void registrarCobro(p, "transferencia")}
+                              title="Anota que te transfirieron. Queda registrado en Mi plata."
+                              className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-graph-500 transition hover:bg-green-500/10 hover:text-green-700"
+                            >
+                              <ArrowRightLeft size={14} /> Me transfirieron
+                            </button>
+                          </>
+                        )}
                         {p.link_pago && (
                           <button
                             onClick={() => {

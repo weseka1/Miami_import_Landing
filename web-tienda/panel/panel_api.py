@@ -1176,6 +1176,51 @@ def dinero_export(desde: Optional[str] = None, hasta: Optional[str] = None,
         headers={"Content-Disposition": 'attachment; filename="' + nombre + '"'})
 
 
+@router.post("/orders/{oid}/cobro-manual")
+def registrar_cobro_manual(oid: int, body: dict, db: Session = Depends(get_db)):
+    """Anota una venta cobrada por fuera de Stripe (efectivo o transferencia).
+
+    Hasta ahora no habia donde, y el desplegable de ENVIO tenia una opcion
+    "Pagado" que no registraba nada: la venta quedaba impaga, no aparecia en
+    Mi plata, y el barrido devolvia al stock mercaderia ya entregada.
+
+    Crea una fila de pago de verdad, porque la pantalla del dinero se arma
+    uniendo contra `payments` — sin fila, esa venta no existe para la caja.
+    """
+    from core.models import AuditLog, Payment
+
+    medio = (body.get("medio") or "").strip().lower()
+    if medio not in ("efectivo", "transferencia"):
+        raise HTTPException(400, "Medio invalido: efectivo o transferencia")
+
+    o = db.get(Order, oid)
+    if not o:
+        raise HTTPException(404, "Pedido no encontrado")
+    if o.payment_status == "paid":
+        return {"ok": True, "ya_estaba": True}
+    if o.payment_status == "refunded":
+        raise HTTPException(409, "Ese pedido esta reembolsado")
+
+    # Si la reserva se solto (paso el barrido), hay que RE-TOMAR la mercaderia
+    # antes de darla por vendida: puede haberse vendido a otro en el medio.
+    from checkout import _try_reserve
+    faltantes = [] if o.stock_reserved else _try_reserve(db, o)
+
+    o.payment_status = "paid"
+    o.status = "backorder" if faltantes else "processing"
+    db.add(Payment(order_id=o.id, provider=medio, status="paid",
+                   amount=o.total, currency=o.currency,
+                   metodo=medio, paid_at=datetime.now(timezone.utc),
+                   error_message=("Cobrado sin stock: " + ", ".join(faltantes))
+                   if faltantes else None))
+    db.add(AuditLog(action="cobro_manual", entity="order", entity_id=str(o.id),
+                    detail={"medio": medio, "total": str(o.total)}))
+    db.commit()
+    return {"ok": True, "medio": medio, "estado": o.status,
+            "aviso": ("Cobrado, pero NO queda stock de: " + ", ".join(faltantes))
+            if faltantes else "Cobro registrado. Ya figura en Mi plata."}
+
+
 @router.post("/orders/{oid}/refund")
 def refund_order(oid: int, db: Session = Depends(get_db)):
     """Reembolsa el pago de Stripe asociado a la orden y marca el pedido."""

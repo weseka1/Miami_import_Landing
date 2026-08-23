@@ -152,7 +152,12 @@ export interface MiamiPago {
 
 /** Estados de pedido que el backend acepta (core.models.ORDER_STATUSES).
  *  "refunded" NO se setea a mano: solo el botón de reembolso (regla del backend). */
-export const ESTADOS_PEDIDO = ["pending", "paid", "processing", "shipped", "delivered", "cancelled"] as const;
+/** OJO: acá NO van "pending" ni "paid". Son estados de ENVÍO, pero se llaman
+ *  igual que los de COBRO, y elegir "Pagado" en este desplegable no registra
+ *  ninguna plata: la venta seguía figurando impaga, no aparecía en Mi plata, y
+ *  a los 30 minutos el sistema devolvía al stock mercadería ya entregada.
+ *  Para anotar un cobro está el botón "Registrar cobro". */
+export const ESTADOS_PEDIDO = ["processing", "shipped", "delivered", "backorder", "cancelled"] as const;
 
 // ---- Reservas ----
 export interface MiamiReserva {
@@ -377,6 +382,12 @@ export const api = {
   setEstadoPedido: (oid: number, status: string) =>
     req<{ ok: boolean; status: string; payment_status: string; aviso: string | null }>(
       `/orders/${oid}/status`, json({ status })),
+  /** Anota una venta cobrada por fuera de Stripe. Crea la fila de pago de
+   *  verdad, asi aparece en Mi plata (que se arma uniendo contra `payments`). */
+  registrarCobroManual: (oid: number, medio: "efectivo" | "transferencia") =>
+    req<{ ok: boolean; estado?: string; aviso?: string; ya_estaba?: boolean }>(
+      `/orders/${oid}/cobro-manual`, json({ medio })),
+
   reembolsarPedido: (oid: number) =>
     req<{ ok: boolean; status: string }>(`/orders/${oid}/refund`, { method: "POST" }),
   /** Pregunta a Stripe por los pendientes y acredita los ya cobrados. */
