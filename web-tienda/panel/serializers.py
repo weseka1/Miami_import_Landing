@@ -141,6 +141,16 @@ def _texto_rechazo(pago) -> str:
     return (pago.error_message or "").strip().rstrip(".")
 
 
+def _etiqueta_medio(metodo: str) -> str:
+    """"posnet 3 cuotas" -> "Link de pago / posnet · 3 cuotas"."""
+    m = (metodo or "").strip()
+    partes = m.split(" ", 1)
+    base = _MEDIOS.get(partes[0], None)
+    if base and len(partes) > 1:
+        return f"{base} · {partes[1]}"
+    return _MEDIOS.get(m, m.replace("_", " ").capitalize())
+
+
 def _motivo_humano(pago, orden_status: str | None = None) -> str | None:
     """Una frase que contesta '¿que paso con esta plata?'."""
     # Cobrado SIN mercaderia: es el unico caso donde la plata entro y NO hay
@@ -192,6 +202,8 @@ def _motivo_humano(pago, orden_status: str | None = None) -> str | None:
 
 _MEDIOS = {
     "card": "Tarjeta", "link": "Link de Stripe", "bank_transfer": "Transferencia",
+    "efectivo": "Efectivo", "transferencia": "Transferencia",
+    "posnet": "Link de pago / posnet",
     "customer_balance": "Saldo del cliente", "boleto": "Boleto",
 }
 
@@ -213,7 +225,7 @@ def _pago_to_dict(o: Order) -> dict:
     elif getattr(pago, "metodo", None):
         # No todo cobro es con tarjeta. Mostrar el medio real es mejor que un
         # guion: le dice a Diego por donde entro la plata.
-        tarjeta = _MEDIOS.get(pago.metodo, pago.metodo.replace("_", " ").title())
+        tarjeta = _etiqueta_medio(pago.metodo)
     return {
         "estado": pago.status,
         "intent_id": pago.stripe_payment_intent_id,

@@ -1190,8 +1190,16 @@ def registrar_cobro_manual(oid: int, body: dict, db: Session = Depends(get_db)):
     from core.models import AuditLog, Payment
 
     medio = (body.get("medio") or "").strip().lower()
-    if medio not in ("efectivo", "transferencia"):
-        raise HTTPException(400, "Medio invalido: efectivo o transferencia")
+    # "posnet" cubre el link de pago del terminal propio (Payway, Getnet,
+    # Naranja, Viumi...). Es POR AHORA la unica forma de cobrar en CUOTAS:
+    # Stripe no las hace para tarjetas argentinas (solo cuentas de Mexico).
+    if medio not in ("efectivo", "transferencia", "posnet"):
+        raise HTTPException(400, "Medio invalido: efectivo, transferencia o posnet")
+    try:
+        cuotas = int(body.get("cuotas") or 1)
+    except (TypeError, ValueError):
+        cuotas = 1
+    cuotas = max(1, min(cuotas, 24))
 
     o = db.get(Order, oid)
     if not o:
@@ -1210,11 +1218,15 @@ def registrar_cobro_manual(oid: int, body: dict, db: Session = Depends(get_db)):
     o.status = "backorder" if faltantes else "processing"
     db.add(Payment(order_id=o.id, provider=medio, status="paid",
                    amount=o.total, currency=o.currency,
-                   metodo=medio, paid_at=datetime.now(timezone.utc),
+                   # El medio guarda tambien en cuantas cuotas se cobro: es el
+                   # dato que Diego necesita para saber cuando le entra cada
+                   # parte, y hoy no queda registrado en ningun lado.
+                   metodo=(f"{medio} {cuotas} cuotas" if cuotas > 1 else medio),
+                   paid_at=datetime.now(timezone.utc),
                    error_message=("Cobrado sin stock: " + ", ".join(faltantes))
                    if faltantes else None))
     db.add(AuditLog(action="cobro_manual", entity="order", entity_id=str(o.id),
-                    detail={"medio": medio, "total": str(o.total)}))
+                    detail={"medio": medio, "cuotas": cuotas, "total": str(o.total)}))
     db.commit()
     return {"ok": True, "medio": medio, "estado": o.status,
             "aviso": ("Cobrado, pero NO queda stock de: " + ", ".join(faltantes))

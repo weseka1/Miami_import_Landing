@@ -384,9 +384,10 @@ export const api = {
       `/orders/${oid}/status`, json({ status })),
   /** Anota una venta cobrada por fuera de Stripe. Crea la fila de pago de
    *  verdad, asi aparece en Mi plata (que se arma uniendo contra `payments`). */
-  registrarCobroManual: (oid: number, medio: "efectivo" | "transferencia") =>
+  registrarCobroManual: (oid: number, medio: "efectivo" | "transferencia" | "posnet",
+                         cuotas = 1) =>
     req<{ ok: boolean; estado?: string; aviso?: string; ya_estaba?: boolean }>(
-      `/orders/${oid}/cobro-manual`, json({ medio })),
+      `/orders/${oid}/cobro-manual`, json({ medio, cuotas })),
 
   reembolsarPedido: (oid: number) =>
     req<{ ok: boolean; status: string }>(`/orders/${oid}/refund`, { method: "POST" }),

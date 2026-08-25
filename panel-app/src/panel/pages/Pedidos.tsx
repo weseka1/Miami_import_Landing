@@ -121,9 +121,11 @@ export default function Pedidos() {
   // donde anotarlo y Diego terminaba usando el desplegable de ENVIO, que no
   // registra plata y encima dejaba que el barrido devolviera al stock algo ya
   // entregado.
-  const registrarCobro = async (p: MiamiPedido, medio: "efectivo" | "transferencia") => {
+  const registrarCobro = async (p: MiamiPedido,
+                                medio: "efectivo" | "transferencia" | "posnet",
+                                cuotas = 1) => {
     try {
-      const r = await api.registrarCobroManual(p.id, medio);
+      const r = await api.registrarCobroManual(p.id, medio, cuotas);
       push(r.aviso || `Cobro en ${medio} registrado`, r.estado === "backorder" ? "error" : "success");
       void cargar();
     } catch (e) {
@@ -415,6 +417,28 @@ El pedido quedó sin pagar y se liberó. Si lo querés, avisame y lo armamos de 
                             >
                               <ArrowRightLeft size={14} /> Me transfirieron
                             </button>
+                            {/* EN CUOTAS. Stripe no las hace para tarjetas
+                                argentinas, así que hoy la única forma es el link
+                                de pago del posnet propio. Se cobra por afuera y
+                                se anota acá, con el plan, para que la venta
+                                exista en Mi plata. */}
+                            <select
+                              defaultValue=""
+                              onChange={(e) => {
+                                const c = parseInt(e.target.value, 10);
+                                e.target.value = "";
+                                if (c) void registrarCobro(p, "posnet", c);
+                              }}
+                              title="Cobraste con el link de pago de tu posnet, en cuotas"
+                              className="h-9 rounded-lg border border-graph/15 bg-transparent px-2 text-xs font-semibold text-graph-500"
+                            >
+                              <option value="">Cobré en cuotas…</option>
+                              <option value="1">Posnet · 1 pago</option>
+                              <option value="3">Posnet · 3 cuotas</option>
+                              <option value="6">Posnet · 6 cuotas</option>
+                              <option value="9">Posnet · 9 cuotas</option>
+                              <option value="12">Posnet · 12 cuotas</option>
+                            </select>
                           </>
                         )}
                         {p.link_pago && (
