@@ -547,10 +547,27 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   if (!section) return;
 
   /* Mapeo: cada genero tiene 2 jackets, los data-jacket globales son 0-3 */
-  var GENDER_JACKETS = {
-    hombre: [0, 1, 4],   // Marron, Multicolor, Negra Parches
-    mujer:  [2, 3]       // Blanco, Negro
-  };
+  /* Que pieza es de cada genero se LEE del DOM, que ya viene armado desde la
+     config de "Mi web". Antes estaba escrito a mano ([0,1,4] / [2,3]) segun el
+     orden original de fabrica: al cambiar las piezas desde el panel, la solapa
+     MUJER terminaba mostrando una de hombre y un indice inexistente. */
+  var GENDER_JACKETS = (function () {
+    var mapa = { hombre: [], mujer: [] };
+    section.querySelectorAll('.miami-trilogy__jacket').forEach(function (el) {
+      var g = el.dataset.gender === 'mujer' ? 'mujer' : 'hombre';
+      mapa[g].push(parseInt(el.dataset.jacket, 10));
+    });
+    /* Un genero sin piezas no puede quedar como solapa clickeable: mostraria
+       una vitrina vacia. Se esconde el boton. */
+    Object.keys(mapa).forEach(function (g) {
+      if (!mapa[g].length) {
+        var btn = section.querySelector('.miami-trilogy__gender-btn[data-gender="' + g + '"]');
+        if (btn) btn.style.display = 'none';
+        delete mapa[g];
+      }
+    });
+    return mapa;
+  })();
 
   var gender = 'hombre';
   var active = 0;  /* indice DENTRO del genero actual (0 o 1) */
