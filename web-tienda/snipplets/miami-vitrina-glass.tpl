@@ -58,8 +58,11 @@
         {% for p in piezas %}
         <figure class="mi-vt__foto{{ ' is-on' if loop.first }}" data-i="{{ loop.index0 }}"
                 data-g="{{ p.genero or 'hombre' }}">
+          {# la primera se pide ya: es la que se ve al llegar, y con lazy la
+             placa quedaba vacia varios segundos en el telefono #}
           <img class="mi-vt__img" src="{{ p.imagen | media_url }}"
-               alt="{{ p.nombre }}" loading="lazy" draggable="false"/>
+               alt="{{ p.nombre }}" draggable="false"
+               {% if loop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}/>
           {% if p.colorway or p.talles %}
           <figcaption class="mi-vt__chapa">
             {% if p.colorway %}<span>{{ p.colorway }}</span>{% endif %}
