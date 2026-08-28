@@ -6,17 +6,18 @@
   que Diego la sigue editando desde Mi web sin cambiar nada.
 
   POR QUÉ ESTÁ ARMADA ASÍ (dos versiones rebotaron antes):
-   · La prenda NO flota recortada sobre negro. Las fotos de Diego son de
-     celular adentro de locales de Miami, con la mano y el perchero: cualquier
-     recorte automático deja púas y agujeros ("parece que lo cortó un nene con
-     una tijera"). Acá la foto va entera adentro de una placa y el fondo se
-     apaga en el asset, con una transición de 30-40px. Un error de máscara ya
-     no puede verse como un borde serrucho.
+   · La prenda NO se recorta. Las fotos de Diego son de celular adentro de los
+     locales de Miami, con la mano y el perchero: cualquier recorte automático
+     deja púas y agujeros ("parece que lo cortó un nene con una tijera").
+     🔴 Y el fondo TAMPOCO se apaga — Juani, 28-ago: "no me borres los fondos,
+     que las fotos queden naturales / originales". La foto entra tal cual, sólo
+     encuadrada a 4:5. Que se vea el local es parte de que vienen de Miami.
    · Como el material fotográfico no aguanta un hero a pantalla completa, manda
      la TIPOGRAFÍA y la foto es la prueba, no la estrella.
    · El vidrio es vidrio de verdad: la chapa de datos se apoya SOBRE la foto,
      así el blur tiene algo que refractar. Un panel translúcido sobre un fondo
-     liso es un rectángulo gris y se nota.
+     liso es un rectángulo gris y se nota. Con fotos naturales atrás (a veces
+     un piso claro), la chapa lleva más cuerpo para que el texto se lea.
    · El switch Hombre/Mujer es un segmented control de iOS: hairline + un
      indicador que se desliza. Nada de pastillas con gradiente.
    · El carrusel se agarra y se tira (regla de la casa), y además tiene flechas.
@@ -211,7 +212,7 @@
   display:flex; align-items:center; justify-content:center; gap:12px;
   min-height:42px; padding:0 16px; border-radius:14px;
   font-size:11px; letter-spacing:.2em; text-transform:uppercase;
-  color:rgba(243,239,231,.92); background:rgba(20,17,15,.32);
+  color:#F3EFE7; background:rgba(14,11,10,.46);
   -webkit-backdrop-filter:blur(20px) saturate(170%);
   backdrop-filter:blur(20px) saturate(170%);
   border:1px solid rgba(243,239,231,.16);
