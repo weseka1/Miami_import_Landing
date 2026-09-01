@@ -217,7 +217,10 @@
   display:flex; align-items:center; justify-content:center; gap:12px;
   min-height:42px; padding:0 16px; border-radius:14px;
   font-size:11px; letter-spacing:.2em; text-transform:uppercase;
-  color:#F3EFE7; background:rgba(14,11,10,.46);
+  color:#F3EFE7; background:rgba(12,10,9,.56);
+  /* las fotos de local traen pisos claros detras: sin esto el texto de la
+     chapa queda al limite de contraste justo donde dice el talle */
+  text-shadow:0 1px 3px rgba(0,0,0,.65);
   -webkit-backdrop-filter:blur(20px) saturate(170%);
   backdrop-filter:blur(20px) saturate(170%);
   border:1px solid rgba(243,239,231,.16);
