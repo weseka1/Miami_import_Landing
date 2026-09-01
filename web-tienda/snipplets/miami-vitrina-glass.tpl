@@ -182,7 +182,9 @@
 
 /* ------------------------------------------- la placa de vidrio con la foto */
 .mi-vt__placa{
-  position:relative; width:100%; max-width:430px; aspect-ratio:4/5;
+  /* 3:4 — es el formato en el que Diego manda las fotos (960x1280). La placa
+     se adapta a la foto, no al reves: asi entran ENTERAS y no se recorta nada. */
+  position:relative; width:100%; max-width:404px; aspect-ratio:3/4;
   margin-inline:auto; border-radius:26px; overflow:hidden;
   background:#0E0C0B; border:1px solid var(--hair);
   box-shadow:0 44px 96px -34px rgba(0,0,0,.92),
@@ -279,7 +281,7 @@
 /* ------------------------------------------------------------------ mobile */
 @media (max-width:860px){
   .mi-vt__body{ grid-template-columns:1fr; gap:26px; }
-  .mi-vt__placa{ max-width:min(340px,80vw); }
+  .mi-vt__placa{ max-width:min(330px,78vw); }
   .mi-vt__fichas{ text-align:center; }
   .mi-vt__desc{ margin-inline:auto; }
   /* el globo de MIA vive fijo abajo a la derecha y le pisaba la flecha:
