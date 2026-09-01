@@ -2,10 +2,21 @@
 PROBADOR VIRTUAL — el cliente se ve la prenda puesta.
 
 Motor DOBLE, gateado por env (sin key: el botón ni aparece, nada roto):
-- FAL_KEY        → FASHN v1.6 vía fal.ai (~USD 0,08/imagen, máxima fidelidad)
-- GEMINI_API_KEY → Gemini 2.5 Flash Image / nano-banana (~USD 0,039 por imagen;
-                   NO tiene franja gratuita, cada prueba de un visitante se cobra)
-Si están las dos, FASHN manda y Gemini queda de respaldo.
+- FAL_KEY   → FASHN v1.6 (USD 0,075/imagen, 864x1296). Es el principal, y se
+              eligió por una razón concreta: es el único que renderiza bien el
+              TEXTO y el estampado de la prenda. Miami vende logo (Off-White,
+              Palm Angels, Diesel) y un probador que escribe "Palm Angeis" es
+              peor que no tener probador: parece falsificación.
+- FAL_KEY   → image-apps-v2 (USD 0,040/imagen, 4K) como respaldo del anterior.
+              MISMA key, misma cuenta: fal sirve los dos.
+
+🪦 Gemini 2.5 Flash Image quedó AFUERA: Google lo retira el 2-oct-2026. El
+   reemplazo (gemini-3-pro-image) sale ~USD 0,13/imagen, o sea mas caro que
+   FASHN y peor con el texto de la prenda.
+🪦 MuAPI no sirve para esto: tiene Seedance, Kling y Veo, pero NINGUN modelo de
+   try-on. Su "virtual try-on" es un generador de imagen generico.
+
+Cada prueba cuesta plata de verdad, asi que hay DOS frenos: por IP y por dia.
 
 La foto del cliente NO se persiste: viaja al motor y el resultado se guarda
 como archivo temporal same-origin (se limpia a la hora).
@@ -30,8 +41,7 @@ from core.models import Product
 tryon_router = APIRouter()
 
 _FAL_QUEUE = "https://queue.fal.run/fal-ai/fashn/tryon/v1.6"
-_GEMINI_URL = ("https://generativelanguage.googleapis.com/v1beta/models/"
-               "gemini-2.5-flash-image:generateContent")
+_FAL_BARATO = "https://queue.fal.run/fal-ai/image-apps-v2/virtual-try-on"
 _TMP_DIR = Path(__file__).resolve().parent / "static" / "tryon"
 _TMP_TTL = 3600
 _MAX_UPLOAD = 8 * 1024 * 1024
@@ -40,6 +50,13 @@ _RATE_LIMIT = 5            # generaciones por IP por minuto (cada request cuesta
 _RATE_WINDOW = 60
 _hits: dict[str, deque] = defaultdict(deque)
 
+# 🔴 TOPE DIARIO. El freno por IP no alcanza: se esquiva con una cabecera
+# `x-forwarded-for` inventada, y un dia viral (o un bot) se come el credito
+# entero antes de que nadie lo mire. Esto es plata de Diego, no una cuota.
+# Se toca con TRYON_TOPE_DIARIO en el entorno; 0 = apagado (no recomendado).
+_TOPE_DIA = int(os.environ.get("TRYON_TOPE_DIARIO") or 120)
+_gastadas: dict[str, int] = {}
+
 _CATEGORY_MAP = {
     "remeras": "tops", "buzos": "tops", "camperas": "tops", "chaquetas": "tops",
     "camisas": "tops", "tops": "tops", "abrigos": "tops",
@@ -47,20 +64,10 @@ _CATEGORY_MAP = {
     "vestidos": "one-pieces", "enteritos": "one-pieces",
 }
 
-_GEMINI_PROMPT = (
-    "Virtual try-on: dress the person from the FIRST image in the garment shown "
-    "in the SECOND image. Keep the person's face, pose, body and background "
-    "exactly as they are. Fit the garment naturally with realistic drape, "
-    "lighting and shadows. Photorealistic result. Output ONLY the edited image."
-)
 
 
 def _fal_key() -> str | None:
     return (os.environ.get("FAL_KEY") or "").strip() or None
-
-
-def _gemini_key() -> str | None:
-    return (os.environ.get("GEMINI_API_KEY") or "").strip() or None
 
 
 def _rate_ok(ip: str) -> bool:
@@ -72,6 +79,27 @@ def _rate_ok(ip: str) -> bool:
         return False
     q.append(now)
     return True
+
+
+def _hoy() -> str:
+    return time.strftime("%Y-%m-%d")
+
+
+def _cupo_dia_ok() -> bool:
+    """Freno duro del dia. Se cuenta la generacion que SALIO, no el intento:
+    si el motor falla no se le cobra a nadie y no se descuenta."""
+    if _TOPE_DIA <= 0:
+        return True
+    d = _hoy()
+    for k in list(_gastadas):
+        if k != d:
+            _gastadas.pop(k, None)
+    return _gastadas.get(d, 0) < _TOPE_DIA
+
+
+def _sumar_gasto() -> None:
+    d = _hoy()
+    _gastadas[d] = _gastadas.get(d, 0) + 1
 
 
 def _limpiar_viejos() -> None:
@@ -128,18 +156,15 @@ def _categoria(product: Product) -> str:
 # --------------------------------------------------------------------------- #
 # Motores
 # --------------------------------------------------------------------------- #
-def _generar_fashn(person_jpeg: bytes, garment_url: str, category: str, key: str) -> bytes:
+def _fal_correr(cola: str, payload: dict, key: str) -> bytes:
+    """Encola en fal, espera y devuelve la imagen. Sirve para los dos modelos:
+    la cola de fal se maneja igual, solo cambia la URL y el payload."""
     headers = {"Authorization": f"Key {key}", "Content-Type": "application/json"}
-    payload = {
-        "model_image": "data:image/jpeg;base64," + base64.b64encode(person_jpeg).decode(),
-        "garment_image": garment_url,
-        "category": category,
-    }
-    r = requests.post(_FAL_QUEUE, json=payload, headers=headers, timeout=30)
+    r = requests.post(cola, json=payload, headers=headers, timeout=30)
     r.raise_for_status()
     job = r.json()
-    status_url = job.get("status_url") or f"{_FAL_QUEUE}/requests/{job['request_id']}/status"
-    result_url = job.get("response_url") or f"{_FAL_QUEUE}/requests/{job['request_id']}"
+    status_url = job.get("status_url") or f"{cola}/requests/{job['request_id']}/status"
+    result_url = job.get("response_url") or f"{cola}/requests/{job['request_id']}"
 
     deadline = time.time() + _POLL_TIMEOUT
     while time.time() < deadline:
@@ -152,34 +177,28 @@ def _generar_fashn(person_jpeg: bytes, garment_url: str, category: str, key: str
             res = requests.get(result_url, headers=headers, timeout=20).json()
             return requests.get(res["images"][0]["url"], timeout=30).content
         if st.get("status") in ("FAILED", "ERROR"):
-            raise RuntimeError("fashn failed")
-    raise TimeoutError("fashn timeout")
+            raise RuntimeError("fal failed")
+    raise TimeoutError("fal timeout")
 
 
-def _generar_gemini(person_jpeg: bytes, garment_jpeg: bytes, key: str) -> bytes:
-    body = {
-        "contents": [{
-            "parts": [
-                {"text": _GEMINI_PROMPT},
-                {"inline_data": {"mime_type": "image/jpeg",
-                                 "data": base64.b64encode(person_jpeg).decode()}},
-                {"inline_data": {"mime_type": "image/jpeg",
-                                 "data": base64.b64encode(garment_jpeg).decode()}},
-            ],
-        }],
-        # Sin esto Gemini puede responder SOLO texto y no hay imagen que parsear.
-        "generationConfig": {"responseModalities": ["TEXT", "IMAGE"]},
-    }
-    r = requests.post(f"{_GEMINI_URL}?key={key}", json=body, timeout=_POLL_TIMEOUT)
-    if r.status_code != 200:
-        print(f"[tryon] gemini HTTP {r.status_code}: {r.text[:400]}")
-    r.raise_for_status()
-    data = r.json()
-    for part in data["candidates"][0]["content"]["parts"]:
-        blob = part.get("inline_data") or part.get("inlineData")
-        if blob and blob.get("data"):
-            return base64.b64decode(blob["data"])
-    raise RuntimeError("gemini sin imagen en la respuesta")
+def _generar_fashn(person_jpeg: bytes, garment_url: str, category: str, key: str) -> bytes:
+    """FASHN v1.6 — el principal. Es el que respeta el texto de la prenda."""
+    return _fal_correr(_FAL_QUEUE, {
+        "model_image": "data:image/jpeg;base64," + base64.b64encode(person_jpeg).decode(),
+        "garment_image": garment_url,
+        "category": category,
+    }, key)
+
+
+def _generar_barato(person_jpeg: bytes, garment_url: str, category: str, key: str) -> bytes:
+    """image-apps-v2 — respaldo, la MISMA cuenta de fal. Sale la mitad y saca 4K,
+    pero es menos fiel con el estampado: solo entra si FASHN falló."""
+    return _fal_correr(_FAL_BARATO, {
+        "person_image_url": "data:image/jpeg;base64," + base64.b64encode(person_jpeg).decode(),
+        "garment_image_url": garment_url,
+        "clothing_type": {"tops": "upper", "bottoms": "lower",
+                          "one-pieces": "dress"}.get(category, "upper"),
+    }, key)
 
 
 # --------------------------------------------------------------------------- #
@@ -187,7 +206,7 @@ def _generar_gemini(person_jpeg: bytes, garment_jpeg: bytes, key: str) -> bytes:
 # --------------------------------------------------------------------------- #
 @tryon_router.get("/api/tryon/status")
 def tryon_status():
-    return {"available": bool(_fal_key() or _gemini_key())}
+    return {"available": bool(_fal_key())}
 
 
 @tryon_router.post("/api/tryon")
@@ -197,8 +216,13 @@ async def tryon(
     product_id: int = Form(...),
     db: Session = Depends(get_db),
 ):
-    if not (_fal_key() or _gemini_key()):
+    if not _fal_key():
         return {"available": False, "error": "El probador no está habilitado todavía."}
+
+    # el tope del día va ANTES que el de IP: es el que cuida la plata
+    if not _cupo_dia_ok():
+        raise HTTPException(503, "El probador llegó al tope de pruebas de hoy. "
+                                 "Volvé mañana y lo probás.")
 
     ip = (request.headers.get("x-forwarded-for") or (request.client.host if request.client else "?")).split(",")[0].strip()
     if not _rate_ok(ip):
@@ -213,7 +237,7 @@ async def tryon(
         raise HTTPException(404, "Producto no encontrado.")
 
     person_jpeg = _leer_foto(raw)
-    garment_url, garment_jpeg = _garment(request, product)
+    garment_url, _ = _garment(request, product)
 
     def _tag(motor: str, e: Exception) -> str:
         st = getattr(getattr(e, "response", None), "status_code", "")
@@ -226,11 +250,13 @@ async def tryon(
             img = _generar_fashn(person_jpeg, garment_url, _categoria(product), _fal_key())
         except Exception as e:  # noqa: BLE001
             errores.append(_tag("fashn", e))
-    if img is None and _gemini_key():
+    if img is None:
+        # respaldo en la MISMA cuenta de fal: la mitad de precio, 4K, menos fiel
+        # con el estampado. Solo se usa si FASHN falló.
         try:
-            img = _generar_gemini(person_jpeg, garment_jpeg, _gemini_key())
+            img = _generar_barato(person_jpeg, garment_url, _categoria(product), _fal_key())
         except Exception as e:  # noqa: BLE001
-            errores.append(_tag("gemini", e))
+            errores.append(_tag("barato", e))
 
     if img is None:
         print(f"[tryon] fallo ({', '.join(errores)})")
@@ -241,6 +267,7 @@ async def tryon(
         raise HTTPException(502, "No pudimos generar la prueba con esa foto. "
                                  "Probá con una foto de frente, cuerpo visible y buena luz.")
 
+    _sumar_gasto()
     _TMP_DIR.mkdir(parents=True, exist_ok=True)
     _limpiar_viejos()
     name = f"{uuid.uuid4().hex}.jpg"
