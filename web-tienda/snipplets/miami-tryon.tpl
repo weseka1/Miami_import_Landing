@@ -113,8 +113,17 @@
       $('mi-tryon-dl').href=res.j.image_url;
       // Igual que en los chips de talle: el #ID identifica la pieza aunque no
       // cargue la preview. (wa.me no puede adjuntar la imagen generada.)
-      $('mi-tryon-wa').href='https://wa.me/5491162321391?text='+encodeURIComponent('Hola Diego! Me la probé virtual y la quiero: {{ product.name }} #{{ product.id }}. ¿Está disponible?
-{{ tienda_url }}/p/{{ product.id }}');
+      // 🔴 Este string ROMPIA TODO EL PROBADOR. Estaba escrito abriendo comilla
+      // y cerrandola en el renglon siguiente, para meter el salto de linea del
+      // mensaje de WhatsApp. JavaScript no admite un string cortado asi: era un
+      // SyntaxError que mataba este <script> entero, con lo cual el boton
+      // "Probátelo puesto" no abria nada. Nunca funciono desde que se escribio.
+      // El salto de linea va como \n y el nombre y la URL entran con
+      // |tojson: un producto con apostrofo (D'Angelo) lo rompia igual.
+      $('mi-tryon-wa').href = 'https://wa.me/5491162321391?text=' + encodeURIComponent(
+        'Hola Diego! Me la probé virtual y la quiero: ' + {{ product.name|tojson }} +
+        ' #{{ product.id }}. ¿Está disponible?\n' + {{ tienda_url|tojson }} +
+        '/p/{{ product.id }}');
       paso(3);
     }).catch(function(){ clearInterval(dotsTimer); paso(1); err.textContent='Se cortó la conexión. Probá de nuevo.'; });
   });
