@@ -498,8 +498,8 @@ def _ficha(prod: Product, request: Request, db: Session, vendida: bool = False):
     # chequeo de env fue lo que dejo el boton prometiendo un motor (Gemini) que
     # ya no existe. El panel decia "recorte_ia: true" con motor null por lo
     # mismo — la pantalla no puede afirmar una capacidad por su cuenta.
-    from tryon import tryon_status as _tryon_status
-    tryon_enabled = (not vendida) and (
+    from tryon import tryon_status as _tryon_status, se_puede_probar as _se_prueba
+    tryon_enabled = (not vendida) and _se_prueba(prod) and (
         bool(_tryon_status().get("available"))
         or (settings.DEV_MODE and request.query_params.get("tryon_preview") == "1"))
     return templates.TemplateResponse(

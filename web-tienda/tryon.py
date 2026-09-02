@@ -61,6 +61,36 @@ _hits: dict[str, deque] = defaultdict(deque)
 _TOPE_DIA = int(os.environ.get("TRYON_TOPE_DIARIO") or 25)
 _gastadas: dict[str, int] = {}
 
+# 🔴 Lo que NO se prueba. El modelo pone ROPA sobre un cuerpo: una gorra, un
+# morral o unas zapatillas salen como un mamarracho pegado al torso. Antes de
+# encenderlo, en el catalogo habia 23 productos asi (10 gorras, 4 morrales,
+# 3 ojotas, 2 zapatillas, 2 neceseres, 1 riñonera, 1 piluso). Mejor que el
+# boton no aparezca a que aparezca y devuelva basura: el cliente no vuelve a
+# apretarlo nunca mas.
+_NO_SE_PRUEBA = {
+    "gorras", "gorra", "pilusos", "piluso", "sombreros",
+    "morrales", "morral", "neceseres", "neceser", "riñoneras", "rinoneras",
+    "bolsos", "carteras", "mochilas",
+    "ojotas", "zapatillas", "zapatos", "calzado", "sandalias",
+    "relojes", "lentes", "perfumes", "medias", "cinturones", "accesorios",
+}
+
+# Segunda red, por el NOMBRE. La categoria sola no alcanza: "Nike Mind 001"
+# (una zapatilla) y "Gorra jacquemus" se colaban porque nadie les puso
+# categoria. Y Diego carga productos sin categoria todo el tiempo, asi que esto
+# tiene que aguantar solo.
+_PALABRAS_NO = (
+    "gorra", "piluso", "sombrero", "vincha",
+    "morral", "mochila", "bolso", "cartera", "riñonera", "rinonera", "neceser",
+    "zapatilla", "ojota", "zapato", "sandalia", "bota",
+    "reloj", "lente", "perfume", "cinturon", "cinturón", "media",
+    # ropa interior y mallas: es una prenda, pero el probador toma la foto que
+    # sube una persona y la devuelve en ropa interior. Para una tienda de una
+    # persona eso es un problema sin ninguna venta del otro lado.
+    "ropa interior", "lenceria", "lencería", "bikini", "malla", "boxer",
+    "corpiño", "corpino", "bombacha",
+)
+
 _CATEGORY_MAP = {
     "remeras": "tops", "buzos": "tops", "camperas": "tops", "chaquetas": "tops",
     "camisas": "tops", "tops": "tops", "abrigos": "tops",
@@ -149,9 +179,43 @@ def _garment(request: Request, product: Product) -> tuple[str, bytes]:
     return url, data
 
 
+def _nombres_categoria(product: Product) -> list[str]:
+    return [(c.name or "").strip().lower() for c in (product.categories or [])]
+
+
+def _parece_calzado(product: Product) -> bool:
+    """Tercera red: el TALLE. "Nike Mind 001" es una zapatilla y ni la categoria
+    ni el nombre lo dicen — pero su talle es "10US (43)". Un numero de 34 a 50,
+    o un "US" adentro, es calzado y no una remera."""
+    for v in (getattr(product, "variants", None) or []):
+        t = (getattr(v, "value", "") or "").strip().lower()
+        if not t:
+            continue
+        if "us" in t and any(c.isdigit() for c in t):
+            return True
+        n = "".join(c for c in t if c.isdigit())
+        if n and t.replace(n, "").strip(" .()/-") == "" and 34 <= int(n[:2]) <= 50:
+            return True
+    return False
+
+
+def se_puede_probar(product: Product) -> bool:
+    """Si esta prenda tiene sentido en el probador.
+
+    Una sola categoria de la lista negra alcanza para no ofrecerlo: un producto
+    puede estar en "Gorras" y en "Diesel" a la vez, y el que manda es "Gorras".
+    """
+    if any(n in _NO_SE_PRUEBA for n in _nombres_categoria(product)):
+        return False
+    nombre = (getattr(product, "name", "") or "").strip().lower()
+    if any(w in nombre for w in _PALABRAS_NO):
+        return False
+    return not _parece_calzado(product)
+
+
 def _categoria(product: Product) -> str:
-    for c in (product.categories or []):
-        cat = _CATEGORY_MAP.get((c.name or "").strip().lower())
+    for n in _nombres_categoria(product):
+        cat = _CATEGORY_MAP.get(n)
         if cat:
             return cat
     return "auto"
@@ -239,6 +303,10 @@ async def tryon(
     product = db.get(Product, product_id)
     if not product or not product.published:
         raise HTTPException(404, "Producto no encontrado.")
+    # el boton no aparece para estos, pero la API no puede confiar en eso
+    if not se_puede_probar(product):
+        raise HTTPException(400, "El probador es para prendas de vestir. "
+                                 "Este producto no se puede probar.")
 
     person_jpeg = _leer_foto(raw)
     garment_url, _ = _garment(request, product)
