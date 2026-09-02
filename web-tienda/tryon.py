@@ -54,7 +54,11 @@ _hits: dict[str, deque] = defaultdict(deque)
 # `x-forwarded-for` inventada, y un dia viral (o un bot) se come el credito
 # entero antes de que nadie lo mire. Esto es plata de Diego, no una cuota.
 # Se toca con TRYON_TOPE_DIARIO en el entorno; 0 = apagado (no recomendado).
-_TOPE_DIA = int(os.environ.get("TRYON_TOPE_DIARIO") or 120)
+# 25/dia a USD 0,075 son USD 1,87 por dia: con la primera carga de USD 10 da
+# para ~5 dias aunque el probador se llene de curiosos. El default es
+# conservador a proposito — es mas facil subirlo despues de ver el uso real que
+# explicarle a Diego que el credito se evaporo el primer dia.
+_TOPE_DIA = int(os.environ.get("TRYON_TOPE_DIARIO") or 25)
 _gastadas: dict[str, int] = {}
 
 _CATEGORY_MAP = {

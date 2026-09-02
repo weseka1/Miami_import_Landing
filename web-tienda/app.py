@@ -316,7 +316,7 @@ app.include_router(oauth_router)
 app.include_router(checkout_router)
 app.include_router(mia_router)   # Mia, la asistente de la casa (POST /api/mia/chat)
 
-from tryon import tryon_router  # noqa: E402  (probador virtual, gateado por FAL_KEY/GEMINI_API_KEY)
+from tryon import tryon_router  # noqa: E402  (probador virtual, gateado por FAL_KEY)
 app.include_router(tryon_router)
 
 
@@ -494,9 +494,13 @@ def _ficha(prod: Product, request: Request, db: Session, vendida: bool = False):
         .limit(4)
         .all()
     )
-    import os as _os
+    # quien decide si hay probador es tryon.py, no esta funcion: duplicar el
+    # chequeo de env fue lo que dejo el boton prometiendo un motor (Gemini) que
+    # ya no existe. El panel decia "recorte_ia: true" con motor null por lo
+    # mismo — la pantalla no puede afirmar una capacidad por su cuenta.
+    from tryon import tryon_status as _tryon_status
     tryon_enabled = (not vendida) and (
-        bool((_os.environ.get("FAL_KEY") or _os.environ.get("GEMINI_API_KEY") or "").strip())
+        bool(_tryon_status().get("available"))
         or (settings.DEV_MODE and request.query_params.get("tryon_preview") == "1"))
     return templates.TemplateResponse(
         request, "product.html",
