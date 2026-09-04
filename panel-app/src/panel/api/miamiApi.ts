@@ -114,6 +114,8 @@ export interface MiamiPedidoItem {
   sku: string | null;
   quantity: number;
   price: string | null;
+  /** Miniatura de la prenda vendida. Puede faltar: producto borrado o sin fotos. */
+  foto?: string | null;
 }
 export interface MiamiPedido {
   id: number;

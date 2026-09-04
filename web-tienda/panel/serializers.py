@@ -8,7 +8,7 @@ forma. Así el panel sigue funcionando casi sin tocar el JS.
 """
 from __future__ import annotations
 
-from core.models import Order, Product, Reserva, Variant
+from core.models import Order, Product, ProductImage, Reserva, Variant
 
 
 def _money(d) -> str | None:
@@ -141,6 +141,32 @@ def _texto_rechazo(pago) -> str:
     return (pago.error_message or "").strip().rstrip(".")
 
 
+def _intento_o_no(pago) -> str:
+    """¿Intentó pagar y no pudo, o ni lo intentó? La pregunta textual de Diego.
+
+    Antes esto se contestaba SOLO cuando había un rechazo. Si el cliente nunca
+    llegaba a poner una tarjeta, la frase quedaba muda ("pasaron 30 minutos sin
+    que pagara") y los dos casos se leían igual — que es justo lo que hay que
+    distinguir: al que le rebotó la tarjeta se lo rescata mandándole el link de
+    nuevo; al que ni la puso hay que convencerlo otra vez.
+
+    Las tres señales, en orden de dureza:
+      1. `error_code`/`error_message` -> Stripe rechazó un intento REAL.
+      2. `card_brand`/`card_last4`    -> puso una tarjeta (quedó a mitad de camino).
+      3. ninguna de las dos           -> nunca puso una tarjeta.
+    """
+    detalle = _texto_rechazo(pago)
+    if detalle:
+        return f"Intentó pagar y no pudo: {detalle}."
+    if getattr(pago, "card_brand", None) or getattr(pago, "card_last4", None):
+        tarjeta = " ".join(x for x in [
+            (pago.card_brand or "").upper(),
+            f"....{pago.card_last4}" if pago.card_last4 else ""] if x)
+        return (f"Cargó una tarjeta ({tarjeta}) pero el pago nunca se completó. "
+                "El banco no llegó a rechazarla: se fue a mitad de camino.")
+    return "Nunca llegó a poner una tarjeta: no intentó pagar."
+
+
 def _etiqueta_medio(metodo: str) -> str:
     """"posnet 3 cuotas" -> "Link de pago / posnet · 3 cuotas"."""
     m = (metodo or "").strip()
@@ -171,11 +197,13 @@ def _motivo_humano(pago, orden_status: str | None = None) -> str | None:
     # Reserva vencida: NO es una venta perdida, es una venta a rescatar.
     raw = pago.raw if isinstance(pago.raw, dict) else {}
     if raw.get("cancelado_por") == "reserva_vencida":
-        base = (f"Pasaron {raw.get('minutos', 30)} minutos sin que pagara, así que la "
-                "prenda volvió a estar a la venta. El pedido sigue acá: si lo "
-                "contactás y quiere, tiene que hacer la compra de nuevo.")
-        detalle = _texto_rechazo(pago)
-        return f"{base} Antes de eso: {detalle}." if detalle else base
+        # El veredicto va PRIMERO (qué hizo el cliente) y la consecuencia
+        # después. Al revés, los dos casos empezaban con la misma frase y
+        # Diego tenía que leer hasta el final para ver si se distinguían —
+        # y cuando no había rechazo, no se distinguían nunca.
+        return (f"{_intento_o_no(pago)} Pasaron {raw.get('minutos', 30)} minutos sin "
+                "que pagara, así que la prenda volvió a estar a la venta. El pedido "
+                "sigue acá: si lo contactás y quiere, tiene que hacer la compra de nuevo.")
 
     estado = getattr(pago, "estado_stripe", None)
     if not estado:
@@ -183,10 +211,7 @@ def _motivo_humano(pago, orden_status: str | None = None) -> str | None:
     detalle = _texto_rechazo(pago)
     clave = _MOTIVOS.get(estado)
     if clave == "no_intento":
-        if detalle:
-            return f"Intentó pagar y no pudo: {detalle}."
-        return ("Llegó hasta el checkout y no llegó a intentar el pago. "
-                "Nunca se le cobró nada.")
+        return f"{_intento_o_no(pago)} Nunca se le cobró nada."
     if clave == "espera_banco":
         return "Empezó a pagar y quedó esperando la confirmación del banco."
     if clave == "empezo_sin_confirmar":
@@ -241,7 +266,53 @@ def _pago_to_dict(o: Order) -> dict:
     }
 
 
-def order_to_tn(o: Order) -> dict:
+def fotos_de_pedidos(db, orders) -> dict[int, str]:
+    """{product_id: primera foto} de todo lo que se vendió en esos pedidos.
+
+    UNA sola consulta para la página entera. La primera foto es la de menor
+    `position`, igual que la que muestra la tienda — así Diego ve en el pedido
+    exactamente la imagen que vio el cliente cuando compró.
+    """
+    ids = {it.product_id for o in orders for it in o.items if it.product_id}
+    if not ids:
+        return {}
+    filas = (db.query(ProductImage.product_id, ProductImage.local_path,
+                      ProductImage.src)
+             .filter(ProductImage.product_id.in_(ids))
+             .order_by(ProductImage.product_id, ProductImage.position)
+             .all())
+    out: dict[int, str] = {}
+    for pid, local_path, src in filas:
+        if pid not in out:                    # la de menor position gana
+            out[pid] = local_path or src      # misma regla que ProductImage.url
+    return out
+
+
+def thumb(url: str | None, ancho: int = 160, alto: int = 213) -> str | None:
+    """Versión chica de una foto, para listas y mails.
+
+    Las fotos viven en Supabase Storage, que redimensiona por query string
+    (`/render/image/`). Pedir el thumb en vez de la original baja una foto de
+    producto de ~400 KB a ~12 KB: en un mail eso es la diferencia entre que
+    Gmail la muestre y que la recorte por peso.
+
+    Cualquier otra URL (CDN viejo de Tiendanube, ruta local) vuelve intacta:
+    se ve igual, sólo que pesada. Nunca rompe.
+    """
+    if not url or "/render/image/" not in url:
+        return url
+    base = url.split("?", 1)[0]
+    return f"{base}?width={ancho}&height={alto}&resize=contain&quality=70"
+
+
+def order_to_tn(o: Order, fotos: dict[int, str] | None = None) -> dict:
+    """`fotos` = {product_id: url}. Lo arma el endpoint en UNA consulta.
+
+    Va por parámetro y no se resuelve acá adentro a propósito: el serializer
+    corre una vez por pedido, y pedir la foto desde adentro serían 22 viajes a
+    São Paulo (~180 ms cada uno) en una pantalla que Diego abre todo el día.
+    """
+    fotos = fotos or {}
     return {
         "id": o.id,
         "number": o.number,
@@ -279,6 +350,13 @@ def order_to_tn(o: Order) -> dict:
                 "sku": it.sku,
                 "quantity": it.quantity,
                 "price": _money(it.unit_price),
+                # Diego despachaba leyendo un nombre: "Remera Diesel de dama,
+                # talle S" y a adivinar cuál de las tres es. Textual: "lo que
+                # me preocupa ver es la foto del producto que se vende, para
+                # no enviar cualquier verdura". Puede venir vacía (producto
+                # borrado después de la venta, o sin fotos cargadas): el front
+                # tiene que aguantar el None.
+                "foto": thumb(fotos.get(it.product_id)) if it.product_id else None,
             }
             for it in o.items
         ],

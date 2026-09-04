@@ -86,14 +86,56 @@ def _pesos(monto) -> str:
     return "$ " + f"{float(monto or 0):,.0f}".replace(",", ".")
 
 
+def _fotos(order) -> dict:
+    """{product_id: miniatura} de lo que se vendió, o {} si no se puede.
+
+    Se resuelve ACÁ y no dentro del thread de envío: para cuando el worker
+    corre, la sesión de la base ya puede estar cerrada. Acá todavía estamos en
+    el hilo del checkout, con el `order` adjunto a su sesión.
+
+    Todo envuelto: un mail sin fotos se manda igual, un checkout roto no.
+    """
+    try:
+        from sqlalchemy.orm import object_session
+
+        from panel.serializers import fotos_de_pedidos, thumb  # lazy: evita el ciclo
+        db = object_session(order)
+        if db is None:
+            return {}
+        # 2x del tamaño en que se muestra, para que no se vea borrosa en el celular.
+        return {pid: thumb(url, 112, 150)
+                for pid, url in fotos_de_pedidos(db, [order]).items()}
+    except Exception:  # noqa: BLE001 — la foto es un plus, nunca un bloqueante
+        log.exception("no se pudieron resolver las fotos del pedido")
+        return {}
+
+
 def _filas_items(order) -> str:
+    """La lista de prendas, con la foto de cada una.
+
+    Diego pidió ver la foto en el aviso: despacha desde el mail y "Remera
+    Diesel de dama, talle S" son tres remeras distintas. Textual: "para no
+    enviar cualquier verdura". El nombre y el talle siguen estando, así que si
+    el cliente de mail bloquea las imágenes no se pierde ningún dato.
+    """
+    fotos = _fotos(order)
     filas = []
     for it in order.items:
         talle = f" · Talle {it.variant_value}" if it.variant_value else ""
+        foto = fotos.get(it.product_id) if it.product_id else None
+        celda_foto = (
+            f"<img src='{foto}' width='56' height='75' alt='' "
+            f"style='display:block;width:56px;height:75px;object-fit:cover;"
+            f"border-radius:6px;background:#f2efe9'/>"
+            if foto else
+            "<div style='width:56px;height:75px;border-radius:6px;background:#f2efe9'></div>")
         filas.append(
-            f"<tr><td style='padding:10px 0;border-bottom:1px solid #eee'>"
+            f"<tr>"
+            f"<td style='padding:10px 12px 10px 0;border-bottom:1px solid #eee;"
+            f"width:56px;vertical-align:top'>{celda_foto}</td>"
+            f"<td style='padding:10px 0;border-bottom:1px solid #eee;vertical-align:top'>"
             f"{it.product_name}{talle} × {it.quantity}</td>"
-            f"<td style='padding:10px 0;border-bottom:1px solid #eee;"
+            f"<td style='padding:10px 0;border-bottom:1px solid #eee;vertical-align:top;"
             f"text-align:right;white-space:nowrap'>{_pesos(it.unit_price)}</td></tr>")
     return "".join(filas)
 
@@ -199,8 +241,15 @@ def avisar_pedido_nuevo(order) -> None:
       <p style="margin:22px 0 0"><a href="{_TIENDA_URL}/panel/#/panel/pedidos"
         style="background:{_ORO};color:#111;padding:12px 22px;border-radius:999px;
         text-decoration:none;font-weight:bold;font-size:13px">Ver en el panel</a></p>"""
-    _enviar(conf["tienda"], f"🛍️ Pedido #{order.number} — {order.contact_name or 'cliente web'} (pago pendiente)",
-            _plantilla(f"Pedido nuevo #{order.number}", cuerpo))
+    # 🔴 El estado va PRIMERO. Antes el asunto era
+    # "🛍️ Pedido #1040 — jmatias (pago pendiente)" y en el celular se cortaba
+    # justo antes del paréntesis: Diego veía "Pedido #1040 — jmatias (pago pe…"
+    # y todos los avisos se leían igual. Textual: "me llega así mails y no
+    # compraron ni nada, es una paja… ilusiona". El dato que decide si abrirlo
+    # o no tiene que entrar en los primeros 20 caracteres.
+    _enviar(conf["tienda"],
+            f"⏳ SIN PAGAR · #{order.number} — {order.contact_name or 'cliente web'}",
+            _plantilla(f"Pedido #{order.number} — todavía sin pagar", cuerpo))
 
 
 def avisar_pago_acreditado(order) -> None:
@@ -220,7 +269,7 @@ def avisar_pago_acreditado(order) -> None:
       <p style="margin:22px 0 0"><a href="{_TIENDA_URL}/panel/#/panel/pedidos"
         style="background:{_ORO};color:#111;padding:12px 22px;border-radius:999px;
         text-decoration:none;font-weight:bold;font-size:13px">Ver en el panel</a></p>"""
-    _enviar(conf["tienda"], f"💰 PAGADO — Pedido #{order.number} · {_total(order)}",
+    _enviar(conf["tienda"], f"💰 PAGADO · #{order.number} — {_total(order)}",
             _plantilla(f"Pedido #{order.number} pagado", cuerpo))
 
 

@@ -41,7 +41,7 @@ from core.categorizar import categorizar_producto, marca_canonica
 from core.quitar_fondo import disponible as recorte_disponible
 from core.quitar_fondo import quitar_fondo as quitar_fondo_ia
 from core.sanitize import clean_description
-from .serializers import order_to_tn, product_to_tn, reserva_to_dict
+from .serializers import fotos_de_pedidos, order_to_tn, product_to_tn, reserva_to_dict
 
 log = logging.getLogger("panel_api")
 
@@ -731,7 +731,7 @@ def get_order(oid: int, db: Session = Depends(get_db)):
     o = db.get(Order, oid)
     if not o:
         raise HTTPException(404, "Pedido no encontrado")
-    return order_to_tn(o)
+    return order_to_tn(o, fotos_de_pedidos(db, [o]))
 
 
 @router.post("/orders/{oid}/status")
@@ -1308,7 +1308,11 @@ def list_orders(per_page: int = 50, page: int = 1, status: Optional[str] = None,
     if status:
         query = query.filter(Order.payment_status == status)
     items = query.order_by(Order.created_at.desc()).offset((page - 1) * per_page).limit(per_page).all()
-    return [order_to_tn(o) for o in items]
+    # Las fotos de todo lo vendido en la página, en UNA consulta. Sin esto el
+    # serializer las pediría de a una y volveríamos al problema que arregló el
+    # selectinload de arriba.
+    fotos = fotos_de_pedidos(db, items)
+    return [order_to_tn(o, fotos) for o in items]
 
 
 @router.get("/stats")

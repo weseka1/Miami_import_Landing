@@ -361,16 +361,33 @@ El pedido quedó sin pagar y se liberó. Si lo querés, avisame y lo armamos de 
                       </div>
                       <div>
                         <p className="text-[11px] font-semibold uppercase tracking-wide text-graph-400">Productos</p>
-                        <ul className="mt-1 space-y-1.5 text-sm text-graph">
+                        <ul className="mt-1 space-y-2.5 text-sm text-graph">
                           {p.products.map((it, i) => (
-                            <li key={i} className="flex flex-wrap items-center gap-2">
-                              <span>{it.name} × {it.quantity}</span>
-                              {it.talle && (
-                                <span className="rounded-md bg-brand/10 px-2 py-0.5 font-display text-xs font-bold text-brand-700">
-                                  Talle {it.talle}
+                            <li key={i} className="flex items-center gap-3">
+                              {/* La prenda, en foto. Diego despacha mirando esto:
+                                  "Remera Diesel de dama, talle S" son tres remeras
+                                  distintas. Click = la foto entera en otra pestaña. */}
+                              {it.foto ? (
+                                <a href={it.foto.split("?")[0]} target="_blank" rel="noreferrer"
+                                   title="Ver la foto entera"
+                                   className="shrink-0 overflow-hidden rounded-lg ring-1 ring-graph/10 transition hover:ring-graph/30">
+                                  <img src={it.foto} alt={it.name} loading="lazy"
+                                       className="h-16 w-12 bg-graph/[0.03] object-cover" />
+                                </a>
+                              ) : (
+                                <span className="grid h-16 w-12 shrink-0 place-items-center rounded-lg bg-graph/[0.03] text-[10px] leading-tight text-graph-400 ring-1 ring-graph/10">
+                                  sin<br />foto
                                 </span>
                               )}
-                              {it.price && <span className="text-graph-400">{fmtARS(parseFloat(it.price))}</span>}
+                              <span className="flex flex-wrap items-center gap-2">
+                                <span>{it.name} × {it.quantity}</span>
+                                {it.talle && (
+                                  <span className="rounded-md bg-brand/10 px-2 py-0.5 font-display text-xs font-bold text-brand-700">
+                                    Talle {it.talle}
+                                  </span>
+                                )}
+                                {it.price && <span className="text-graph-400">{fmtARS(parseFloat(it.price))}</span>}
+                              </span>
                             </li>
                           ))}
                         </ul>
