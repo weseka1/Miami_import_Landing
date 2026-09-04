@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, FileSpreadsheet, Rocket, Zap } from "lucide-react";
+import { Loader2, FileSpreadsheet, Rocket, Shirt, Zap } from "lucide-react";
 import { api, ApiError, EXPORT_EXCEL_URL } from "../api/miamiApi";
 import { PageHeader } from "../components/PageShell";
 import { useToast } from "../components/Toast";
@@ -14,6 +14,33 @@ export default function Acciones() {
   const { push } = useToast();
   const [redeployando, setRedeployando] = useState(false);
   const [redeployInfo, setRedeployInfo] = useState("");
+
+  const [precalentando, setPrecalentando] = useState(false);
+  const [precalentarInfo, setPrecalentarInfo] = useState("");
+
+  const precalentar = async () => {
+    setPrecalentando(true);
+    setPrecalentarInfo("");
+    try {
+      const r = await api.precalentarRecortes();
+      if (r.error) {
+        setPrecalentarInfo(`No se pudo: ${r.error}`);
+        push(r.error, "error");
+      } else {
+        const nuevas = r.recortados ?? 0;
+        setPrecalentarInfo(
+          `${nuevas} prendas preparadas · ${r.ya_estaban ?? 0} ya estaban · ` +
+          `${r.fallaron ?? 0} fallaron · ${r.no_aplican ?? 0} no se prueban (gorras, calzado…)`);
+        push(nuevas ? `${nuevas} prendas listas para el probador` : "Ya estaban todas listas", "success");
+      }
+    } catch (e) {
+      const msg = e instanceof ApiError ? e.message : "No se pudo preparar las prendas";
+      setPrecalentarInfo(`No se pudo: ${msg}`);
+      push(msg, "error");
+    } finally {
+      setPrecalentando(false);
+    }
+  };
 
   const redeploy = async () => {
     setRedeployando(true);
@@ -64,6 +91,28 @@ export default function Acciones() {
             {redeployando ? <Loader2 size={15} className="animate-spin" /> : <Zap size={15} />} Redeploy bot ahora
           </button>
           {redeployInfo && <p className="mt-3 rounded-lg bg-graph/[0.03] px-3 py-2 text-xs font-medium text-graph-500">{redeployInfo}</p>}
+        </div>
+
+        <div className="pcard p-5">
+          <h3 className="flex items-center gap-2 font-display text-base font-semibold text-graph">
+            <Shirt size={17} className="text-brand" /> Preparar prendas para el probador
+          </h3>
+          <p className="mt-1 text-sm text-graph-400">
+            El probador virtual necesita la prenda <strong>sola</strong>, sin la percha ni el
+            local de fondo. Esto la recorta de antemano para todo el catálogo, así el
+            cliente que prueba una prenda por primera vez ya la ve bien.
+            Correlo después de cargar productos nuevos.
+          </p>
+          <button onClick={precalentar} disabled={precalentando} className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl border border-graph/15 bg-graph/[0.03] px-4 text-sm font-semibold text-graph transition hover:border-graph/30 disabled:opacity-50">
+            {precalentando ? <Loader2 size={15} className="animate-spin" /> : <Shirt size={15} />}
+            {precalentando ? "Preparando…" : "Preparar prendas ahora"}
+          </button>
+          {precalentando && (
+            <p className="mt-3 text-xs text-graph-400">
+              Tarda varios minutos: es una prenda por vez. Podés seguir usando el panel.
+            </p>
+          )}
+          {precalentarInfo && <p className="mt-3 rounded-lg bg-graph/[0.03] px-3 py-2 text-xs font-medium text-graph-500">{precalentarInfo}</p>}
         </div>
       </div>
     </div>

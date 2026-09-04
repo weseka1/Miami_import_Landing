@@ -431,6 +431,12 @@ export const api = {
 
   // --- acciones ---
   redeployBot: () => req<{ ok: boolean; status?: number; error?: string }>("/actions/redeploy_bot", { method: "POST" }),
+
+  /** Deja recortada de antemano la prenda de cada producto, para el probador. */
+  precalentarRecortes: () => req<{
+    recortados?: number; ya_estaban?: number; fallaron?: number;
+    no_aplican?: number; error?: string;
+  }>("/tryon/precalentar", { method: "POST" }),
 };
 
 /** URL directa del Excel completo (descarga con la cookie de sesión). */
