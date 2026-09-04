@@ -43,7 +43,7 @@
 
     <div id="mi-tryon-paso2" hidden style="text-align:center;padding:34px 0">
       <div style="font-size:14px;color:#f2ead9;margin-bottom:8px">Generando tu look<span id="mi-tryon-dots">…</span></div>
-      <div style="font-size:12px;color:rgba(242,234,217,.5)">Tarda entre 20 y 60 segundos. No cierres esta ventana.</div>
+      <div style="font-size:12px;color:rgba(242,234,217,.5)">Tarda entre 30 y 90 segundos. No cierres esta ventana.</div>
     </div>
 
     <div id="mi-tryon-paso3" hidden style="text-align:center">

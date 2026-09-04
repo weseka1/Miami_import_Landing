@@ -1921,3 +1921,19 @@ def catalogo_ordenar(body: dict | None = None, db: Session = Depends(get_db)):
                     f"{len(categorizados)} productos categorizados · "
                     f"{len(sin_resolver)} sin resolver"),
     }
+
+
+@router.post("/tryon/precalentar")
+def tryon_precalentar(limite: int = 0, db: Session = Depends(get_db)):
+    """Deja recortada de antemano la prenda de cada producto probable.
+
+    El probador manda la prenda SIN el local de fondo, y ese recorte se hace
+    una sola vez por producto. Sin esto, la primera persona que prueba una
+    prenda nueva la prueba con la foto cruda (sale peor) y recién la segunda
+    aprovecha el recorte.
+
+    Se corre una vez, y después de cargar productos nuevos. Cuesta unos
+    centavos por prenda y NO consume el cupo diario del probador.
+    """
+    from tryon import precalentar_recortes
+    return precalentar_recortes(db, limite=limite)

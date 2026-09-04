@@ -27,6 +27,7 @@ import base64
 import io
 import hashlib
 import os
+import threading
 import time
 import uuid
 from collections import defaultdict, deque
@@ -46,7 +47,11 @@ _FAL_BARATO = "https://queue.fal.run/fal-ai/image-apps-v2/virtual-try-on"
 _TMP_DIR = Path(__file__).resolve().parent / "static" / "tryon"
 _TMP_TTL = 3600
 _MAX_UPLOAD = 8 * 1024 * 1024
-_POLL_TIMEOUT = 90
+# 120 y no 90: `mode='quality'` es mas lento que el 'balanced' que corria
+# antes. Con 90 la generacion buena llegaba tarde y se caia al motor de
+# respaldo, que es JUSTO el que no respeta el estampado — o sea que el
+# timeout corto anulaba el arreglo.
+_POLL_TIMEOUT = 120
 _RATE_LIMIT = 5            # generaciones por IP por minuto (cada request cuesta)
 _RATE_WINDOW = 60
 _hits: dict[str, deque] = defaultdict(deque)
@@ -188,15 +193,24 @@ def _prenda_aislada(url_original: str, data: bytes) -> str | None:
     `quitar_fondo()` (birefnet) ya resolvía exactamente esto para la vitrina
     de la home; el probador simplemente no lo usaba.
 
-    El recorte se cachea en Storage por hash de la URL: la primera prueba de
-    un producto lo paga (centavos), las demás lo reusan. Si algo falla se
-    devuelve None y se sigue con la foto original — el probador nunca se
-    cae por esto, sólo vuelve a andar como antes.
+    El recorte se cachea en Storage por hash de la URL: se paga una vez en la
+    vida del producto y todas las pruebas lo reusan. Si algo falla se devuelve
+    None y se sigue con la foto original — el probador nunca se cae por esto,
+    sólo vuelve a andar como antes.
+
+    🔴 EL RECORTE NUNCA CORRE DENTRO DEL REQUEST. La primera version lo hacia
+    y el cliente esperaba birefnet (hasta 90 s) MAS FASHN en quality (otros 90):
+    dos minutos mirando "Generando tu look…" contra una UI que promete 20-60 s.
+    Aca solo se MIRA el cache; si no esta, se devuelve None (se prueba con la
+    foto original, como antes) y se deja el recorte andando en segundo plano
+    para que la proxima persona ya lo encuentre hecho.
+
+    Para que nadie pague esa primera vez esta `precalentar_recortes()`, que deja
+    todo el catalogo recortado de antemano.
     """
     try:
         from core import storage
         from core.quitar_fondo import disponible as recorte_disponible
-        from core.quitar_fondo import quitar_fondo
     except Exception:  # noqa: BLE001
         return None
     if not storage.is_enabled() or not recorte_disponible():
@@ -204,21 +218,88 @@ def _prenda_aislada(url_original: str, data: bytes) -> str | None:
 
     ruta = _ruta_recorte(url_original)
     cacheada = storage.public_url(ruta)
-    try:                                  # ¿ya lo recortamos alguna vez?
-        if requests.get(cacheada, timeout=15).status_code == 200:
+    try:
+        # Timeout corto A PROPOSITO: esto esta en el camino del cliente. Si el
+        # storage no contesta en 5 s, se prueba con la foto original y listo.
+        if requests.get(cacheada, timeout=5).status_code == 200:
             return cacheada
     except Exception:  # noqa: BLE001
         pass
 
-    try:
-        png, motor = quitar_fondo(data)
-        url = storage.upload_bytes(png, ruta, "image/png")
-        print(f"[tryon] prenda recortada con {motor} -> {ruta}")
-        return url
-    except Exception as e:  # noqa: BLE001
-        print(f"[tryon] no se pudo recortar la prenda ({type(e).__name__}); "
-              "se usa la foto original")
-        return None
+    _recortar_en_segundo_plano(url_original, data, ruta)
+    return None
+
+
+_recortes_en_curso: set[str] = set()
+_recortes_lock = threading.Lock()
+
+
+def _recortar_en_segundo_plano(url_original: str, data: bytes, ruta: str) -> None:
+    """Deja la prenda recortada para la PROXIMA prueba. No bloquea a nadie.
+
+    El candado evita pagarle a birefnet dos veces por la misma prenda cuando
+    entran dos personas juntas al mismo producto.
+    """
+    with _recortes_lock:
+        if ruta in _recortes_en_curso:
+            return
+        _recortes_en_curso.add(ruta)
+
+    def _worker() -> None:
+        try:
+            from core import storage
+            from core.quitar_fondo import quitar_fondo
+            png, motor = quitar_fondo(data)
+            storage.upload_bytes(png, ruta, "image/png")
+            print(f"[tryon] prenda recortada con {motor} -> {ruta}")
+        except Exception as e:  # noqa: BLE001
+            print(f"[tryon] no se pudo recortar ({type(e).__name__}: {e}); "
+                  "se sigue usando la foto original")
+        finally:
+            with _recortes_lock:
+                _recortes_en_curso.discard(ruta)
+
+    threading.Thread(target=_worker, daemon=True).start()
+
+
+def precalentar_recortes(db, limite: int = 0) -> dict:
+    """Recorta de antemano la primera foto de cada prenda probable.
+
+    Se corre una vez (y despues de cargar productos nuevos) para que ningun
+    cliente sea el que estrena el recorte. Devuelve el conteo de lo que hizo.
+    """
+    from core import storage
+    from core.quitar_fondo import disponible as recorte_disponible
+    from core.quitar_fondo import quitar_fondo
+
+    if not storage.is_enabled() or not recorte_disponible():
+        return {"error": "falta storage o la key de recorte"}
+
+    hechos = ya = fallos = saltados = 0
+    for p in db.query(Product).filter(Product.published == True).all():  # noqa: E712
+        if not p.images or not se_puede_probar(p):
+            saltados += 1
+            continue
+        src = p.images[0].url
+        if not src.startswith("http"):
+            saltados += 1
+            continue
+        ruta = _ruta_recorte(src)
+        try:
+            if requests.get(storage.public_url(ruta), timeout=10).status_code == 200:
+                ya += 1
+                continue
+            png, _ = quitar_fondo(requests.get(src, timeout=30).content)
+            storage.upload_bytes(png, ruta, "image/png")
+            hechos += 1
+            print(f"[tryon] precalentado: {p.name}")
+        except Exception as e:  # noqa: BLE001
+            fallos += 1
+            print(f"[tryon] precalentado FALLO en {p.name}: {type(e).__name__}")
+        if limite and hechos >= limite:
+            break
+    return {"recortados": hechos, "ya_estaban": ya, "fallaron": fallos,
+            "no_aplican": saltados}
 
 
 def _garment(request: Request, product: Product) -> tuple[str, bool]:
