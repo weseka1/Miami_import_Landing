@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import base64
 import io
+import hashlib
 import os
 import time
 import uuid
@@ -166,8 +167,67 @@ def _leer_foto(raw: bytes) -> bytes:
     return buf.getvalue()
 
 
-def _garment(request: Request, product: Product) -> tuple[str, bytes]:
-    """(URL pública, bytes) de la primera foto del producto."""
+def _ruta_recorte(url_original: str) -> str:
+    """Ruta determinística del recorte en Storage. El nombre sale del hash de
+    la URL original, así el mismo producto siempre cae en el mismo archivo y
+    el recorte se paga UNA vez en la vida, no en cada prueba."""
+    h = hashlib.sha1(url_original.encode("utf-8")).hexdigest()[:24]
+    return f"products/_tryon/{h}.png"
+
+
+def _prenda_aislada(url_original: str, data: bytes) -> str | None:
+    """La prenda sola, sin el local de fondo. URL pública, o None si no se pudo.
+
+    🔴 ESTE es el arreglo del "no me deja las remeras tal cual". Diego saca las
+    fotos con el celular: la remera colgada de una percha o adentro de la
+    valija, en ángulo, arrugada, agarrada con la mano y con OTRAS CUATRO
+    prendas en el mismo cuadro. A FASHN le llegaba eso crudo y tenía que
+    adivinar cuál de las prendas de la escena era la que hay que poner —
+    por eso el estampado salía reinventado.
+
+    `quitar_fondo()` (birefnet) ya resolvía exactamente esto para la vitrina
+    de la home; el probador simplemente no lo usaba.
+
+    El recorte se cachea en Storage por hash de la URL: la primera prueba de
+    un producto lo paga (centavos), las demás lo reusan. Si algo falla se
+    devuelve None y se sigue con la foto original — el probador nunca se
+    cae por esto, sólo vuelve a andar como antes.
+    """
+    try:
+        from core import storage
+        from core.quitar_fondo import disponible as recorte_disponible
+        from core.quitar_fondo import quitar_fondo
+    except Exception:  # noqa: BLE001
+        return None
+    if not storage.is_enabled() or not recorte_disponible():
+        return None
+
+    ruta = _ruta_recorte(url_original)
+    cacheada = storage.public_url(ruta)
+    try:                                  # ¿ya lo recortamos alguna vez?
+        if requests.get(cacheada, timeout=15).status_code == 200:
+            return cacheada
+    except Exception:  # noqa: BLE001
+        pass
+
+    try:
+        png, motor = quitar_fondo(data)
+        url = storage.upload_bytes(png, ruta, "image/png")
+        print(f"[tryon] prenda recortada con {motor} -> {ruta}")
+        return url
+    except Exception as e:  # noqa: BLE001
+        print(f"[tryon] no se pudo recortar la prenda ({type(e).__name__}); "
+              "se usa la foto original")
+        return None
+
+
+def _garment(request: Request, product: Product) -> tuple[str, bool]:
+    """(URL de la prenda a probar, si está aislada del fondo).
+
+    El booleano no es cosmético: le dice a FASHN qué tipo de foto le estamos
+    mandando (`garment_photo_type`). Declarar "flat-lay" sobre una foto con
+    medio local adentro sería mentirle al modelo y empeora el resultado.
+    """
     if not product.images:
         raise HTTPException(400, "Este producto todavía no tiene fotos.")
     src = product.images[0].url
@@ -176,7 +236,9 @@ def _garment(request: Request, product: Product) -> tuple[str, bytes]:
         data = requests.get(url, timeout=20).content
     except Exception:
         raise HTTPException(502, "No pudimos leer la foto del producto.")
-    return url, data
+
+    recortada = _prenda_aislada(url, data)
+    return (recortada, True) if recortada else (url, False)
 
 
 def _nombres_categoria(product: Product) -> list[str]:
@@ -249,12 +311,29 @@ def _fal_correr(cola: str, payload: dict, key: str) -> bytes:
     raise TimeoutError("fal timeout")
 
 
-def _generar_fashn(person_jpeg: bytes, garment_url: str, category: str, key: str) -> bytes:
-    """FASHN v1.6 — el principal. Es el que respeta el texto de la prenda."""
+def _generar_fashn(person_jpeg: bytes, garment_url: str, category: str, key: str,
+                   aislada: bool = False) -> bytes:
+    """FASHN v1.6 — el principal. Es el que respeta el texto de la prenda.
+
+    Se mandaban 3 de los 10 parámetros: el resto quedaba en su default, y dos
+    de esos defaults son justo los que gobiernan la fidelidad del estampado.
+    Los nombres y valores salen del OpenAPI de fal, no de memoria:
+
+      mode='quality'         el default es 'balanced'. La doc dice textual
+                             "slower but produces higher quality". Miami vende
+                             LOGO: un estampado aproximado es un cartel de
+                             falsificación, así que acá se paga con segundos.
+      garment_photo_type     el default 'auto' hace que el modelo adivine. Si
+                             mandamos el recorte, ES una flat-lay y se lo
+                             decimos; si no se pudo recortar, sigue 'auto'
+                             porque la foto tiene medio local adentro.
+    """
     return _fal_correr(_FAL_QUEUE, {
         "model_image": "data:image/jpeg;base64," + base64.b64encode(person_jpeg).decode(),
         "garment_image": garment_url,
         "category": category,
+        "mode": "quality",
+        "garment_photo_type": "flat-lay" if aislada else "auto",
     }, key)
 
 
@@ -309,7 +388,7 @@ async def tryon(
                                  "Este producto no se puede probar.")
 
     person_jpeg = _leer_foto(raw)
-    garment_url, _ = _garment(request, product)
+    garment_url, aislada = _garment(request, product)
 
     def _tag(motor: str, e: Exception) -> str:
         st = getattr(getattr(e, "response", None), "status_code", "")
@@ -319,7 +398,8 @@ async def tryon(
     errores = []
     if _fal_key():
         try:
-            img = _generar_fashn(person_jpeg, garment_url, _categoria(product), _fal_key())
+            img = _generar_fashn(person_jpeg, garment_url, _categoria(product),
+                                 _fal_key(), aislada)
         except Exception as e:  # noqa: BLE001
             errores.append(_tag("fashn", e))
     if img is None:
