@@ -38,7 +38,12 @@ const explicaPago: Record<string, string> = {
   pending: "El cliente NO pagó todavía. No despachar hasta que figure PAGADO.",
   cancelled: "El pedido se canceló. No se cobró nada.",
   refunded: "Se le devolvió la plata al cliente.",
-  failed: "La tarjeta fue rechazada. No entró plata.",
+  // 🔴 Decía "La tarjeta fue rechazada" — y `failed` también cubre al que
+  // NUNCA puso una tarjeta. Quedaba contra la línea de abajo, que ahora sí
+  // distingue los casos: el encabezado afirmaba un motivo que no sabía.
+  // Acá va SOLO lo que es cierto en los tres casos; el motivo lo dice el
+  // renglón siguiente, que viene del backend con el dato de Stripe.
+  failed: "El pago no se concretó. No entró plata.",
   review: "Stripe cobró un monto distinto al del pedido. La plata puede estar adentro. NO despaches hasta chequearlo en Stripe.",
 };
 
