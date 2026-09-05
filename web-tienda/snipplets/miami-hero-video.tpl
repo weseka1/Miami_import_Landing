@@ -104,10 +104,21 @@
        ancho el hero medía 1000px de alto y el mensaje quedaba fuera de la
        pantalla. Nunca vh pelado: la barra de Safari mobile miente. */
     height:clamp(430px, 74svh, 720px);
+    /* 🔴 ANCHO ACOTADO, y no es una decisión estética: las fotos llegaron por
+       WhatsApp a 960px de ancho y no hay más píxeles que esos. A sangre en un
+       monitor de 1920 había que estirarlas 2x y se veían pixeladas. Con el
+       tope en 1280 el escalado baja a ~1,3x y la foto aguanta. Si algún día
+       llegan las originales del teléfono (3024px), este tope se levanta. */
+    max-width:1280px; margin:0 auto; border-radius:var(--mi-r-lg);
     background:var(--mi-bg-3);
     cursor:grab; touch-action:pan-y;         /* el scroll vertical sigue siendo del navegador */
     user-select:none; -webkit-user-select:none;
   }
+  @media (min-width:901px){ .mh{ padding-top:clamp(12px,1.6vw,22px); } }
+  @media (max-width:1360px) and (min-width:901px){
+    .mh__rail{ margin:0 clamp(20px,3vw,40px); }
+  }
+  @media (max-width:900px){ .mh__rail{ border-radius:0; } }
   .mh__rail.is-drag{ cursor:grabbing; }
 
   .mh__track{ display:flex; height:100%; will-change:transform;
