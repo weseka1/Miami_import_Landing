@@ -1,240 +1,247 @@
 {# ============================================================
-   MIAMI_IMPORT — HERO "EL VIAJE"
+   MIAMI_IMPORT — HERO "EL VIAJE" (tira arrastrable, full-bleed)
 
-   Reemplaza al hero de video (Balenciaga, oscuro). Dos razones:
-   1. Al pasar la web a clara, el texto blanco sobre el video quedó ilegible.
-   2. El video era stock de marca. Las fotos de Diego en Milán son lo único
-      que ningún competidor puede copiar — y son la prueba de que la prenda
-      es original comprada en tienda oficial, que es LA objeción del rubro.
+   Por qué así:
+   · Las fotos de Diego en Milán son lo único que ningún competidor puede
+     copiar, y son la prueba de que la prenda es original comprada en tienda
+     oficial — LA objeción del rubro. Por eso mandan ellas, a sangre.
+   · Se ARRASTRA: con el dedo en el celular y con el mouse en la compu, como
+     una galería del teléfono. Nunca selectores numéricos (regla de la casa).
+   · El texto vive en una placa de vidrio CLARO encima de la foto: así se lee
+     sobre cualquiera de las cuatro (hay claras y oscuras) sin depender de la
+     suerte, que es exactamente el bug que rompió el hero anterior.
+   · Altura contenida con svh: la barra de Safari mobile miente con vh, y una
+     foto 3/4 a 800px de ancho mide 1000px de alto y empuja todo fuera de
+     pantalla — que es como este hero "desaparecía" en anchos intermedios.
 
-   La debilidad de esas fotos (celular, sin producción) se declara en el pie
-   y así juega a favor: "FOTOS DEL VIAJE. SIN PRODUCCIÓN." Retocarlas seria
-   perder exactamente lo que las hace creíbles.
-
-   Textos editables desde el panel (Mi web → Portada); si están vacíos usa
-   los de fábrica, que ya son los definitivos.
+   Textos editables desde el panel (Mi web → Portada).
    ============================================================ #}
 {% set _slides = [
   {'src': 'images/milano/montenapoleone.webp', 'small': 'images/milano/montenapoleone@800.webp',
-   'lugar': 'Via Montenapoleone, Milán', 'pie': 'La cuadra de las boutiques.'},
+   'lugar': 'Via Montenapoleone', 'pie': 'La cuadra de las boutiques.'},
   {'src': 'images/milano/offwhite.webp', 'small': 'images/milano/offwhite@800.webp',
    'lugar': 'Off-White, Milán', 'pie': 'Adentro de la tienda oficial.'},
   {'src': 'images/milano/duomo.webp', 'small': 'images/milano/duomo@800.webp',
-   'lugar': 'Duomo, desde la Rinascente', 'pie': 'Donde arranca cada viaje.'},
+   'lugar': 'Duomo di Milano', 'pie': 'Donde arranca cada viaje.'},
   {'src': 'images/milano/galleria.webp', 'small': 'images/milano/galleria@800.webp',
    'lugar': 'Galleria Vittorio Emanuele II', 'pie': 'Cierra tarde. Nosotros también.'}
 ] %}
 
-<section class="mh" id="mi-hero" aria-label="Miami Import — indumentaria original comprada en Milán">
-  <div class="mh__wrap">
+<section class="mh" id="mi-hero" aria-label="Miami Import — comprado en Milán, traído a mano">
 
-    {# ---------- COLUMNA FOTO ---------- #}
-    <div class="mh__media">
-      <div class="mh__stage" data-mh-stage>
-        {% for s in _slides %}
-        <figure class="mh__slide{% if loop.first %} is-on{% endif %}" data-mh-slide="{{ loop.index0 }}">
-          <img src="{{ s.src | static_url }}"
-               srcset="{{ s.small | static_url }} 800w, {{ s.src | static_url }} 960w"
-               sizes="(max-width: 900px) 92vw, 46vw"
-               alt="{{ s.lugar }}" width="960" height="1280"
-               {% if loop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}/>
-          <figcaption class="mh__place u-glass">
-            <span class="mh__place-pin" aria-hidden="true"></span>
-            <span><b>{{ s.lugar }}</b>{{ s.pie }}</span>
-          </figcaption>
-        </figure>
-        {% endfor %}
-
-        {# Deslizable + flechas. Nunca selectores numéricos (regla de la casa). #}
-        <div class="mh__arrows">
-          <button type="button" class="mh__arrow" data-mh-prev aria-label="Foto anterior">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
-          </button>
-          <button type="button" class="mh__arrow" data-mh-next aria-label="Foto siguiente">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <div class="mh__thumbs" role="tablist" aria-label="Fotos del viaje">
-        {% for s in _slides %}
-        <button type="button" class="mh__thumb{% if loop.first %} is-on{% endif %}"
-                data-mh-thumb="{{ loop.index0 }}" role="tab"
-                aria-selected="{{ 'true' if loop.first else 'false' }}"
-                aria-label="{{ s.lugar }}">
-          <img src="{{ s.small | static_url }}" alt="" width="800" height="1067" loading="lazy"/>
-        </button>
-        {% endfor %}
-      </div>
-      <p class="mh__note">Fotos del viaje. Sin producción.</p>
+  {# ---------- la tira de fotos, a sangre ---------- #}
+  <div class="mh__rail" data-mh-rail>
+    <div class="mh__track" data-mh-track>
+      {% for s in _slides %}
+      <figure class="mh__cell" data-mh-cell="{{ loop.index0 }}">
+        <img src="{{ s.src | static_url }}"
+             srcset="{{ s.small | static_url }} 800w, {{ s.src | static_url }} 960w"
+             sizes="(max-width: 900px) 100vw, 62vw"
+             alt="{{ s.lugar }}, Milán" width="960" height="1280"
+             draggable="false"
+             {% if loop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}/>
+        <figcaption class="mh__place">
+          <span class="mh__pin" aria-hidden="true"></span>
+          <b>{{ s.lugar }}</b><span>{{ s.pie }}</span>
+        </figcaption>
+      </figure>
+      {% endfor %}
     </div>
 
-    {# ---------- COLUMNA TEXTO ---------- #}
-    <div class="mh__copy">
-      <span class="mh__badge u-glass">
+    {# ---------- la placa de vidrio con el mensaje ---------- #}
+    <div class="mh__panel u-glass">
+      <span class="mh__badge">
         <i aria-hidden="true"></i>{{ home.hero.eyebrow or 'Comprado en Milán, traído a mano' }}
       </span>
-
       <h1 class="mh__title">{{ home.hero.titulo or 'Cada pieza la compramos en Milán.' }}</h1>
-
       <p class="mh__lead">{{ home.hero.subtitulo or 'En la tienda oficial, una unidad por talle. Cuando no está, no vuelve.' }}</p>
-
       <div class="mh__cta">
         <a class="mh__btn mh__btn--solid" href="{{ home.hero.cta_link or store.products_url }}">
           {{ home.hero.cta_texto or 'Ver lo que llegó' }}
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
         </a>
-        <a class="mh__btn mh__btn--glass u-glass" target="_blank" rel="noopener"
+        <a class="mh__btn mh__btn--ghost" target="_blank" rel="noopener"
            href="{{ home.hero.cta2_link or ('https://wa.me/5491162321391?text=' ~ ('Hola, quiero encargar una pieza para el proximo viaje a Milan.' | urlencode)) }}">
           {{ home.hero.cta2_texto or 'Encargar del próximo viaje' }}
         </a>
       </div>
-
-      <dl class="mh__facts">
-        <div><dt>Viaja todos los meses</dt><dd>Compra en tienda oficial, en Milán.</dd></div>
-        <div><dt>Una unidad por talle</dt><dd>Cuando no está, no vuelve.</dd></div>
-        <div><dt>Probador virtual</dt><dd>Subís tu foto y la ves puesta.</dd></div>
-      </dl>
     </div>
 
+    {# ---------- controles ---------- #}
+    <div class="mh__ctrl">
+      <button type="button" class="mh__arrow" data-mh-prev aria-label="Foto anterior">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <div class="mh__bars" role="tablist" aria-label="Fotos del viaje">
+        {% for s in _slides %}
+        <button type="button" class="mh__bar{% if loop.first %} is-on{% endif %}" data-mh-go="{{ loop.index0 }}"
+                role="tab" aria-selected="{{ 'true' if loop.first else 'false' }}" aria-label="{{ s.lugar }}"><i></i></button>
+        {% endfor %}
+      </div>
+      <button type="button" class="mh__arrow" data-mh-next aria-label="Foto siguiente">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
   </div>
+
+  {# ---------- la línea de abajo: por qué comprar acá ---------- #}
+  <dl class="mh__facts">
+    <div><dt>Viaja todos los meses</dt><dd>Compra en tienda oficial, en Milán.</dd></div>
+    <div><dt>Una unidad por talle</dt><dd>Cuando no está, no vuelve.</dd></div>
+    <div><dt>Probador virtual</dt><dd>Subís tu foto y la ves puesta.</dd></div>
+    <div><dt>Fotos del viaje</dt><dd>Sin producción. Las saca él.</dd></div>
+  </dl>
 </section>
 <span id="mi-after-hero"></span>
 
 <style>
-  /* ====== HERO "EL VIAJE" — todo sobre los tokens del DS ====== */
-  .mh{ background:var(--mi-bg); padding:clamp(18px,3vw,34px) 0 clamp(36px,6vw,64px); }
-  .mh__wrap{
-    max-width:1280px; margin:0 auto; padding:0 clamp(20px,5vw,48px);
-    display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-    gap:clamp(28px,4vw,64px); align-items:center;
-  }
+  /* ====== HERO — tira arrastrable + placa de vidrio ====== */
+  .mh{ background:var(--mi-bg); padding:0 0 clamp(28px,4vw,52px); }
 
-  /* ---- Foto ---- */
-  .mh__stage{
-    position:relative; border-radius:var(--mi-r-lg); overflow:hidden;
-    background:var(--mi-bg-3); box-shadow:var(--mi-shadow);
-    aspect-ratio:3/4;                        /* la altura la fija la proporción, nunca el archivo */
+  .mh__rail{
+    position:relative; overflow:hidden;
+    /* Altura acotada SIEMPRE: con la proporción de la foto suelta, a 800px de
+       ancho el hero medía 1000px de alto y el mensaje quedaba fuera de la
+       pantalla. Nunca vh pelado: la barra de Safari mobile miente. */
+    height:clamp(430px, 74svh, 720px);
+    background:var(--mi-bg-3);
+    cursor:grab; touch-action:pan-y;         /* el scroll vertical sigue siendo del navegador */
+    user-select:none; -webkit-user-select:none;
   }
-  .mh__slide{
-    position:absolute; inset:0; margin:0; opacity:0; visibility:hidden;
-    transition:opacity .7s var(--mi-ease);
+  .mh__rail.is-drag{ cursor:grabbing; }
+
+  .mh__track{ display:flex; height:100%; will-change:transform;
+    transition:transform .72s var(--mi-ease); }
+  .mh__rail.is-drag .mh__track{ transition:none; }
+  .mh__cell{ flex:0 0 100%; height:100%; margin:0; position:relative; }
+  .mh__cell img{
+    width:100%; height:100%; object-fit:cover; object-position:center;
+    display:block; pointer-events:none;
   }
-  .mh__slide.is-on{ opacity:1; visibility:visible; }
-  .mh__slide img{ width:100%; height:100%; object-fit:cover; display:block; }
+  /* Velo claro: garantiza que la placa se lea sobre CUALQUIER foto, tanto la
+     del Duomo (gris) como la de la boutique (casi blanca). */
+  .mh__cell::after{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(100deg, rgba(251,251,250,.94) 0%, rgba(251,251,250,.72) 34%,
+                                       rgba(251,251,250,.10) 62%, rgba(251,251,250,0) 100%);
+  }
+  @media (max-width:900px){
+    .mh__cell::after{
+      background:linear-gradient(180deg, rgba(251,251,250,.10) 0%, rgba(251,251,250,.34) 38%,
+                                         rgba(251,251,250,.93) 78%, var(--mi-bg) 100%);
+    }
+  }
 
   .mh__place{
-    position:absolute; top:14px; left:14px; right:auto; max-width:min(78%,320px);
-    display:flex; align-items:center; gap:9px;
-    padding:9px 14px; border-radius:var(--mi-pill);
-    font-size:12.5px; line-height:1.35; color:var(--mi-ink);
+    position:absolute; right:16px; top:16px; z-index:2;
+    display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;
+    max-width:min(64%,340px); padding:8px 14px; border-radius:var(--mi-pill);
+    background:var(--mi-glass-strong); border:1px solid var(--mi-line);
+    -webkit-backdrop-filter:blur(18px) saturate(180%); backdrop-filter:blur(18px) saturate(180%);
+    font-size:12px; color:var(--mi-ink-soft);
   }
-  .mh__place b{ display:block; font-weight:600; }
-  .mh__place span span, .mh__place > span{ min-width:0; }
-  .mh__place-pin{
-    width:9px; height:9px; flex:none; border-radius:50%;
-    border:2px solid var(--mi-ink); opacity:.55;
-  }
+  .mh__place b{ font-weight:600; color:var(--mi-ink); }
+  .mh__pin{ width:7px; height:7px; border-radius:50%; background:var(--mi-ink); opacity:.5; flex:none; align-self:center; }
 
-  .mh__arrows{ position:absolute; right:14px; bottom:14px; display:flex; gap:8px; }
-  .mh__arrow{
-    width:44px; height:44px;            /* target táctil del Estándar */
-    display:grid; place-items:center; cursor:pointer;
-    border-radius:50%; border:1px solid var(--mi-line);
-    background:var(--mi-glass-strong); color:var(--mi-ink);
-    -webkit-backdrop-filter:blur(var(--mi-blur)) saturate(180%); backdrop-filter:blur(var(--mi-blur)) saturate(180%);
-    transition:transform .35s var(--mi-ease), background .35s var(--mi-ease);
+  /* ---- la placa del mensaje ---- */
+  .mh__panel{
+    position:absolute; z-index:3; left:clamp(20px,5vw,56px); top:50%; transform:translateY(-50%);
+    width:min(486px, calc(100% - clamp(40px,10vw,112px)));
+    padding:clamp(24px,3vw,38px); border-radius:var(--mi-r-lg);
   }
-  .mh__arrow svg{ width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
-  .mh__arrow:hover{ transform:scale(1.07); background:var(--mi-bg-2); }
-  .mh__arrow:focus-visible{ outline:2px solid var(--mi-ink); outline-offset:3px; }
-
-  .mh__thumbs{ display:flex; gap:10px; margin-top:14px; }
-  .mh__thumb{
-    flex:1 1 0; min-width:0; padding:0; cursor:pointer; background:none;
-    border:1px solid var(--mi-line); border-radius:var(--mi-r-sm); overflow:hidden;
-    aspect-ratio:4/5; opacity:.5;
-    transition:opacity .4s var(--mi-ease), border-color .4s var(--mi-ease), transform .4s var(--mi-ease);
-  }
-  .mh__thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .mh__thumb:hover{ opacity:.85; transform:translateY(-2px); }
-  .mh__thumb.is-on{ opacity:1; border-color:var(--mi-ink); }
-  .mh__thumb:focus-visible{ outline:2px solid var(--mi-ink); outline-offset:2px; }
-
-  .mh__note{
-    margin:12px 0 0; font-size:10.5px; letter-spacing:.22em; text-transform:uppercase;
-    color:var(--mi-ink-mute);
-  }
-
-  /* ---- Texto ---- */
   .mh__badge{
-    display:inline-flex; align-items:center; gap:9px;
-    padding:9px 16px; border-radius:var(--mi-pill);
-    font-size:11px; letter-spacing:.18em; text-transform:uppercase; font-weight:600;
-    color:var(--mi-ink);
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; font-weight:600; color:var(--mi-ink);
   }
   .mh__badge i{ width:6px; height:6px; border-radius:50%; background:var(--mi-ink); flex:none; }
-
   .mh__title{
-    margin:22px 0 0;
-    font-size:clamp(38px,5.4vw,68px); line-height:1.02; letter-spacing:-.028em;
-    font-weight:700; color:var(--mi-ink); text-wrap:balance;
+    margin:16px 0 0; font-size:clamp(30px,4vw,54px); line-height:1.03;
+    letter-spacing:-.028em; font-weight:700; color:var(--mi-ink); text-wrap:balance;
   }
-  .mh__lead{
-    margin:18px 0 0; max-width:44ch;
-    font-size:clamp(15px,1.25vw,17px); line-height:1.62; color:var(--mi-ink-soft);
-  }
-
-  .mh__cta{ display:flex; flex-wrap:wrap; gap:12px; margin-top:30px; }
+  .mh__lead{ margin:14px 0 0; font-size:clamp(14px,1.15vw,16px); line-height:1.6; color:var(--mi-ink-soft); }
+  .mh__cta{ display:flex; flex-wrap:wrap; gap:10px; margin-top:24px; }
   .mh__btn{
-    display:inline-flex; align-items:center; justify-content:center; gap:10px;
-    min-height:52px; padding:0 26px; border-radius:var(--mi-pill);
-    font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:600;
-    border:1px solid transparent; text-align:center;
-    transition:transform .35s var(--mi-ease), background .35s var(--mi-ease), color .35s var(--mi-ease);
+    display:inline-flex; align-items:center; justify-content:center; gap:9px;
+    min-height:50px; padding:0 24px; border-radius:var(--mi-pill);
+    font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:600;
+    border:1px solid transparent;
+    transition:transform .35s var(--mi-ease), background .35s var(--mi-ease);
   }
-  .mh__btn svg{ width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+  .mh__btn svg{ width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
   .mh__btn--solid{ background:var(--mi-accent); color:var(--mi-bg); }
   .mh__btn--solid:hover{ background:var(--mi-accent-2); transform:translateY(-2px); }
-  .mh__btn--glass{ color:var(--mi-ink); border-color:var(--mi-line-2); }
-  .mh__btn--glass:hover{ background:var(--mi-bg-2); transform:translateY(-2px); }
+  .mh__btn--ghost{ color:var(--mi-ink); border-color:var(--mi-line-2); background:var(--mi-bg-2); }
+  .mh__btn--ghost:hover{ transform:translateY(-2px); }
   .mh__btn:focus-visible{ outline:2px solid var(--mi-ink); outline-offset:3px; }
 
-  .mh__facts{
-    display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(14px,2vw,26px);
-    margin:clamp(30px,4vw,44px) 0 0; padding-top:clamp(20px,2.6vw,28px);
-    border-top:1px solid var(--mi-line);
+  /* ---- controles: barras que se llenan, no números ---- */
+  .mh__ctrl{
+    position:absolute; z-index:3; right:clamp(16px,3vw,28px); bottom:clamp(16px,3vw,24px);
+    display:flex; align-items:center; gap:10px;
   }
-  .mh__facts dt{ font-size:13px; font-weight:600; color:var(--mi-ink); line-height:1.3; }
-  .mh__facts dd{ margin:6px 0 0; font-size:12.5px; line-height:1.5; color:var(--mi-ink-soft); }
+  .mh__arrow{
+    width:44px; height:44px; display:grid; place-items:center; cursor:pointer;
+    border-radius:50%; border:1px solid var(--mi-line); color:var(--mi-ink);
+    background:var(--mi-glass-strong);
+    -webkit-backdrop-filter:blur(18px) saturate(180%); backdrop-filter:blur(18px) saturate(180%);
+    transition:transform .3s var(--mi-ease), background .3s var(--mi-ease);
+  }
+  .mh__arrow svg{ width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+  .mh__arrow:hover{ transform:scale(1.08); background:var(--mi-bg-2); }
+  .mh__arrow:focus-visible{ outline:2px solid var(--mi-ink); outline-offset:3px; }
 
-  /* ---- Mobile: la foto primero, el texto abajo ---- */
+  .mh__bars{ display:flex; gap:6px; align-items:center; }
+  .mh__bar{
+    width:30px; height:34px; padding:0; border:0; background:none; cursor:pointer;
+    display:grid; place-items:center;
+  }
+  .mh__bar i{
+    display:block; width:100%; height:3px; border-radius:2px;
+    background:rgba(21,22,26,.22); overflow:hidden; position:relative;
+  }
+  .mh__bar i::after{
+    content:""; position:absolute; inset:0; width:0; background:var(--mi-ink);
+    transition:width .4s var(--mi-ease);
+  }
+  .mh__bar.is-on i::after{ width:100%; }
+  .mh__bar:focus-visible{ outline:2px solid var(--mi-ink); outline-offset:2px; border-radius:4px; }
+
+  /* ---- la línea de abajo ---- */
+  .mh__facts{
+    max-width:1280px; margin:clamp(22px,3vw,34px) auto 0; padding:0 clamp(20px,5vw,48px);
+    display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:clamp(14px,2vw,28px);
+  }
+  .mh__facts dt{ font-size:12.5px; font-weight:600; color:var(--mi-ink); line-height:1.3; }
+  .mh__facts dd{ margin:5px 0 0; font-size:12px; line-height:1.5; color:var(--mi-ink-soft); }
+
   @media (max-width:900px){
-    .mh__wrap{ grid-template-columns:minmax(0,1fr); gap:26px; }
-    .mh__facts{ grid-template-columns:minmax(0,1fr); gap:14px; }
-    .mh__facts dd{ margin-top:3px; }
+    .mh__rail{ height:clamp(500px, 82svh, 760px); }
+    .mh__panel{
+      top:auto; bottom:74px; transform:none;
+      left:clamp(16px,4vw,24px); right:clamp(16px,4vw,24px); width:auto;
+      padding:20px;
+    }
+    .mh__place{ max-width:calc(100% - 32px); }
+    .mh__ctrl{ left:clamp(16px,4vw,24px); right:clamp(16px,4vw,24px); justify-content:space-between; }
     .mh__btn{ flex:1 1 auto; }
+    .mh__facts{ grid-template-columns:repeat(2,minmax(0,1fr)); }
   }
   @media (max-width:420px){
-    .mh__place{ max-width:calc(100% - 28px); font-size:12px; }
+    .mh__facts{ grid-template-columns:minmax(0,1fr); }
   }
 
-  /* ---- Entrada: el contenido arranca VISIBLE y sube apenas ----
-     Nada parte de opacity:0 esperando un observer. Si el JS no corre o la
-     pestaña estaba en segundo plano, la portada igual se lee — que es el
-     modo en que este tipo de animación deja una web en blanco. */
-  .mh__copy > *{ transform:translateY(10px); opacity:.001; }
-  .mh.is-ready .mh__copy > *{ transform:none; opacity:1;
-    transition:transform .8s var(--mi-ease), opacity .8s var(--mi-ease); }
-  .mh.is-ready .mh__copy > *:nth-child(2){ transition-delay:.06s }
-  .mh.is-ready .mh__copy > *:nth-child(3){ transition-delay:.12s }
-  .mh.is-ready .mh__copy > *:nth-child(4){ transition-delay:.18s }
-  .mh.is-ready .mh__copy > *:nth-child(5){ transition-delay:.24s }
+  /* Entrada: arranca casi visible y sube. Nunca en opacity:0 esperando un
+     observer — si no dispara, la portada queda en blanco para siempre. */
+  .mh__panel > *{ transform:translateY(9px); opacity:.001; }
+  .mh.is-ready .mh__panel > *{ transform:none; opacity:1;
+    transition:transform .75s var(--mi-ease), opacity .75s var(--mi-ease); }
+  .mh.is-ready .mh__panel > *:nth-child(2){ transition-delay:.07s }
+  .mh.is-ready .mh__panel > *:nth-child(3){ transition-delay:.14s }
+  .mh.is-ready .mh__panel > *:nth-child(4){ transition-delay:.21s }
 
   @media (prefers-reduced-motion:reduce){
-    .mh__copy > *{ transform:none; opacity:1; }
-    .mh__slide{ transition:none; }
-    .mh__arrow, .mh__thumb, .mh__btn{ transition:none; }
+    .mh__panel > *{ transform:none; opacity:1; }
+    .mh__track, .mh__arrow, .mh__btn, .mh__bar i::after{ transition:none; }
   }
 </style>
 
@@ -243,59 +250,95 @@
   var hero = document.getElementById('mi-hero');
   if (!hero) return;
 
-  /* La entrada se enciende en el frame siguiente, y ADEMÁS por setTimeout:
-     si rAF nunca corre (pestaña de fondo, WebView), el contenido igual
-     aparece. Sin este segundo camino, la portada puede quedar invisible. */
   var encender = function(){ hero.classList.add('is-ready'); };
   requestAnimationFrame(function(){ requestAnimationFrame(encender); });
-  setTimeout(encender, 400);
+  setTimeout(encender, 400);            // segundo camino: si rAF no corre, igual aparece
 
-  var slides = [].slice.call(hero.querySelectorAll('[data-mh-slide]'));
-  var thumbs = [].slice.call(hero.querySelectorAll('[data-mh-thumb]'));
-  if (slides.length < 2) return;
-  var actual = 0, timer = null;
+  var rail  = hero.querySelector('[data-mh-rail]');
+  var track = hero.querySelector('[data-mh-track]');
+  var cells = [].slice.call(hero.querySelectorAll('[data-mh-cell]'));
+  var bars  = [].slice.call(hero.querySelectorAll('[data-mh-go]'));
+  if (!rail || !track || cells.length < 2) return;
 
-  function mostrar(i){
-    actual = (i + slides.length) % slides.length;
-    slides.forEach(function(s, n){ s.classList.toggle('is-on', n === actual); });
-    thumbs.forEach(function(t, n){
-      t.classList.toggle('is-on', n === actual);
-      t.setAttribute('aria-selected', n === actual ? 'true' : 'false');
+  var i = 0, timer = null, lento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function pintar(){
+    track.style.transform = 'translate3d(' + (-i * 100) + '%,0,0)';
+    bars.forEach(function(b, n){
+      b.classList.toggle('is-on', n === i);
+      b.setAttribute('aria-selected', n === i ? 'true' : 'false');
     });
   }
-  function arrancar(){
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    detener(); timer = setInterval(function(){ mostrar(actual + 1); }, 5200);
-  }
-  function detener(){ if (timer) { clearInterval(timer); timer = null; } }
-  function ir(i){ mostrar(i); arrancar(); }
+  function ir(n){ i = (n + cells.length) % cells.length; pintar(); reloj(); }
+  function reloj(){ parar(); if (!lento) timer = setInterval(function(){ ir(i + 1); }, 5600); }
+  function parar(){ if (timer) { clearInterval(timer); timer = null; } }
 
-  thumbs.forEach(function(t, n){ t.addEventListener('click', function(){ ir(n); }); });
+  bars.forEach(function(b, n){ b.addEventListener('click', function(){ ir(n); }); });
   var prev = hero.querySelector('[data-mh-prev]'), next = hero.querySelector('[data-mh-next]');
-  if (prev) prev.addEventListener('click', function(){ ir(actual - 1); });
-  if (next) next.addEventListener('click', function(){ ir(actual + 1); });
+  if (prev) prev.addEventListener('click', function(){ ir(i - 1); });
+  if (next) next.addEventListener('click', function(){ ir(i + 1); });
 
-  /* Se desliza con el dedo, como cualquier galería del teléfono. */
-  var stage = hero.querySelector('[data-mh-stage]'), x0 = null;
-  if (stage){
-    stage.addEventListener('touchstart', function(e){ x0 = e.touches[0].clientX; detener(); }, {passive:true});
-    stage.addEventListener('touchend', function(e){
-      if (x0 === null) return;
-      var dx = e.changedTouches[0].clientX - x0;
-      if (Math.abs(dx) > 42) ir(actual + (dx < 0 ? 1 : -1)); else arrancar();
-      x0 = null;
-    }, {passive:true});
+  /* ---- Se agarra y se tira: mouse y dedo, con el MISMO código ----
+     Pointer Events unifica los dos. El umbral es proporcional al ancho para
+     que en el celular no haga falta arrastrar media pantalla. */
+  var x0 = 0, dx = 0, arrastrando = false;
+
+  function empezar(e){
+    if (e.button !== undefined && e.button !== 0) return;   // sólo botón izquierdo
+    arrastrando = true; x0 = e.clientX; dx = 0;
+    rail.classList.add('is-drag'); parar();
+    if (rail.setPointerCapture && e.pointerId !== undefined) {
+      try { rail.setPointerCapture(e.pointerId); } catch (err) {}
+    }
+  }
+  function mover(e){
+    if (!arrastrando) return;
+    dx = e.clientX - x0;
+    track.style.transform = 'translate3d(calc(' + (-i * 100) + '% + ' + dx + 'px),0,0)';
+  }
+  function soltar(){
+    if (!arrastrando) return;
+    arrastrando = false; rail.classList.remove('is-drag');
+    var umbral = Math.max(48, rail.offsetWidth * 0.14);
+    if (Math.abs(dx) > umbral) ir(i + (dx < 0 ? 1 : -1));
+    else { pintar(); reloj(); }
+    dx = 0;
   }
 
-  /* Fuera de pantalla no se gasta nada. */
-  if ('IntersectionObserver' in window){
-    new IntersectionObserver(function(es){
-      es[0].isIntersecting ? arrancar() : detener();
-    }, {threshold:.2}).observe(hero);
-  } else { arrancar(); }
+  if (window.PointerEvent){
+    rail.addEventListener('pointerdown', empezar);
+    rail.addEventListener('pointermove', mover);
+    rail.addEventListener('pointerup', soltar);
+    rail.addEventListener('pointercancel', soltar);
+    rail.addEventListener('pointerleave', soltar);
+  } else {
+    rail.addEventListener('mousedown', empezar);
+    window.addEventListener('mousemove', mover);
+    window.addEventListener('mouseup', soltar);
+    rail.addEventListener('touchstart', function(e){ empezar(e.touches[0]); }, {passive:true});
+    rail.addEventListener('touchmove',  function(e){ mover(e.touches[0]); }, {passive:true});
+    rail.addEventListener('touchend', soltar);
+  }
+  /* Arrastrar no tiene que "abrir" el link que hay debajo del dedo. */
+  rail.addEventListener('click', function(e){
+    if (Math.abs(dx) > 6) { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+  rail.addEventListener('dragstart', function(e){ e.preventDefault(); });
 
-  document.addEventListener('visibilitychange', function(){
-    document.hidden ? detener() : arrancar();
+  /* Teclado */
+  rail.setAttribute('tabindex', '0');
+  rail.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); ir(i - 1); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); ir(i + 1); }
   });
+
+  /* Fuera de pantalla o pestaña oculta: no se gasta nada */
+  if ('IntersectionObserver' in window){
+    new IntersectionObserver(function(es){ es[0].isIntersecting ? reloj() : parar(); },
+                             {threshold:.15}).observe(hero);
+  } else { reloj(); }
+  document.addEventListener('visibilitychange', function(){ document.hidden ? parar() : reloj(); });
+
+  pintar(); reloj();
 })();
 </script>

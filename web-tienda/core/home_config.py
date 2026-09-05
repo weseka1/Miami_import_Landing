@@ -39,35 +39,16 @@ DEFAULTS: dict[str, Any] = {
         "activo": True,
         "eyebrow": "La casa",
         "titulo": "Piezas de archivo",
-        # Copia FIEL de lo que estaba en la plantilla (incluido el género, que
-        # es lo que filtra el switch HOMBRE / MUJER de la vitrina).
-        "piezas": [
-            {"nombre": "MARRÓN", "genero": "hombre",
-             "imagen": "/static/images/trilogy-marron-v6.webp",
-             "ref": "REF / 01 · HOMBRE", "colorway": "TIERRA NEGRA",
-             "talles": "S — 2XL", "peso": "980 g", "link": "/tipo/camperas",
-             "descripcion": "Tierra negra. La pieza se reescribe en tono cálido, con patches que viran al dorado. Streetwear con vocabulario de archivo."},
-            {"nombre": "MULTICOLOR", "genero": "hombre",
-             "imagen": "/static/images/trilogy-multicolor-v6.webp",
-             "ref": "REF / 02 · HOMBRE", "colorway": "MULTICOLOR ARCHIVE",
-             "talles": "S — 2XL", "peso": "980 g", "link": "",
-             "descripcion": "Pieza de archivo racing. Patches saturados, composición tipográfica intensa. Rojo motor, blanco crudo y negro tinta en convivencia."},
-            {"nombre": "BLANCO", "genero": "mujer",
-             "imagen": "/static/images/trilogy-blanco-v6.webp",
-             "ref": "REF / 01 · MUJER", "colorway": "CRUDO MARFIL",
-             "talles": "S — 2XL", "peso": "980 g", "link": "/tipo/camperas",
-             "descripcion": "Crudo. Sin maquillaje. Patches bordados sobre nylon italiano, hilos plateados, costura visible. Una declaración de pureza."},
-            {"nombre": "NEGRO", "genero": "mujer",
-             "imagen": "/static/images/trilogy-negro-v6.webp",
-             "ref": "REF / 02 · MUJER", "colorway": "NEGRO TINTA",
-             "talles": "S — 2XL", "peso": "980 g", "link": "/tipo/camperas",
-             "descripcion": "Negro tinta. El bordado se vuelve tonal, el peso visual se concentra. Una lectura más íntima, casi monástica."},
-            {"nombre": "NEGRA PARCHES", "genero": "hombre",
-             "imagen": "/static/images/trilogy-negra-parches-v6.webp",
-             "ref": "REF / 03 · HOMBRE", "colorway": "NEGRO PARCHES",
-             "talles": "S — 2XL", "peso": "980 g", "link": "/tipo/camperas",
-             "descripcion": "Negra estructura. Patches metálicos sobre nylon italiano, costura visible y peso editorial. Streetwear con presencia de archivo."},
-        ],
+        # 🔴 VACIO A PROPOSITO. Aca vivian cinco camperas de la campana
+        # "trilogy" escritas a mano. Diego dejo de venderlas y la vitrina las
+        # siguio mostrando meses, porque no salian del catalogo: eran texto
+        # fijo. Juani las reporto dos veces.
+        #
+        # Con la lista vacia, app.py arma la vitrina con productos REALES del
+        # catalogo (los mismos `destacados` que ya se consultaron, sin costo
+        # extra). Asi no puede volver a quedar desactualizada.
+        # Si Diego carga piezas a mano desde el panel, esas ganan.
+        "piezas": [],
     },
     "marcas": {
         "activo": True,

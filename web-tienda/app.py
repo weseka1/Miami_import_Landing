@@ -389,6 +389,43 @@ def diag():
 </body></html>""")
 
 
+
+def _vitrina_desde_catalogo(productos, limite: int = 6) -> list[dict]:
+    """Convierte productos reales en las piezas de la vitrina de la home.
+
+    El genero decide el switch Hombre/Mujer y no existe como campo, asi que se
+    lee del nombre y de las categorias. Ante la duda queda en hombre, que es
+    donde esta el grueso del catalogo.
+    """
+    MUJER = ("dama", "mujer", "femenin", "top ", "vestido", "pollera", "corpi")
+    piezas, n_h, n_m = [], 0, 0
+    for p in productos or []:
+        if not getattr(p, "images", None):
+            continue
+        txt = (p.name or "").lower() + " " + " ".join(
+            (c.name or "").lower() for c in (getattr(p, "categories", None) or []))
+        es_mujer = any(w in txt for w in MUJER)
+        if es_mujer:
+            n_m += 1
+        else:
+            n_h += 1
+        talles = [v.value for v in (getattr(p, "variants", None) or []) if v.value]
+        piezas.append({
+            "nombre": (p.name or "").upper(),
+            "genero": "mujer" if es_mujer else "hombre",
+            "imagen": p.images[0].url,
+            "ref": f"REF / {(n_m if es_mujer else n_h):02d} · {'MUJER' if es_mujer else 'HOMBRE'}",
+            "colorway": (p.brand or "").upper(),
+            "talles": f"{talles[0]} — {talles[-1]}" if len(talles) > 1 else (talles[0] if talles else ""),
+            "peso": "",
+            "link": f"/productos/{p.handle}" if getattr(p, "handle", None) else "",
+            "descripcion": (p.description or "")[:180] or
+                           f"{p.brand or 'Pieza'} original, comprada en tienda oficial en Milán.",
+        })
+        if len(piezas) >= limite:
+            break
+    return piezas
+
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request, db: Session = Depends(get_db)):
     from sqlalchemy import func
@@ -452,6 +489,15 @@ def home(request: Request, db: Session = Depends(get_db)):
     # Oregon, así que CADA consulta cuesta ~180 ms de ida y vuelta. Se sacaron
     # `marcas` (nav_categories) y `sections` porque home.html no los usa: la
     # sección de marcas se arma con `home.marcas`, que sale de home_config.
+    # La vitrina, con prendas de verdad. Si Diego no cargo piezas a mano, se
+    # arma con los destacados que ya estan en memoria: cero consultas nuevas
+    # (cada una cuesta ~180 ms contra Sao Paulo). Antes eran cinco camperas
+    # escritas a mano que quedaron meses despues de dejar de venderse.
+    home_cfg = home_config_cacheada(db)
+    if not (home_cfg.get("vitrina") or {}).get("piezas"):
+        home_cfg = {**home_cfg, "vitrina": {**home_cfg.get("vitrina", {}),
+                                            "piezas": _vitrina_desde_catalogo(destacados)}}
+
     return templates.TemplateResponse(
         request, "home.html",
         base_context(request, db, destacados=destacados, mas_vendidos=mas_vendidos,
@@ -459,7 +505,7 @@ def home(request: Request, db: Session = Depends(get_db)):
                      # Todo lo editable de la home (lo carga Diego desde el
                      # panel). Sin nada guardado devuelve los valores de
                      # fábrica, que son los que estaban escritos a mano.
-                     home=home_config_cacheada(db),
+                     home=home_cfg,
                      template_class="home"),
     )
 
