@@ -139,9 +139,9 @@
        color en movimiento, no como una foto tapada por una sabana. El mensaje
        no depende de este velo para leerse —vive en su propia placa de vidrio—
        asi que se puede bajar sin arriesgar el contraste. */
-    background:linear-gradient(180deg, rgba(251,251,250,.52) 0%, rgba(251,251,250,.38) 45%,
-                                       rgba(251,251,250,.62) 100%);
-    -webkit-backdrop-filter:blur(22px) saturate(135%); backdrop-filter:blur(22px) saturate(135%);
+    background:linear-gradient(180deg, rgba(251,251,250,.34) 0%, rgba(251,251,250,.20) 45%,
+                                       rgba(251,251,250,.46) 100%);
+    -webkit-backdrop-filter:blur(26px) saturate(145%); backdrop-filter:blur(26px) saturate(145%);
   }
   /* El video, un poco mas grande que su caja: al desenfocar, los bordes se
      lavan y se veria un halo claro en el perimetro. */
@@ -291,7 +291,11 @@
   @media (max-width:900px){ .mh__thumbs{ display:none; } }
 
   .mh__facts{
-    position:relative; max-width:1280px; margin:clamp(22px,3vw,34px) auto 0; padding:0 clamp(20px,5vw,48px);
+    position:relative; max-width:calc(1280px - 2*clamp(20px,5vw,48px)); margin:clamp(22px,3vw,34px) auto 0;
+    padding:clamp(16px,2vw,22px) clamp(20px,4vw,32px);
+    background:var(--mi-glass); border:1px solid var(--mi-line);
+    border-top-color:var(--mi-glass-line); border-radius:var(--mi-r);
+    -webkit-backdrop-filter:blur(var(--mi-blur)) saturate(180%); backdrop-filter:blur(var(--mi-blur)) saturate(180%);
     display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:clamp(14px,2vw,28px);
   }
   .mh__facts dt{ font-size:12.5px; font-weight:600; color:var(--mi-ink); line-height:1.3; }
