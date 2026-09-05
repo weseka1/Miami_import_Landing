@@ -115,8 +115,11 @@
   .h-ticker__track span{ font-size:11px; letter-spacing:.34em; text-transform:uppercase; color:var(--mi-ink-mute); }
   @keyframes h-marq{ to{ transform:translateX(-50%); } }
 
-  .h-sec{ max-width:1280px; margin:0 auto; padding:clamp(64px,9vw,120px) clamp(20px,5vw,48px); }
-  .h-sec__head{ margin-bottom:clamp(32px,5vw,56px); }
+  /* El aire estaba ADENTRO de cada seccion: 120px arriba y abajo por 6
+     secciones eran 1440px de nada. Con 68px el ritmo se mantiene y la
+     pagina deja de ser un scroll infinito. */
+  .h-sec{ max-width:1280px; margin:0 auto; padding:clamp(38px,5vw,68px) clamp(20px,5vw,48px); }
+  .h-sec__head{ margin-bottom:clamp(20px,2.6vw,34px); }
   .h-sec__head--row{ display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; }
   .h-eyebrow{ display:inline-block; font-size:11px; letter-spacing:.4em; text-transform:uppercase; color:var(--mi-accent); font-weight:600; margin-bottom:14px; }
   .h-title{ margin:0; font-size:clamp(30px,5vw,60px); line-height:1; letter-spacing:-.02em; text-transform:uppercase; font-weight:600; }
@@ -195,9 +198,9 @@
   .h-value__d{ margin:0; font-size:13px; line-height:1.6; color:var(--mi-ink-soft); }
 
   /* CTA */
-  .h-cta{ text-align:center; max-width:720px; margin:0 auto; padding:clamp(72px,10vw,140px) clamp(20px,5vw,48px); }
+  .h-cta{ text-align:center; max-width:720px; margin:0 auto; padding:clamp(44px,6vw,84px) clamp(20px,5vw,48px); }
   .h-cta__title{ margin:0 0 12px; font-size:clamp(28px,4.4vw,52px); line-height:1.05; letter-spacing:-.02em; text-transform:uppercase; font-weight:600; }
-  .h-cta .h-lead{ margin:0 auto 28px; }
+  .h-cta .h-lead{ margin:0 auto 22px; }
 
   /* Botones (pill, DS) */
   .h-btn{ display:inline-flex; align-items:center; gap:8px; padding:15px 28px; border-radius:var(--mi-pill);

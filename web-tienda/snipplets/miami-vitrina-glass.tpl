@@ -118,7 +118,7 @@
   --hair:rgba(21,22,26,.10);
   position:relative; isolation:isolate; overflow:clip;
   background:var(--carbon); color:var(--tinta);
-  padding:clamp(52px,7vw,92px) 0 clamp(46px,6vw,78px);
+  padding:clamp(26px,4.3vw,46px) 0 clamp(46px,6vw,78px);
 }
 /* luz ambiental: UNA fuente cálida, no un gradiente decorativo */
 .mi-vt__amb{

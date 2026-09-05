@@ -444,28 +444,28 @@ def home(request: Request, db: Session = Depends(get_db)):
     # vendidas reales (order_items) y, sin historial, los productos con más
     # talles cargados (proxy de "producto insignia"). Nunca queda vacía.
     ids_mv = [r[0] for r in _base().filter(Product.mas_vendido.is_(True))
-              .order_by(Product.id.desc()).limit(8)]
+              .order_by(Product.id.desc()).limit(4)]
     if not ids_mv:
         ventas = (
             db.query(OrderItem.product_id, func.sum(OrderItem.quantity).label("q"))
             .group_by(OrderItem.product_id).subquery()
         )
         ids_mv = [r[0] for r in _base().join(ventas, ventas.c.product_id == Product.id)
-                  .order_by(ventas.c.q.desc()).limit(8)]
+                  .order_by(ventas.c.q.desc()).limit(4)]
         if len(ids_mv) < 4:
             talles = (
                 db.query(Variant.product_id, func.count(Variant.id).label("n"))
                 .group_by(Variant.product_id).subquery()
             )
             ids_mv = [r[0] for r in _base().join(talles, talles.c.product_id == Product.id)
-                      .order_by(talles.c.n.desc(), Product.id.desc()).limit(8)]
+                      .order_by(talles.c.n.desc(), Product.id.desc()).limit(4)]
 
     # DESTACADOS — los que Diego marcó desde el panel (destacado=True). Si no
     # hay ninguno marcado, caen los más nuevos: la sección nunca queda vacía.
     ids_dest = [r[0] for r in _base().filter(Product.destacado.is_(True))
-                .order_by(Product.id.desc()).limit(8)]
+                .order_by(Product.id.desc()).limit(4)]
     if not ids_dest:
-        ids_dest = [r[0] for r in _base().order_by(Product.id.desc()).limit(8)]
+        ids_dest = [r[0] for r in _base().order_by(Product.id.desc()).limit(4)]
 
     # ÚLTIMOS EN STOCK — quedan pocas unidades (suma de stock ascendente, > 0).
     stock_sq = (
@@ -474,8 +474,12 @@ def home(request: Request, db: Session = Depends(get_db)):
     )
     ids_ult = [r[0] for r in _base().join(stock_sq, stock_sq.c.product_id == Product.id)
                .filter(stock_sq.c.s > 0)
-               .order_by(stock_sq.c.s.asc(), Product.id.desc()).limit(8)]
+               .order_by(stock_sq.c.s.asc(), Product.id.desc()).limit(4)]
 
+    # 4 y no 8 por seccion: en desktop la grilla es de 4 columnas, asi que
+    # cada seccion entra en UNA fila. Con 8 eran dos filas y las tres secciones
+    # juntas median 4.086px — la mitad de la home era scroll de productos que
+    # ya estan en /productos. La portada muestra, el catalogo lista.
     # Una sola consulta (+2 de relaciones) para las tres secciones juntas, y
     # después se rearma cada lista respetando SU orden.
     necesarios = list({*ids_mv, *ids_dest, *ids_ult})
