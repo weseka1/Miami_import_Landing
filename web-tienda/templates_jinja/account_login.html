@@ -4,7 +4,7 @@
 {% block content %}
 <div class="mi-container" style="max-width:480px;padding:60px 24px;min-height:60vh">
   <div style="display:flex;gap:8px;margin-bottom:28px;justify-content:center">
-    <button class="mi-tab" data-tab="login" style="background:none;border:0;color:var(--miami-gold,#b99b63);font-size:13px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;padding:8px 14px;border-bottom:2px solid var(--miami-gold,#b99b63)">Ingresar</button>
+    <button class="mi-tab" data-tab="login" style="background:none;border:0;color:var(--mi-accent,#15161A);font-size:13px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;padding:8px 14px;border-bottom:2px solid var(--mi-accent,#15161A)">Ingresar</button>
     <button class="mi-tab" data-tab="register" style="background:none;border:0;color:rgba(245,243,238,.5);font-size:13px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;padding:8px 14px;border-bottom:2px solid transparent">Crear cuenta</button>
   </div>
 
@@ -38,11 +38,11 @@
 
 <style>
   .mi-auth-form label{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:rgba(245,243,238,.6);margin:16px 0 6px}
-  .mi-auth-form input{width:100%;padding:12px 14px;background:#0d0d0d;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:8px;outline:none;font-size:15px}
-  .mi-auth-form input:focus{border-color:var(--miami-gold,#b99b63)}
-  .mi-auth-form button[type=submit]{margin-top:24px;width:100%;padding:14px;border:0;border-radius:999px;background:var(--miami-gold,#b99b63);color:#0a0a0a;font-weight:700;letter-spacing:.15em;text-transform:uppercase;font-size:13px;cursor:pointer}
+  .mi-auth-form input{width:100%;padding:12px 14px;background:#0d0d0d;border:1px solid var(--mi-line);color:#fff;border-radius:8px;outline:none;font-size:15px}
+  .mi-auth-form input:focus{border-color:var(--mi-accent,#15161A)}
+  .mi-auth-form button[type=submit]{margin-top:24px;width:100%;padding:14px;border:0;border-radius:999px;background:var(--mi-accent,#15161A);color:#0a0a0a;font-weight:700;letter-spacing:.15em;text-transform:uppercase;font-size:13px;cursor:pointer}
   .mi-auth-msg{min-height:18px;margin-top:14px;text-align:center;font-size:13px;color:#ff8a8a}
-  .mi-auth-msg.ok{color:var(--miami-gold,#b99b63)}
+  .mi-auth-msg.ok{color:var(--mi-accent,#15161A)}
 </style>
 {% endblock %}
 
@@ -51,7 +51,7 @@
   const tabs=document.querySelectorAll('.mi-tab'), fl=document.getElementById('form-login'), fr=document.getElementById('form-register');
   tabs.forEach(t=>t.addEventListener('click',()=>{
     tabs.forEach(x=>{x.style.color='rgba(245,243,238,.5)';x.style.borderBottomColor='transparent';});
-    t.style.color='var(--miami-gold,#b99b63)';t.style.borderBottomColor='var(--miami-gold,#b99b63)';
+    t.style.color='var(--mi-accent,#15161A)';t.style.borderBottomColor='var(--mi-accent,#15161A)';
     const isLogin=t.dataset.tab==='login'; fl.style.display=isLogin?'block':'none'; fr.style.display=isLogin?'none':'block';
   }));
   async function submit(form, url){

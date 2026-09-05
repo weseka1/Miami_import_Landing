@@ -42,12 +42,12 @@
 
 <style>
   .mi-hero{
-    --gold: var(--miami-gold, #b99b63);
+    --gold: var(--mi-accent,#15161A);
     position:relative; min-height:100svh; height:100svh;
     /* El poster de FONDO, no solo en <video poster>: en iOS con Low Power el
        video ni arranca y el hero quedaba un bloque negro vacío. Así SIEMPRE
        pinta imagen (el DS solo pisa el background-color). */
-    background:#0E0B08 url('{{ "videos/hero-miami-poster.jpg" | static_url }}') center/cover no-repeat;
+    background:var(--mi-bg) url('{{ "videos/hero-miami-poster.jpg" | static_url }}') center/cover no-repeat;
     overflow:hidden;
     display:flex; align-items:flex-end;
     isolation:isolate;
@@ -61,8 +61,8 @@
   .mi-hero__scrim{
     position:absolute; inset:0; z-index:1;
     background:
-      linear-gradient(90deg, rgba(5,5,5,.85) 0%, rgba(5,5,5,.45) 42%, transparent 72%),
-      linear-gradient(0deg,  rgba(5,5,5,.92) 0%, rgba(5,5,5,.30) 42%, transparent 78%);
+      linear-gradient(90deg, rgba(251,251,250,.85) 0%, rgba(251,251,250,.45) 42%, transparent 72%),
+      linear-gradient(0deg,  rgba(251,251,250,.92) 0%, rgba(251,251,250,.30) 42%, transparent 78%);
   }
 
   .mi-hero__top{
@@ -98,12 +98,12 @@
     font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:600;
     border:1px solid transparent; transition:.4s cubic-bezier(.22,.61,.36,1); will-change:transform;
   }
-  .mi-hero__btn--gold{ background:var(--gold); color:#0b0b0b; box-shadow:0 10px 34px rgba(185,155,99,.28); }
-  .mi-hero__btn--gold:hover{ background:#d4bb88; }
+  .mi-hero__btn--gold{ background:var(--gold); color:#0b0b0b; box-shadow:0 10px 34px rgba(21,22,26,.28); }
+  .mi-hero__btn--gold:hover{ background:#15161A; }
   .mi-hero__btn--ghost{
-    color:#fff; border-color:rgba(255,255,255,.35);
+    color:#fff; border-color:var(--mi-line);
     -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
-    background:rgba(255,255,255,.06);
+    background:var(--mi-glass);
   }
   .mi-hero__btn--ghost:hover{ border-color:var(--gold); color:var(--gold); }
 
@@ -131,7 +131,7 @@
     /* 92svh: el tagline + CTAs entran en el viewport inicial (no un mar de
        negro) y asoma el ticker, que invita a scrollear. */
     .mi-hero{ min-height:92svh; height:92svh; }
-    .mi-hero__scrim{ background:linear-gradient(0deg, rgba(5,5,5,.92) 0%, rgba(5,5,5,.28) 55%, transparent 88%); }
+    .mi-hero__scrim{ background:linear-gradient(0deg, rgba(251,251,250,.92) 0%, rgba(251,251,250,.28) 55%, transparent 88%); }
     .mi-hero__content{ max-width:100%; padding-bottom:clamp(48px,7vh,72px); }
     .mi-hero__btn{ flex:1 1 auto; justify-content:center; }
     /* En celu el wordmark quemado del video YA lleva la marca: el eyebrow HTML

@@ -20,7 +20,7 @@
 		<style>
 			#miami-preloader {
 				position: fixed; inset: 0; z-index: 99999;
-				background: #050505;
+				background: #FBFBFA;
 				display: flex; flex-direction: column;
 				align-items: center; justify-content: center;
 				opacity: 1; visibility: visible;
@@ -33,8 +33,8 @@
 			#miami-preloader::before {
 				content: ""; position: absolute; inset: 0; z-index: 0;
 				background:
-					radial-gradient(ellipse 60% 40% at 50% 30%, rgba(185,155,99,0.18) 0%, transparent 60%),
-					radial-gradient(circle at 50% 50%, rgba(185,155,99,0.06) 1px, transparent 1.8px) 0 0 / 30px 30px;
+					radial-gradient(ellipse 60% 40% at 50% 30%, rgba(21,22,26,0.18) 0%, transparent 60%),
+					radial-gradient(circle at 50% 50%, rgba(21,22,26,0.06) 1px, transparent 1.8px) 0 0 / 30px 30px;
 				pointer-events: none;
 			}
 			.miami-preloader__logo {
@@ -43,7 +43,7 @@
 				height: auto; display: block;
 				filter:
 					drop-shadow(0 4px 16px rgba(0,0,0,0.5))
-					drop-shadow(0 0 22px rgba(185,155,99,0.3));
+					drop-shadow(0 0 22px rgba(21,22,26,0.3));
 				animation: miami-preloader-pulse 1.8s ease-in-out infinite;
 			}
 			@keyframes miami-preloader-pulse {
@@ -61,9 +61,9 @@
 				position: absolute; top: 0; bottom: 0; left: 0; width: 50%;
 				background: linear-gradient(90deg,
 					transparent 0%,
-					rgba(185,155,99,0.4) 30%,
+					rgba(21,22,26,0.4) 30%,
 					#d4bb88 50%,
-					rgba(185,155,99,0.4) 70%,
+					rgba(21,22,26,0.4) 70%,
 					transparent 100%);
 				animation: miami-preloader-bar 1.5s ease-in-out infinite;
 			}

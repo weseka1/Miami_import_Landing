@@ -33,9 +33,9 @@
      WhatsApp viejo. Se muestra la ficha igual (para que Diego y el cliente
      sepan de qué pieza hablan) pero avisando que no está más. #}
   {% if vendida %}
-  <div style="background:rgba(198,167,104,.1);border:1px solid rgba(198,167,104,.35);
+  <div style="background:rgba(21,22,26,.1);border:1px solid rgba(21,22,26,.35);
               border-radius:12px;padding:14px 18px;margin-bottom:24px">
-    <p style="margin:0;color:var(--miami-gold,#c6a768);font-size:13px;letter-spacing:.06em">
+    <p style="margin:0;color:var(--mi-accent,#15161A);font-size:13px;letter-spacing:.06em">
       <strong>Esta pieza ya no está disponible.</strong>
       Podemos conseguirla a pedido — escribinos y la buscamos.</p>
   </div>
@@ -50,7 +50,7 @@
     <!-- Galería -->
     <div>
       {% set mainimg = (product.images[0].url | thumb(1280, 80)) if product.images else '/static/images/empty-placeholder.png' %}
-      <div style="position:relative;background:#0c0c0c;border:1px solid rgba(255,255,255,.06);border-radius:12px;overflow:hidden;aspect-ratio:3/4">
+      <div style="position:relative;background:#0c0c0c;border:1px solid var(--mi-line);border-radius:12px;overflow:hidden;aspect-ratio:3/4">
         <img id="mi-main-blur" src="{{ mainimg }}" alt="" aria-hidden="true"
              style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(26px) brightness(.5) saturate(1.1);transform:scale(1.2)"/>
         <img id="mi-main-img" src="{{ mainimg }}"
@@ -64,7 +64,7 @@
              que una comilla en la URL cerraba la string y ejecutaba lo que
              siguiera (la CSP de la tienda permite inline). #}
           <button type="button" class="mi-thumb" data-src="{{ img.url | thumb(1280, 80) }}"
-            style="width:72px;height:90px;border:1px solid rgba(255,255,255,.12);border-radius:8px;overflow:hidden;background:none;cursor:pointer;padding:0">
+            style="width:72px;height:90px;border:1px solid var(--mi-line);border-radius:8px;overflow:hidden;background:none;cursor:pointer;padding:0">
             <img src="{{ img.url | thumb(240) }}" alt="" style="width:100%;height:100%;object-fit:contain;background:#111"/>
           </button>
         {% endfor %}
@@ -74,7 +74,7 @@
 
     <!-- Info -->
     <div>
-      <div style="font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:var(--miami-gold,#b99b63);margin-bottom:10px">{{ product.brand }}</div>
+      <div style="font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:var(--mi-accent,#15161A);margin-bottom:10px">{{ product.brand }}</div>
       <h1 style="font-size:clamp(24px,3.5vw,38px);line-height:1.15;margin:0 0 24px;font-weight:700">{{ product.name }}</h1>
 
       <div class="miami-price-dual" style="margin-bottom:30px">
@@ -111,7 +111,7 @@
               {% set v = por_talle.get(t) %}
               {% if v and v.stock > 0 %}
                 <button type="button" class="mi-talle" data-vid="{{ v.id }}" data-stock="{{ v.stock }}"
-                  style="min-width:52px;padding:12px 14px;border:1px solid rgba(245,243,238,.22);background:none;color:#f5f3ee;
+                  style="min-width:52px;padding:12px 14px;border:1px solid rgba(245,243,238,.22);background:none;color:var(--mi-ink);
                   border-radius:8px;cursor:pointer;letter-spacing:.05em">
                   {{ v.value }}</button>
               {% else %}
@@ -123,7 +123,7 @@
                 <a href="https://wa.me/5491162321391?text={{ ('Hola Diego! Quiero la ' ~ product.name ~ ' #' ~ product.id ~ ', talle ' ~ t ~ '. ¿Me la conseguís?
 ' ~ tienda_url ~ '/p/' ~ product.id) | urlencode }}"
                    target="_blank" rel="noopener" title="Conseguilo a pedido"
-                   style="min-width:52px;padding:12px 14px;border:1px dashed rgba(198,167,104,.5);color:rgba(242,234,217,.7);
+                   style="min-width:52px;padding:12px 14px;border:1px dashed rgba(21,22,26,.5);color:rgba(21,22,26,.7);
                    border-radius:8px;letter-spacing:.05em;display:inline-flex;align-items:center;justify-content:center;text-decoration:none">
                   {{ t }}</a>
               {% endif %}
@@ -132,21 +132,21 @@
             {% for v in product.variants %}
               <button type="button" class="mi-talle" data-vid="{{ v.id }}" data-stock="{{ v.stock }}"
                 {% if v.stock == 0 %}disabled{% endif %}
-                style="min-width:52px;padding:12px 14px;border:1px solid rgba(245,243,238,.22);background:none;color:#f5f3ee;
+                style="min-width:52px;padding:12px 14px;border:1px solid rgba(245,243,238,.22);background:none;color:var(--mi-ink);
                 border-radius:8px;cursor:pointer;letter-spacing:.05em;{% if v.stock == 0 %}opacity:.35;text-decoration:line-through;cursor:not-allowed{% endif %}">
                 {{ v.value or 'Único' }}</button>
             {% endfor %}
           {% endif %}
         </div>
         {% if estandar %}
-        <p style="margin:10px 0 0;font-size:12px;color:rgba(242,234,217,.5)">
+        <p style="margin:10px 0 0;font-size:12px;color:rgba(21,22,26,.5)">
           ¿No está tu talle? Tocalo y te lo traemos a pedido (10-15 días).</p>
         {% endif %}
       </div>
       {% endif %}
 
       <button id="mi-add-cart" data-pid="{{ product.id }}"
-        style="width:100%;padding:18px;background:var(--miami-gold,#b99b63);color:#0a0a0a;border:0;border-radius:999px;
+        style="width:100%;padding:18px;background:var(--mi-accent,#15161A);color:#0a0a0a;border:0;border-radius:999px;
         letter-spacing:.2em;text-transform:uppercase;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:14px"
         {% if not disponibles %}disabled{% endif %}>
         {{ 'Agregar al carrito' if disponibles else 'Sin stock' }}</button>
@@ -166,7 +166,7 @@
       {% endif %}
 
       {% if product.description %}
-      <div style="margin-top:36px;padding-top:28px;border-top:1px solid rgba(255,255,255,.08);
+      <div style="margin-top:36px;padding-top:28px;border-top:1px solid var(--mi-line);
         color:rgba(245,243,238,.7);line-height:1.8;font-size:15px">
         {{ product.description | safe }}
       </div>
@@ -202,7 +202,7 @@
     b.addEventListener('click', function(){
       if (b.disabled) return;
       talles.forEach(x=>{x.style.borderColor='rgba(245,243,238,.22)';x.style.background='none';x.style.color='#f5f3ee';});
-      b.style.borderColor='var(--miami-gold,#b99b63)';b.style.background='var(--miami-gold,#b99b63)';b.style.color='#0a0a0a';
+      b.style.borderColor='var(--mi-accent,#15161A)';b.style.background='var(--mi-accent,#15161A)';b.style.color='#0a0a0a';
       selectedVid = b.dataset.vid;
     });
   });

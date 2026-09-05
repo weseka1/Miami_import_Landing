@@ -75,7 +75,7 @@
 <style>
 .miami-trilogy {
   position: relative;
-  background: #050505;
+  background: #FBFBFA;
   color: #fff;
   height: 100vh; min-height: 720px;
   overflow: hidden;
@@ -87,10 +87,10 @@
 .miami-trilogy__atmosphere {
   position: absolute; inset: 0; z-index: 0;
   background:
-    radial-gradient(ellipse at 50% 50%, rgba(185,155,99,0.10) 0%, transparent 50%),
-    radial-gradient(ellipse at 25% 30%, rgba(185,155,99,0.06) 0%, transparent 55%),
-    radial-gradient(ellipse at 75% 70%, rgba(185,155,99,0.05) 0%, transparent 60%),
-    linear-gradient(180deg, #050505 0%, #0c0c0c 50%, #050505 100%);
+    radial-gradient(ellipse at 50% 50%, rgba(21,22,26,0.10) 0%, transparent 50%),
+    radial-gradient(ellipse at 25% 30%, rgba(21,22,26,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse at 75% 70%, rgba(21,22,26,0.05) 0%, transparent 60%),
+    linear-gradient(180deg, #FBFBFA 0%, #0c0c0c 50%, #FBFBFA 100%);
 }
 .miami-trilogy__atmosphere::before {
   content: ""; position: absolute; inset: 0;
@@ -113,8 +113,8 @@
   background: rgba(10,10,10,0.5);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-top: 1px solid rgba(185,155,99,0.35);
+  border: 1px solid var(--mi-line);
+  border-top: 1px solid rgba(21,22,26,0.35);
   padding: 8px 18px;
 }
 .miami-trilogy__gender-btn {
@@ -122,17 +122,17 @@
   border: none;
   font-family: inherit;
   font-size: 11px; letter-spacing: 0.45em; text-transform: uppercase;
-  color: rgba(255,255,255,0.45); font-weight: 500;
+  color: var(--mi-ink); font-weight: 500;
   cursor: pointer;
   padding: 6px 14px;
   transition: color 0.3s var(--miami-ease, ease);
 }
-.miami-trilogy__gender-btn:hover { color: rgba(255,255,255,0.85); }
+.miami-trilogy__gender-btn:hover { color: var(--mi-ink); }
 .miami-trilogy__gender-btn.is-active {
-  color: #b99b63;
+  color: #15161A;
 }
 .miami-trilogy__gender-sep {
-  color: rgba(255,255,255,0.25);
+  color: var(--mi-ink);
   font-size: 13px; font-weight: 300;
 }
 
@@ -190,25 +190,25 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
       drop-shadow(0 36px 60px rgba(0,0,0,0.75))
       drop-shadow(0 0 3px rgba(255,215,150,0.95))
       drop-shadow(0 0 8px rgba(212,187,136,0.85))
-      drop-shadow(0 0 16px rgba(185,155,99,0.7))
-      drop-shadow(0 0 32px rgba(185,155,99,0.5))
-      drop-shadow(0 0 60px rgba(185,155,99,0.35));
+      drop-shadow(0 0 16px rgba(21,22,26,0.7))
+      drop-shadow(0 0 32px rgba(21,22,26,0.5))
+      drop-shadow(0 0 60px rgba(21,22,26,0.35));
   }
   50% {
     filter:
       drop-shadow(0 36px 60px rgba(0,0,0,0.75))
       drop-shadow(0 0 5px rgba(255,230,176,1))
       drop-shadow(0 0 14px rgba(212,187,136,1))
-      drop-shadow(0 0 26px rgba(185,155,99,0.95))
-      drop-shadow(0 0 50px rgba(185,155,99,0.75))
-      drop-shadow(0 0 100px rgba(185,155,99,0.45));
+      drop-shadow(0 0 26px rgba(21,22,26,0.95))
+      drop-shadow(0 0 50px rgba(21,22,26,0.75))
+      drop-shadow(0 0 100px rgba(21,22,26,0.45));
   }
 }
 .miami-trilogy__jacket.is-center::before {
   content: ""; position: absolute; inset: 5% 5%; z-index: -1;
   background: radial-gradient(ellipse at center,
-    rgba(185,155,99,0.22) 0%,
-    rgba(185,155,99,0.08) 35%,
+    rgba(21,22,26,0.22) 0%,
+    rgba(21,22,26,0.08) 35%,
     transparent 65%);
   filter: blur(20px);
   animation: miami-trilogy-aura 4s ease-in-out infinite;
@@ -267,11 +267,11 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   top: clamp(78px, 12vh, 130px);
   left: clamp(24px, 5vw, 64px);
   font-size: 11px; letter-spacing: 0.55em; text-transform: uppercase;
-  color: #b99b63; font-weight: 500;
+  color: #15161A; font-weight: 500;
   display: inline-flex; align-items: center; gap: 16px;
 }
 .miami-trilogy__eyebrow::before {
-  content: ""; width: 48px; height: 1px; background: #b99b63;
+  content: ""; width: 48px; height: 1px; background: #15161A;
 }
 
 .miami-trilogy__name {
@@ -315,24 +315,24 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   background: rgba(10,10,10,0.5);
   backdrop-filter: blur(22px) saturate(160%);
   -webkit-backdrop-filter: blur(22px) saturate(160%);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-top: 1px solid rgba(185,155,99,0.45);
+  border: 1px solid var(--mi-line);
+  border-top: 1px solid rgba(21,22,26,0.45);
   padding: 24px 26px;
   box-shadow: 0 24px 80px rgba(0,0,0,0.6);
   pointer-events: auto;
 }
 .miami-trilogy__glass-label {
   font-size: 10px; letter-spacing: 0.5em; text-transform: uppercase;
-  color: #b99b63; margin-bottom: 14px; font-weight: 500;
+  color: #15161A; margin-bottom: 14px; font-weight: 500;
 }
 .miami-trilogy__glass p {
   font-size: 13px; line-height: 1.7; letter-spacing: 0.02em;
-  color: rgba(255,255,255,0.85); margin: 0 0 18px;
+  color: var(--mi-ink); margin: 0 0 18px;
 }
 .miami-trilogy__glass-meta {
   display: flex; flex-direction: column; gap: 6px;
   font-size: 10px; letter-spacing: 0.4em; text-transform: uppercase;
-  color: rgba(255,255,255,0.5);
+  color: var(--mi-ink);
 }
 .miami-trilogy__glass-meta strong {
   color: #fff; font-weight: 500; letter-spacing: 0.18em;
@@ -348,45 +348,45 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   background: rgba(10,10,10,0.55);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid var(--mi-line);
   padding: 10px 18px;
   pointer-events: auto;
 }
 .miami-trilogy__nav button {
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 1px solid var(--mi-line);
   padding: 8px 14px;
   font-family: inherit;
   font-size: 10px; letter-spacing: 0.35em; text-transform: uppercase;
-  color: rgba(255,255,255,0.55); font-weight: 500;
+  color: var(--mi-ink); font-weight: 500;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.22,0.61,0.36,1);
 }
 .miami-trilogy__nav button:hover {
-  color: #b99b63; border-color: #b99b63;
+  color: #15161A; border-color: #15161A;
 }
 .miami-trilogy__nav button.is-active {
-  color: #0f0f0f; background: #b99b63; border-color: #b99b63;
-  box-shadow: 0 6px 20px rgba(185,155,99,0.35);
+  color: #0f0f0f; background: #15161A; border-color: #15161A;
+  box-shadow: 0 6px 20px rgba(21,22,26,0.35);
 }
 .miami-trilogy__nav-arrow {
   border: none !important; padding: 4px 8px !important;
-  font-size: 16px !important; color: rgba(255,255,255,0.5) !important;
+  font-size: 16px !important; color: var(--mi-ink) !important;
   letter-spacing: 0 !important;
 }
-.miami-trilogy__nav-arrow:hover { color: #b99b63 !important; }
+.miami-trilogy__nav-arrow:hover { color: #15161A !important; }
 .miami-trilogy__nav-arrow:disabled {
   opacity: 0.3 !important; cursor: not-allowed !important;
 }
 /* Dots simples (chau numeros 01/02/03): puntos, como se navega en cualquier lado */
 .miami-trilogy__nav [data-go] {
   width: 10px; height: 10px; padding: 0; border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.35); background: transparent;
+  border: 1px solid var(--mi-line); background: transparent;
   box-shadow: none;
 }
-.miami-trilogy__nav [data-go]:hover { border-color: #b99b63; }
+.miami-trilogy__nav [data-go]:hover { border-color: #15161A; }
 .miami-trilogy__nav [data-go].is-active {
-  background: #b99b63; border-color: #b99b63;
+  background: #15161A; border-color: #15161A;
 }
 
 /* ========== Responsive mobile ========== */
@@ -416,12 +416,12 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
     0%, 100% {
       filter:
         drop-shadow(0 18px 28px rgba(0,0,0,0.65))
-        drop-shadow(0 0 20px rgba(185,155,99,0.55));
+        drop-shadow(0 0 20px rgba(21,22,26,0.55));
     }
     50% {
       filter:
         drop-shadow(0 18px 28px rgba(0,0,0,0.65))
-        drop-shadow(0 0 32px rgba(185,155,99,0.75));
+        drop-shadow(0 0 32px rgba(21,22,26,0.75));
     }
   }
   /* Float: lo dejamos pero mas suave (menos repintados) */
@@ -432,7 +432,7 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   .miami-trilogy__jacket.is-center::before {
     filter: none !important;
     background: radial-gradient(ellipse at center,
-      rgba(185,155,99,0.16) 0%, transparent 60%) !important;
+      rgba(21,22,26,0.16) 0%, transparent 60%) !important;
     animation: none !important;
   }
   /* Glass del meta-card sin backdrop-filter en mobile (caro) */
@@ -487,8 +487,8 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
     background: rgba(0,0,0,0.32);
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    border: 1px solid rgba(255,255,255,0.05);
-    border-top: 1px solid rgba(185,155,99,0.3);
+    border: 1px solid var(--mi-line);
+    border-top: 1px solid rgba(21,22,26,0.3);
     box-shadow: none;
   }
   .miami-trilogy__glass-label {
@@ -499,7 +499,7 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
     font-size: 10px;
     line-height: 1.5;
     margin: 0 0 10px;
-    color: rgba(255,255,255,0.78);
+    color: var(--mi-ink);
   }
   .miami-trilogy__glass-meta {
     font-size: 8px;

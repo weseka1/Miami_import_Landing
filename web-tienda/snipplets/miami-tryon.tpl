@@ -2,7 +2,7 @@
    PROBADOR VIRTUAL — botón + modal (solo se incluye si tryon_enabled)
    ============================================================ #}
 <button id="mi-tryon-open" type="button"
-  style="width:100%;padding:16px;background:rgba(255,255,255,.05);color:#f5f3ee;border:1px solid rgba(198,167,104,.45);
+  style="width:100%;padding:16px;background:var(--mi-glass);color:var(--mi-ink);border:1px solid rgba(21,22,26,.45);
   border-radius:999px;letter-spacing:.18em;text-transform:uppercase;font-size:12px;font-weight:600;cursor:pointer;
   margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:10px;
   -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)">
@@ -16,45 +16,45 @@
   <div id="mi-tryon-bg" style="position:absolute;inset:0;background:rgba(5,4,3,.7);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)"></div>
   <div id="mi-tryon-card" style="position:relative;width:100%;max-width:440px;max-height:94svh;overflow-y:auto;overscroll-behavior:contain;
     background:rgba(20,16,12,.92);-webkit-backdrop-filter:blur(24px) saturate(150%);backdrop-filter:blur(24px) saturate(150%);
-    border:1px solid rgba(255,255,255,.09);border-top:1px solid rgba(198,167,104,.4);border-radius:24px 24px 0 0;padding:22px 20px 28px">
+    border:1px solid var(--mi-line);border-top:1px solid rgba(21,22,26,.4);border-radius:24px 24px 0 0;padding:22px 20px 28px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-      <div style="font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--mi-gold,#c6a768);font-weight:600">Probador virtual</div>
+      <div style="font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--mi-accent,#15161A);font-weight:600">Probador virtual</div>
       <button id="mi-tryon-close" type="button" aria-label="Cerrar"
-        style="width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:none;color:#f5f3ee;cursor:pointer;font-size:16px">✕</button>
+        style="width:38px;height:38px;border-radius:50%;border:1px solid var(--mi-line);background:none;color:var(--mi-ink);cursor:pointer;font-size:16px">✕</button>
     </div>
-    <p style="margin:0 0 16px;font-size:13px;line-height:1.6;color:rgba(242,234,217,.6)">
+    <p style="margin:0 0 16px;font-size:13px;line-height:1.6;color:rgba(21,22,26,.6)">
       Subí una foto tuya de frente (cuerpo visible, buena luz) y te mostramos
-      <strong style="color:#f2ead9">{{ product.name }}</strong> puesto.
+      <strong style="color:var(--mi-ink)">{{ product.name }}</strong> puesto.
     </p>
 
     <div id="mi-tryon-paso1">
-      <label style="display:block;border:1.5px dashed rgba(198,167,104,.4);border-radius:18px;padding:26px 16px;text-align:center;cursor:pointer">
+      <label style="display:block;border:1.5px dashed rgba(21,22,26,.4);border-radius:18px;padding:26px 16px;text-align:center;cursor:pointer">
         <input id="mi-tryon-file" type="file" accept="image/*" style="display:none"/>
         <div id="mi-tryon-preview-wrap" style="display:none;margin-bottom:12px">
           <img id="mi-tryon-preview" alt="" style="max-height:220px;border-radius:12px;margin:0 auto"/>
         </div>
-        <span id="mi-tryon-file-label" style="font-size:13px;letter-spacing:.08em;color:rgba(242,234,217,.75)">Tocá para elegir o sacarte una foto</span>
+        <span id="mi-tryon-file-label" style="font-size:13px;letter-spacing:.08em;color:rgba(21,22,26,.75)">Tocá para elegir o sacarte una foto</span>
       </label>
       <button id="mi-tryon-go" type="button" disabled
-        style="width:100%;margin-top:14px;padding:16px;background:var(--mi-gold,#c6a768);color:#0b0b0b;border:0;border-radius:999px;
+        style="width:100%;margin-top:14px;padding:16px;background:var(--mi-accent,#15161A);color:#0b0b0b;border:0;border-radius:999px;
         letter-spacing:.18em;text-transform:uppercase;font-size:12px;font-weight:700;cursor:pointer;opacity:.4">Generar mi look</button>
-      <p style="margin:12px 0 0;font-size:11px;color:rgba(242,234,217,.4);text-align:center">Tu foto se usa solo para generar la prueba y no se guarda.</p>
+      <p style="margin:12px 0 0;font-size:11px;color:rgba(21,22,26,.4);text-align:center">Tu foto se usa solo para generar la prueba y no se guarda.</p>
     </div>
 
     <div id="mi-tryon-paso2" hidden style="text-align:center;padding:34px 0">
-      <div style="font-size:14px;color:#f2ead9;margin-bottom:8px">Generando tu look<span id="mi-tryon-dots">…</span></div>
-      <div style="font-size:12px;color:rgba(242,234,217,.5)">Tarda entre 30 y 90 segundos. No cierres esta ventana.</div>
+      <div style="font-size:14px;color:var(--mi-ink);margin-bottom:8px">Generando tu look<span id="mi-tryon-dots">…</span></div>
+      <div style="font-size:12px;color:rgba(21,22,26,.5)">Tarda entre 30 y 90 segundos. No cierres esta ventana.</div>
     </div>
 
     <div id="mi-tryon-paso3" hidden style="text-align:center">
       <img id="mi-tryon-result" alt="Tu look" style="width:100%;border-radius:16px;margin-bottom:14px"/>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <a id="mi-tryon-wa" target="_blank" rel="noopener"
-          style="flex:1;padding:14px;background:var(--mi-gold,#c6a768);color:#0b0b0b;border-radius:999px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700">Lo quiero — WhatsApp</a>
+          style="flex:1;padding:14px;background:var(--mi-accent,#15161A);color:#0b0b0b;border-radius:999px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700">Lo quiero — WhatsApp</a>
         <a id="mi-tryon-dl" download="mi-look-miami-import.jpg"
-          style="flex:1;padding:14px;border:1px solid rgba(255,255,255,.25);color:#f2ead9;border-radius:999px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:600">Descargar</a>
+          style="flex:1;padding:14px;border:1px solid var(--mi-line);color:var(--mi-ink);border-radius:999px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:600">Descargar</a>
       </div>
-      <button id="mi-tryon-again" type="button" style="margin-top:12px;background:none;border:0;color:rgba(242,234,217,.55);font-size:12px;letter-spacing:.08em;cursor:pointer;text-decoration:underline">Probar con otra foto</button>
+      <button id="mi-tryon-again" type="button" style="margin-top:12px;background:none;border:0;color:rgba(21,22,26,.55);font-size:12px;letter-spacing:.08em;cursor:pointer;text-decoration:underline">Probar con otra foto</button>
     </div>
     <div id="mi-tryon-err" style="min-height:18px;margin-top:10px;font-size:12.5px;color:#ff9b7a;text-align:center"></div>
   </div>

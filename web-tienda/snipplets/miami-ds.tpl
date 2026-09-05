@@ -6,28 +6,62 @@
    ============================================================ #}
 <style>
 :root{
-  /* Color — Champagne Noir CÁLIDO (Estándar Web WESEKA: fondos nunca puros) */
-  --mi-bg:#0E0B08; --mi-bg-2:#17120E;
-  --mi-ink:#F2EAD9; --mi-ink-soft:rgba(242,234,217,.60); --mi-ink-mute:rgba(242,234,217,.40);
-  --mi-gold:#c6a768; --mi-gold-2:#e0c88f;
-  /* Unifica los tokens legacy (miami-styles usa --miami-*): un solo fondo/tinta en TODA la web */
-  --miami-dark:#0E0B08; --miami-text:#F2EAD9; --miami-gold:#c6a768;
-  --mi-line:rgba(255,255,255,.08); --mi-line-2:rgba(255,255,255,.14);
+  /* ---- SUPERFICIES ----------------------------------------------------
+     Blanco cálido, nunca #FFF puro (Estándar Web WESEKA). El papel es el
+     fondo y la card es un punto MÁS clara, no más oscura: en un tema claro
+     la jerarquía se construye con luz, exactamente al revés que en oscuro. */
+  --mi-bg:#FBFBFA;        /* papel */
+  --mi-bg-2:#FFFFFF;      /* card / superficie elevada */
+  --mi-bg-3:#F1F1EF;      /* zona hundida: barras, footer, rellenos */
+
+  /* ---- TINTA ---------------------------------------------------------- */
+  --mi-ink:#15161A;                       /* gris muy oscuro, nunca #000 */
+  --mi-ink-soft:rgba(21,22,26,.64);
+  --mi-ink-mute:rgba(21,22,26,.44);
+
+  /* ---- ACENTO ---------------------------------------------------------
+     🔴 El acento ES la tinta. Monocromo real: la jerarquía la hacen el peso,
+     el tamaño y el aire, no un color de marca. Así se leen caras las tiendas
+     que son la vara (Off-White, SSENSE) y es lo contrario del negro+dorado,
+     que se sacó justamente por leerse barato. */
+  --mi-accent:#15161A;
+  --mi-accent-2:#3A3C44;
+
+  --mi-line:rgba(21,22,26,.09);
+  --mi-line-2:rgba(21,22,26,.16);
+
   /* Radios — iPhone (generosos, nada de esquina viva) */
   --mi-r-xs:10px; --mi-r-sm:14px; --mi-r:20px; --mi-r-lg:28px; --mi-pill:999px;
-  /* Glass */
-  --mi-blur:16px;
-  --mi-glass:rgba(255,255,255,.05); --mi-glass-strong:rgba(255,255,255,.09);
-  --mi-shadow:0 24px 70px rgba(0,0,0,.5);
+
+  /* ---- LIQUID GLASS ---------------------------------------------------
+     El vidrio de iOS no es "una capa translúcida": son TRES cosas juntas —
+     blur alto, saturación por encima de 100% (lo de atrás se ve más vivo, no
+     más gris) y un canto superior más claro que el resto, que es el reflejo.
+     Si falta alguna, parece un div con opacity y se nota. */
+  --mi-blur:28px;
+  --mi-glass:rgba(255,255,255,.62);
+  --mi-glass-strong:rgba(255,255,255,.82);
+  --mi-glass-line:rgba(255,255,255,.9);
+
+  /* Sombra en claro: difusa, baja y en DOS capas. Una sola sombra fuerte
+     sobre blanco se ve sucia; dos suaves se ven profundas. */
+  --mi-shadow:0 18px 44px rgba(21,22,26,.09), 0 2px 6px rgba(21,22,26,.04);
+  --mi-shadow-lift:0 30px 64px rgba(21,22,26,.13), 0 3px 10px rgba(21,22,26,.05);
+
   --mi-ease:cubic-bezier(.16,1,.3,1);
 }
 
 /* Utilidad glass reusable (para cualquier superficie nueva) */
 .u-glass{
   background:var(--mi-glass); border:1px solid var(--mi-line);
-  border-top-color:rgba(185,155,99,.28);
-  -webkit-backdrop-filter:blur(var(--mi-blur)) saturate(150%); backdrop-filter:blur(var(--mi-blur)) saturate(150%);
+  border-top-color:var(--mi-glass-line);
+  -webkit-backdrop-filter:blur(var(--mi-blur)) saturate(180%); backdrop-filter:blur(var(--mi-blur)) saturate(180%);
   border-radius:var(--mi-r); box-shadow:var(--mi-shadow);
+}
+/* Sin soporte de backdrop-filter (Firefox viejo, algunos WebView) el vidrio
+   queda casi transparente y el texto de arriba se vuelve ilegible: se opaca. */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .u-glass{ background:var(--mi-glass-strong); }
 }
 
 /* ---- Grid de productos BULLETPROOF (fix cards cortadas en mobile) ----
@@ -56,8 +90,8 @@
   transition:transform .55s var(--mi-ease), border-color .55s var(--mi-ease), box-shadow .55s var(--mi-ease) !important;
 }
 .mi-card:hover{
-  transform:translateY(-6px) !important; border-color:rgba(185,155,99,.42) !important;
-  box-shadow:0 30px 64px rgba(0,0,0,.5) !important;
+  transform:translateY(-6px) !important; border-color:var(--mi-line-2) !important;
+  box-shadow:var(--mi-shadow-lift) !important;
 }
 .mi-soldout{ border-radius:var(--mi-pill) !important; }
 
@@ -70,7 +104,7 @@
 
 /* ---- Header: glass fino + aire ---- */
 .mi-header{
-  background:rgba(6,6,6,.68) !important; border-bottom:1px solid var(--mi-line) !important;
+  background:rgba(251,251,250,.68) !important; border-bottom:1px solid var(--mi-line) !important;
   -webkit-backdrop-filter:blur(22px) saturate(140%); backdrop-filter:blur(22px) saturate(140%);
 }
 .mi-nav a{ transition:color .3s var(--mi-ease), border-color .3s var(--mi-ease) !important; }
@@ -81,14 +115,14 @@
 .mi-search{ border-radius:var(--mi-pill) !important; }
 
 /* ---- Detalles iPhone ---- */
-::selection{ background:rgba(198,167,104,.32); color:#0E0B08; }
+::selection{ background:rgba(21,22,26,.14); color:var(--mi-ink); }
 html{ scroll-behavior:smooth; }
 /* Precios y números con tabular-nums (Estándar Web WESEKA) */
 .miami-price-ars, .miami-price-usd, .h-value__no, .mi-cine__glass-item em{ font-variant-numeric:tabular-nums; }
 /* Grano sutil sobre todo — "materia" (opacity ~.035, sin capturar clicks) */
 body::after{ content:""; position:fixed; inset:0; z-index:90; pointer-events:none;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-  opacity:.035; mix-blend-mode:overlay; }
+  opacity:.022; mix-blend-mode:soft-light; }
 /* Red de seguridad responsive (Estándar): 0px overflow horizontal en cualquier ancho */
 html, body{ overflow-x:clip; }
 
@@ -107,17 +141,35 @@ html, body{ overflow-x:clip; }
   -webkit-user-drag:none; user-select:none;
 }
 
-/* ---- Unificar fondos duros legacy (#050505/#060606 hardcodeados) a la paleta cálida ---- */
+/* ---- Unificar fondos duros legacy (#FBFBFA/#FBFBFA hardcodeados) a la paleta cálida ---- */
 .miami-trilogy{ background:var(--mi-bg) !important; }
 .miami-trilogy__atmosphere{
   background:
-    radial-gradient(ellipse at 50% 50%, rgba(198,167,104,.10) 0%, transparent 50%),
-    radial-gradient(ellipse at 25% 30%, rgba(198,167,104,.06) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgba(21,22,26,.10) 0%, transparent 50%),
+    radial-gradient(ellipse at 25% 30%, rgba(21,22,26,.06) 0%, transparent 55%),
     linear-gradient(180deg, var(--mi-bg) 0%, var(--mi-bg-2) 50%, var(--mi-bg) 100%) !important;
 }
 /* Solo background-COLOR: el hero define su propia imagen de poster como
    fallback (iOS Low Power no arranca el video) y el shorthand acá la pisaba. */
 .mi-hero{ background-color:var(--mi-bg) !important; }
-.h-ticker, .mi-footer, .mi-header{ background-color:rgba(14,11,8,.9) !important; }
-.mi-footer{ border-top-color:rgba(198,167,104,.16) !important; }
+.h-ticker, .mi-footer, .mi-header{ background-color:rgba(251,251,250,.9) !important; }
+.mi-footer{ border-top-color:rgba(21,22,26,.16) !important; }
+
+/* ---- Títulos de página: color propio, no heredado ----------------------
+   `.mi-section-title` no declaraba `color` y venía heredando blanco de un
+   contenedor de la era oscura: sobre papel quedaba invisible. Un título de
+   sección tiene que decidir su color, no recibirlo por accidente. */
+.mi-section-title, .page-header h1, .page-header h2{
+  color:var(--mi-ink) !important; -webkit-text-fill-color:var(--mi-ink) !important;
+}
+
+/* ---- Buscador: vidrio, no una caja gris ---- */
+.mi-search input, .mi-search__input, input[type="search"]{
+  background:var(--mi-glass) !important; color:var(--mi-ink) !important;
+  border:1px solid var(--mi-line) !important;
+  -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+}
+.mi-search input::placeholder, input[type="search"]::placeholder{ color:var(--mi-ink-mute) !important; }
+/* iOS zoomea el viewport si el input mide menos de 16px (Estándar WESEKA) */
+@media(max-width:640px){ .mi-search input, input[type="search"]{ font-size:16px !important; } }
 </style>

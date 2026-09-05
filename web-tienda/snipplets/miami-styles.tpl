@@ -13,7 +13,7 @@
   display: block;
   font-size: clamp(20px, 3vw, 28px);
   font-weight: 600;
-  color: var(--miami-gold, #b99b63);
+  color: var(--mi-accent,#15161A);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   margin-bottom: 4px;
@@ -24,14 +24,14 @@
   font-size: 10px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.5);
+  color: var(--mi-ink);
   margin-top: 2px;
 }
 .miami-price-dual .miami-price-ars {
   display: block;
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255,255,255,0.78);
+  color: var(--mi-ink);
   font-variant-numeric: tabular-nums;
 }
 /* Mas chico en cards del catalogo */
@@ -62,23 +62,23 @@ body.template-product .miami-price-dual .miami-price-ars-label {
 :root {
   --miami-bg: #ffffff;
   --miami-bg-soft: #f6f3ee;
-  --miami-text: #111111;
+  --mi-ink: #111111;
   --miami-muted: #6f6f6f;
   --miami-border: #e8e2d8;
-  --miami-gold: #b99b63;
-  --miami-dark: #0f0f0f;
+  --mi-accent: #15161A;
+  --mi-bg: #0f0f0f;
   --miami-radius: 18px;
   --miami-shadow: 0 18px 45px rgba(0,0,0,.08);
   --miami-track: 0.18em;
   --miami-track-wide: 0.45em;
   --miami-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   /* === Aliases --mi-* (compat con bloque CATALOGO/PRODUCT) === */
-  --mi-ink: var(--miami-text);
+  --mi-ink: var(--mi-ink);
   --mi-paper: var(--miami-bg);
   --mi-mist: var(--miami-bg-soft);
   --mi-stone: var(--miami-muted);
   --mi-rule: var(--miami-border);
-  --mi-accent: var(--miami-text);
+  --mi-accent: var(--mi-ink);
   --mi-track: var(--miami-track);
   --mi-track-wide: var(--miami-track-wide);
   --mi-track-xwide: 0.55em;
@@ -88,7 +88,7 @@ body.template-product .miami-price-dual .miami-price-ars-label {
 }
 
 /* === Tipografía global (sin pisar mucho el theme) === */
-body { font-family: 'Helvetica Neue', Helvetica, Inter, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: var(--miami-text); }
+body { font-family: 'Helvetica Neue', Helvetica, Inter, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: var(--mi-ink); }
 h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   font-family: 'Helvetica Neue', Helvetica, Inter, Arial, sans-serif;
   font-weight: 500;
@@ -98,7 +98,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .miami-hero {
   position: relative; min-height: 84vh;
   display: flex; align-items: center; justify-content: center;
-  overflow: hidden; background: var(--miami-dark); color: #fff;
+  overflow: hidden; background: var(--mi-bg); color: #fff;
   isolation: isolate; margin: 0;
 }
 .miami-hero::before {
@@ -107,7 +107,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     radial-gradient(ellipse at 25% 15%, rgba(255,255,255,0.14), transparent 55%),
     radial-gradient(ellipse at 78% 85%, rgba(255,255,255,0.08), transparent 60%),
     radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.04), transparent 70%),
-    linear-gradient(180deg, #060606 0%, #131313 45%, #1a1a1a 75%, #0a0a0a 100%);
+    linear-gradient(180deg, #FBFBFA 0%, #131313 45%, #1a1a1a 75%, #0a0a0a 100%);
 }
 /* (Aros 3D removidos — la lluvia de marcas es la única atmósfera del hero) */
 
@@ -122,7 +122,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   font-weight: 200;
   letter-spacing: 0.45em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.16);
+  color: var(--mi-ink);
   white-space: nowrap;
   font-size: clamp(10px, 1.05vw, 14px);
   left: var(--rx, 50%);
@@ -131,12 +131,12 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .miami-rain-word--bold {
   font-size: clamp(13px, 1.6vw, 22px);
   font-weight: 300;
-  color: rgba(255,255,255,0.22);
+  color: var(--mi-ink);
   letter-spacing: 0.32em;
 }
 .miami-rain-word--ghost {
   font-size: clamp(9px, 0.9vw, 12px);
-  color: rgba(255,255,255,0.09);
+  color: var(--mi-ink);
   letter-spacing: 0.58em;
 }
 @media (max-width: 768px) {
@@ -208,11 +208,11 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   cursor: pointer; background: transparent; line-height: 1;
 }
 .miami-btn--primary {
-  background: #fff; color: var(--miami-dark); border-color: #fff;
+  background: #fff; color: var(--mi-bg); border-color: #fff;
 }
 .miami-btn--primary:hover { background: transparent; color: #fff; }
 .miami-btn--ghost { color: #fff; }
-.miami-btn--ghost:hover { background: #fff; color: var(--miami-dark); }
+.miami-btn--ghost:hover { background: #fff; color: var(--mi-bg); }
 .miami-btn--xl { padding: 22px 40px; font-size: 12px; }
 .miami-hero__chips {
   display: inline-flex; gap: 14px; flex-wrap: wrap; justify-content: center;
@@ -230,9 +230,9 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 
 /* === Ticker editorial === */
 .miami-ticker {
-  background: var(--miami-dark); color: #fff;
-  border-top: 1px solid rgba(255,255,255,0.1);
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  background: var(--mi-bg); color: #fff;
+  border-top: 1px solid var(--mi-line);
+  border-bottom: 1px solid var(--mi-line);
   overflow: hidden; padding: 14px 0;
 }
 .miami-ticker__track {
@@ -260,7 +260,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 }
 .miami-trust__item {
   text-align: center; padding: 12px; font-size: 11px;
-  letter-spacing: 0.28em; text-transform: uppercase; color: var(--miami-text);
+  letter-spacing: 0.28em; text-transform: uppercase; color: var(--mi-ink);
 }
 .miami-trust__item strong {
   display: block; font-weight: 500; font-size: 13px; letter-spacing: 0.2em;
@@ -273,7 +273,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 
 /* === Sección genérica === */
 .miami-section { padding: 80px 24px; background: var(--miami-bg); border-top: 1px solid var(--miami-border); }
-.miami-section--dark { background: var(--miami-dark); color: #fff; border-top: none; }
+.miami-section--dark { background: var(--mi-bg); color: #fff; border-top: none; }
 .miami-section--soft { background: var(--miami-bg-soft); }
 .miami-section__head {
   max-width: 1100px; margin: 0 auto 56px;
@@ -284,7 +284,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   font-size: 10px; letter-spacing: 0.5em; text-transform: uppercase;
   color: var(--miami-muted); margin-bottom: 12px;
 }
-.miami-section--dark .miami-eyebrow { color: rgba(255,255,255,0.55); }
+.miami-section--dark .miami-eyebrow { color: var(--mi-ink); }
 .miami-section__title {
   font-size: clamp(26px, 4vw, 44px); letter-spacing: 0.18em;
   margin: 0; font-weight: 500; text-transform: uppercase; color: inherit;
@@ -293,7 +293,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   font-size: 13px; letter-spacing: 0.4em; text-transform: uppercase;
   color: var(--miami-muted); margin: 4px 0 0;
 }
-.miami-section--dark .miami-section__sub { color: rgba(255,255,255,0.6); }
+.miami-section--dark .miami-section__sub { color: var(--mi-ink); }
 .miami-section__link {
   font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
   color: inherit; text-decoration: none; border-bottom: 1px solid currentColor;
@@ -304,7 +304,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 
 /* === Status quote pantalla completa === */
 .miami-status {
-  background: var(--miami-dark); color: #fff;
+  background: var(--mi-bg); color: #fff;
   padding: 120px 24px; text-align: center;
 }
 .miami-status__quote {
@@ -327,12 +327,12 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   display: flex; gap: 48px; animation: miami-marq 48s linear infinite;
   white-space: nowrap; font-size: clamp(18px, 2.4vw, 34px);
   font-weight: 500; letter-spacing: 0.4em; text-transform: uppercase;
-  color: var(--miami-dark);
+  color: var(--mi-bg);
 }
 .miami-marquee__track > span { flex-shrink: 0; }
 .miami-marquee__track > span.miami-dot {
   width: 6px; height: 6px; border-radius: 50%;
-  background: var(--miami-dark); align-self: center; display: inline-block;
+  background: var(--mi-bg); align-self: center; display: inline-block;
 }
 @keyframes miami-marq {
   0% { transform: translateX(0); } 100% { transform: translateX(-50%); }
@@ -347,7 +347,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 }
 @media (max-width: 900px) { .miami-split { grid-template-columns: 1fr; } }
 .miami-split__media {
-  position: relative; background: var(--miami-dark); color: #fff;
+  position: relative; background: var(--mi-bg); color: #fff;
   padding: 56px 48px; min-height: 480px;
   display: flex; flex-direction: column; justify-content: space-between;
   overflow: hidden;
@@ -365,7 +365,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     repeating-linear-gradient(0deg,  rgba(255,255,255,0.022) 0 1px, transparent 1px 80px),
     repeating-linear-gradient(90deg, rgba(255,255,255,0.022) 0 1px, transparent 1px 80px);
 }
-.miami-split__media--alt { background: var(--miami-bg-soft); color: var(--miami-dark); }
+.miami-split__media--alt { background: var(--miami-bg-soft); color: var(--mi-bg); }
 .miami-split__media--alt::before {
   background:
     radial-gradient(ellipse at 20% 30%, rgba(0,0,0,0.05), transparent 55%),
@@ -377,7 +377,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     repeating-linear-gradient(90deg, rgba(0,0,0,0.022) 0 1px, transparent 1px 80px);
 }
 .miami-split__media--photo {
-  text-decoration: none; background: var(--miami-dark);
+  text-decoration: none; background: var(--mi-bg);
   display: block; padding: 0; min-height: 480px;
 }
 .miami-split__media--photo::before, .miami-split__media--photo::after { display: none; }
@@ -432,7 +432,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   font-size: clamp(28px, 4.4vw, 56px);
   font-weight: 500; letter-spacing: 0.01em;
   text-transform: none; line-height: 1.1;
-  margin: 16px 0 24px; color: var(--miami-dark);
+  margin: 16px 0 24px; color: var(--mi-bg);
 }
 .miami-split__copy {
   font-size: 15px; line-height: 1.8; color: var(--miami-muted);
@@ -454,7 +454,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .miami-lookbook__tile {
   position: relative; min-height: 480px;
   display: block; text-decoration: none; overflow: hidden;
-  background: var(--miami-dark);
+  background: var(--mi-bg);
 }
 .miami-lookbook__img {
   position: absolute; inset: 0; width: 100%; height: 100%;
@@ -529,7 +529,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   padding: 24px;
   text-decoration: none;
   color: #fff;
-  background: var(--miami-dark);
+  background: var(--mi-bg);
   overflow: hidden;
 }
 .miami-brand-tile__img {
@@ -567,7 +567,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 }
 .miami-brand-tile:hover::after { width: 56px; opacity: 0.7; }
 .miami-brand-tile:hover {
-  background: var(--miami-dark);
+  background: var(--mi-bg);
   color: #fff;
 }
 .miami-brand-tile:hover::before { opacity: 0; }
@@ -616,7 +616,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .miami-cta__title {
   font-size: clamp(34px, 5.6vw, 72px); font-weight: 500;
   letter-spacing: 0.18em; text-transform: uppercase;
-  margin: 0 0 16px; color: var(--miami-dark);
+  margin: 0 0 16px; color: var(--mi-bg);
 }
 .miami-cta__sub {
   font-size: 13px; letter-spacing: 0.4em; text-transform: uppercase;
@@ -625,7 +625,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 
 /* === Footer extra (bloque institucional) === */
 .miami-footer-extra {
-  padding: 56px 24px 28px; background: var(--miami-dark); color: #fff;
+  padding: 56px 24px 28px; background: var(--mi-bg); color: #fff;
 }
 .miami-footer-extra__grid {
   max-width: 1180px; margin: 0 auto; display: grid;
@@ -638,7 +638,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 @media (max-width: 780px) {
   .miami-footer-extra__grid { grid-template-columns: 1fr; gap: 40px; }
 }
-.miami-footer-extra .miami-eyebrow { color: rgba(255,255,255,0.6); margin-bottom: 16px; }
+.miami-footer-extra .miami-eyebrow { color: var(--mi-ink); margin-bottom: 16px; }
 .miami-footer-extra p { font-size: 13px; line-height: 1.8; margin: 0 auto 14px; opacity: 0.85; color: #fff; max-width: 360px; }
 .miami-footer-extra ul { list-style: none; padding: 0; margin: 0; font-size: 13px; line-height: 2.2; text-align: center; }
 .miami-footer-extra a { color: inherit; text-decoration: none; opacity: 0.85; transition: opacity 0.3s var(--miami-ease); }
@@ -649,18 +649,18 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 }
 .miami-footer-extra__bottom {
   margin-top: 48px; padding-top: 24px;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid var(--mi-line);
   text-align: center; font-size: 10px; letter-spacing: 0.4em;
   text-transform: uppercase; opacity: 0.5;
 }
 .miami-social-btn {
   display: inline-flex; width: 38px; height: 38px;
   align-items: center; justify-content: center;
-  border: 1px solid rgba(255,255,255,0.5); border-radius: 50%;
+  border: 1px solid var(--mi-line); border-radius: 50%;
   text-decoration: none; color: inherit; opacity: 0.85;
   transition: all 0.3s var(--miami-ease);
 }
-.miami-social-btn:hover { opacity: 1; background: #fff; color: var(--miami-dark); border-color: #fff; }
+.miami-social-btn:hover { opacity: 1; background: #fff; color: var(--mi-bg); border-color: #fff; }
 .miami-social-btn + .miami-social-btn { margin-left: 8px; }
 
 /* === Modales legales === */
@@ -678,7 +678,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 }
 .miami-modal__card {
   position: relative; max-width: 720px; width: 100%;
-  background: #fff; color: var(--miami-dark);
+  background: #fff; color: var(--mi-bg);
   padding: 48px 36px 40px; margin: 32px auto;
   font-family: 'Helvetica Neue', Helvetica, Inter, Arial, sans-serif;
   line-height: 1.65; animation: miami-rise 0.4s var(--miami-ease);
@@ -694,7 +694,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .miami-modal__close {
   position: absolute; top: 14px; right: 14px;
   background: none; border: none; font-size: 28px; line-height: 1;
-  color: var(--miami-dark); cursor: pointer;
+  color: var(--mi-bg); cursor: pointer;
   width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
 }
@@ -705,9 +705,9 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .miami-modal__title {
   font-weight: 500; letter-spacing: 0.18em; font-size: 24px;
   text-transform: uppercase; margin: 0 0 28px; text-align: center;
-  color: var(--miami-dark);
+  color: var(--mi-bg);
 }
-.miami-modal__body { font-size: 15px; color: var(--miami-dark); }
+.miami-modal__body { font-size: 15px; color: var(--mi-bg); }
 .miami-modal__body h3 {
   font-weight: 500; letter-spacing: 0.18em; font-size: 12px;
   text-transform: uppercase; margin: 28px 0 10px;
@@ -720,7 +720,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .miami-modal__body table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 14px; }
 .miami-modal__body th, .miami-modal__body td { padding: 8px 4px; text-align: left; border-bottom: 1px solid var(--miami-border); }
 .miami-modal__body th { font-weight: 500; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--miami-muted); }
-.miami-modal__body a { color: var(--miami-dark); text-decoration: underline; }
+.miami-modal__body a { color: var(--mi-bg); text-decoration: underline; }
 body.miami-modal-open { overflow: hidden; }
 
 /* === Reveal on scroll === */
@@ -738,8 +738,8 @@ body.miami-modal-open { overflow: hidden; }
   letter-spacing: 0.18em !important;
   text-transform: uppercase !important;
   font-weight: 500 !important;
-  background: var(--miami-dark) !important;
-  border-color: var(--miami-dark) !important;
+  background: var(--mi-bg) !important;
+  border-color: var(--mi-bg) !important;
 }
 
 /* === Responsive ajustes === */
@@ -1329,56 +1329,56 @@ textarea:focus {
    ============================================================= */
 
 :root {
-  --miami-gold:       #b99b63;   /* champagne — acento principal */
-  --miami-gold-soft:  #d4bb88;   /* champagne claro para glow/hover */
-  --miami-gold-deep:  #8e7547;   /* champagne profundo para borders */
-  --mi-gold:          var(--miami-gold);
-  --mi-gold-soft:     var(--miami-gold-soft);
-  --mi-gold-deep:     var(--miami-gold-deep);
+  --mi-accent:       #15161A;   /* champagne — acento principal */
+  --mi-accent-2:  #15161A;   /* champagne claro para glow/hover */
+  --mi-accent-2:  #15161A;   /* champagne profundo para borders */
+  --mi-accent:          var(--mi-accent);
+  --mi-accent-soft:     var(--mi-accent-2);
+  --mi-accent-deep:     var(--mi-accent-2);
   --miami-tilt-max:   8deg;
   --miami-tilt-perspective: 900px;
 }
 
 /* --- Hero: stroke text "LLEGÓ UNA VEZ" en gold --- */
 .miami-hero__title .miami-stroke {
-  -webkit-text-stroke-color: var(--miami-gold) !important;
+  -webkit-text-stroke-color: var(--mi-accent) !important;
 }
 
 /* --- Hero brand "MIAMI_IMPORT" — barritas en gold sutil --- */
 .miami-hero__brand::before,
 .miami-hero__brand::after {
-  background: var(--miami-gold) !important;
+  background: var(--mi-accent) !important;
   opacity: 0.75 !important;
 }
 
 /* --- Hero chips dots en gold --- */
 .miami-hero__chips .miami-hero__chip-dot {
-  background: var(--miami-gold) !important;
+  background: var(--mi-accent) !important;
   opacity: 0.85 !important;
 }
 
 /* --- Trust strip: <strong> en gold-deep para acento --- */
 .miami-trust__item strong {
-  color: var(--miami-gold-deep);
+  color: var(--mi-accent-2);
 }
 
 /* --- DOSSIER eyebrow en gold --- */
 .miami-eyebrow,
 .miami-modal__eyebrow {
-  color: var(--miami-gold);
+  color: var(--mi-accent);
 }
 .miami-section--dark .miami-eyebrow,
 .miami-footer-extra .miami-eyebrow {
-  color: var(--miami-gold-soft);
+  color: var(--mi-accent-2);
 }
 
 /* --- Brand tile: numero (01..12) en gold + linea inferior en gold --- */
 .miami-brand-tile__no {
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
   opacity: 0.95 !important;
 }
 .miami-brand-tile::after {
-  background: var(--miami-gold) !important;
+  background: var(--mi-accent) !important;
   opacity: 0.7 !important;
 }
 .miami-brand-tile:hover::after {
@@ -1388,35 +1388,35 @@ textarea:focus {
 
 /* --- Lookbook number en gold --- */
 .miami-lookbook__no {
-  color: var(--miami-gold);
+  color: var(--mi-accent);
   opacity: 0.95;
 }
 
 /* --- Marquee dots en gold --- */
 .miami-marquee__track > span.miami-dot {
-  background: var(--miami-gold) !important;
+  background: var(--mi-accent) !important;
 }
 
 /* --- Status quote: foot label en gold --- */
 .miami-status__foot {
-  color: var(--miami-gold);
+  color: var(--mi-accent);
   opacity: 0.95;
 }
 
 /* --- CTA final WhatsApp: dorado sobre negro (acento fuerte) --- */
 .miami-cta .miami-btn--primary,
 .miami-cta a.miami-btn--xl {
-  background: var(--miami-gold) !important;
-  border-color: var(--miami-gold) !important;
-  color: #0f0f0f !important;
-  box-shadow: 0 6px 24px rgba(185, 155, 99, 0.28);
+  background: var(--mi-accent) !important;
+  border-color: var(--mi-accent) !important;
+  color: var(--mi-bg) !important;
+  box-shadow: 0 6px 24px rgba(21,22,26,0.28);
 }
 .miami-cta .miami-btn--primary:hover,
 .miami-cta a.miami-btn--xl:hover {
   background: transparent !important;
-  color: var(--miami-gold) !important;
-  border-color: var(--miami-gold) !important;
-  box-shadow: 0 10px 36px rgba(185, 155, 99, 0.18);
+  color: var(--mi-accent) !important;
+  border-color: var(--mi-accent) !important;
+  box-shadow: 0 10px 36px rgba(21,22,26,0.18);
 }
 
 /* --- Hero primary CTA: lift con sombra dorada --- */
@@ -1424,7 +1424,7 @@ textarea:focus {
   transition: all 0.35s var(--miami-ease), box-shadow 0.35s var(--miami-ease) !important;
 }
 .miami-hero__actions .miami-btn--primary:hover {
-  box-shadow: 0 12px 36px rgba(185, 155, 99, 0.35);
+  box-shadow: 0 12px 36px rgba(21,22,26,0.35);
   transform: translateY(-2px);
 }
 .miami-hero__actions .miami-btn--ghost {
@@ -1440,14 +1440,14 @@ textarea:focus {
   transition: color 0.3s var(--miami-ease), border-color 0.3s var(--miami-ease), opacity 0.3s var(--miami-ease);
 }
 .miami-section__link:hover {
-  color: var(--miami-gold);
-  border-bottom-color: var(--miami-gold);
+  color: var(--mi-accent);
+  border-bottom-color: var(--mi-accent);
   opacity: 1;
 }
 
 /* --- Modal title: subrayado dorado sutil --- */
 .miami-modal__title {
-  border-bottom: 1px solid var(--miami-gold);
+  border-bottom: 1px solid var(--mi-accent);
   padding-bottom: 18px;
 }
 
@@ -1469,7 +1469,7 @@ textarea:focus {
     translateZ(0);
   box-shadow:
     0 24px 50px rgba(0, 0, 0, 0.35),
-    0 0 0 1px rgba(185, 155, 99, 0.35) inset;
+    0 0 0 1px rgba(21,22,26,0.35) inset;
 }
 .miami-brand-tile[data-miami-tilt] .miami-brand-tile__img {
   transition: transform 0.6s var(--miami-ease), filter 0.6s var(--miami-ease);
@@ -1505,7 +1505,7 @@ textarea:focus {
     translateY(-6px);
   box-shadow:
     0 28px 60px rgba(0, 0, 0, 0.38),
-    0 0 0 1px rgba(185, 155, 99, 0.28);
+    0 0 0 1px rgba(21,22,26,0.28);
 }
 
 /* Split media photo (dossier 01, 02) — depth sutil al hover */
@@ -1603,12 +1603,12 @@ textarea:focus {
   transition: opacity 0.2s ease, background 0.2s ease, transform 0.12s linear;
 }
 .miami-cursor--dot.is-hover {
-  background: #b99b63;
+  background: #15161A;
 }
 .miami-cursor--ring {
   width: 38px; height: 38px;
   margin: -19px 0 0 -19px;
-  border: 1px solid rgba(255,255,255,0.5);
+  border: 1px solid var(--mi-line);
   border-radius: 50%;
   transition: width 0.3s cubic-bezier(0.22, 0.61, 0.36, 1),
               height 0.3s cubic-bezier(0.22, 0.61, 0.36, 1),
@@ -1620,7 +1620,7 @@ textarea:focus {
 .miami-cursor--ring.is-hover {
   width: 64px; height: 64px;
   margin: -32px 0 0 -32px;
-  border-color: #b99b63;
+  border-color: #15161A;
   border-width: 1.5px;
 }
 /* Cuando hay custom cursor, ocultamos el nativo para sensacion premium */
@@ -1642,8 +1642,8 @@ textarea:focus {
   background: rgba(15, 15, 15, 0.55);
   backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-left: 1px solid rgba(185,155,99,0.45);
+  border: 1px solid var(--mi-line);
+  border-left: 1px solid rgba(21,22,26,0.45);
 }
 
 /* =============================================================
@@ -1715,98 +1715,98 @@ body.template-account,
 body.template-404,
 body.template-password {
   background:
-    radial-gradient(circle at 50% 50%, rgba(185,155,99,0.06) 1px, transparent 1.8px) 0 0 / 30px 30px,
+    radial-gradient(circle at 50% 50%, rgba(21,22,26,0.06) 1px, transparent 1.8px) 0 0 / 30px 30px,
     radial-gradient(circle at 50% 50%, rgba(255,255,255,0.018) 1px, transparent 1.5px) 14px 14px / 30px 30px,
-    radial-gradient(ellipse 90% 50% at 50% 0%, rgba(185,155,99,0.05), transparent 60%),
-    #050505 !important;
+    radial-gradient(ellipse 90% 50% at 50% 0%, rgba(21,22,26,0.05), transparent 60%),
+    #FBFBFA !important;
   background-attachment: fixed;
-  color: #f0eeea;
+  color: var(--mi-ink-soft);
 }
 
 /* --- 1) SECTION base (era miami-bg blanco) — dots dorados visibles --- */
 .miami-section:not(.miami-section--brands-float):not(.miami-section--products-dark):not(.miami-section--dark):not(.miami-section--soft) {
   background:
-    radial-gradient(circle at 50% 50%, rgba(185,155,99,0.08) 1px, transparent 2px) 0 0 / 26px 26px,
+    radial-gradient(circle at 50% 50%, rgba(21,22,26,0.08) 1px, transparent 2px) 0 0 / 26px 26px,
     radial-gradient(circle at 50% 50%, rgba(255,255,255,0.022) 1px, transparent 1.5px) 13px 13px / 26px 26px,
-    radial-gradient(ellipse 90% 50% at 50% 0%, rgba(185,155,99,0.07), transparent 60%),
+    radial-gradient(ellipse 90% 50% at 50% 0%, rgba(21,22,26,0.07), transparent 60%),
     #0a0a0a !important;
-  color: #f0eeea !important;
-  border-top: 1px solid rgba(185,155,99,0.1) !important;
+  color: var(--mi-ink-soft) !important;
+  border-top: 1px solid rgba(21,22,26,0.1) !important;
 }
 .miami-section:not(.miami-section--brands-float):not(.miami-section--products-dark):not(.miami-section--dark):not(.miami-section--soft) .miami-section__title { color: #fff !important; }
-.miami-section:not(.miami-section--brands-float):not(.miami-section--products-dark):not(.miami-section--dark):not(.miami-section--soft) .miami-section__sub { color: rgba(255,255,255,0.6) !important; }
+.miami-section:not(.miami-section--brands-float):not(.miami-section--products-dark):not(.miami-section--dark):not(.miami-section--soft) .miami-section__sub { color: var(--mi-ink) !important; }
 .miami-section:not(.miami-section--brands-float):not(.miami-section--products-dark):not(.miami-section--dark):not(.miami-section--soft) .miami-section__link { color: #fff !important; }
-.miami-section:not(.miami-section--brands-float):not(.miami-section--products-dark):not(.miami-section--dark):not(.miami-section--soft) .miami-eyebrow { color: var(--miami-gold) !important; }
+.miami-section:not(.miami-section--brands-float):not(.miami-section--products-dark):not(.miami-section--dark):not(.miami-section--soft) .miami-eyebrow { color: var(--mi-accent) !important; }
 
 /* --- 2) SECTION--soft (era cream) — grid muy sutil + halo --- */
 .miami-section--soft {
   background:
     repeating-linear-gradient(0deg,  rgba(255,255,255,0.02) 0 1px, transparent 1px 80px),
     repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 80px),
-    radial-gradient(ellipse 70% 40% at 30% 20%, rgba(185,155,99,0.06), transparent 65%),
+    radial-gradient(ellipse 70% 40% at 30% 20%, rgba(21,22,26,0.06), transparent 65%),
     #080808 !important;
-  color: #f0eeea !important;
+  color: var(--mi-ink-soft) !important;
 }
 
 /* --- 3) STATUS quote (era oscuro pero plano) — agregamos halo cromatico --- */
 .miami-status {
   background:
-    radial-gradient(ellipse 60% 50% at 50% 50%, rgba(185,155,99,0.06), transparent 70%),
-    radial-gradient(circle at 50% 50%, rgba(185,155,99,0.025) 1px, transparent 1.5px) 0 0 / 36px 36px,
+    radial-gradient(ellipse 60% 50% at 50% 50%, rgba(21,22,26,0.06), transparent 70%),
+    radial-gradient(circle at 50% 50%, rgba(21,22,26,0.025) 1px, transparent 1.5px) 0 0 / 36px 36px,
     #0a0a0a !important;
 }
 
 /* --- 4) CTA section ("Buscas un modelo que no esta?") --- */
 .miami-cta {
   background:
-    radial-gradient(ellipse 80% 50% at 50% 50%, rgba(185,155,99,0.08), transparent 60%),
-    radial-gradient(circle at 50% 50%, rgba(185,155,99,0.04) 1px, transparent 1.8px) 0 0 / 32px 32px,
-    #060606 !important;
+    radial-gradient(ellipse 80% 50% at 50% 50%, rgba(21,22,26,0.08), transparent 60%),
+    radial-gradient(circle at 50% 50%, rgba(21,22,26,0.04) 1px, transparent 1.8px) 0 0 / 32px 32px,
+    #FBFBFA !important;
   color: #fff !important;
-  border-top: 1px solid rgba(185,155,99,0.15);
-  border-bottom: 1px solid rgba(185,155,99,0.15);
+  border-top: 1px solid rgba(21,22,26,0.15);
+  border-bottom: 1px solid rgba(21,22,26,0.15);
 }
 .miami-cta .miami-cta__title { color: #fff !important; }
-.miami-cta .miami-cta__sub { color: rgba(255,255,255,0.72) !important; }
+.miami-cta .miami-cta__sub { color: var(--mi-ink) !important; }
 
 /* --- 5) EDITORIAL centered (DOSSIER 03 procedencia) --- */
 .miami-editorial,
 .miami-section--soft .miami-editorial {
-  color: #f0eeea;
+  color: var(--mi-ink-soft);
 }
 .miami-editorial h2 { color: #fff !important; }
-.miami-editorial p { color: rgba(255,255,255,0.72) !important; }
+.miami-editorial p { color: var(--mi-ink) !important; }
 
 /* --- 6) SPLIT default bg (cuando no es --dark) --- */
 .miami-split:not(.miami-split--dark) {
   background:
-    radial-gradient(ellipse 70% 40% at 30% 0%, rgba(185,155,99,0.05), transparent 60%),
+    radial-gradient(ellipse 70% 40% at 30% 0%, rgba(21,22,26,0.05), transparent 60%),
     #0a0a0a !important;
 }
 .miami-split:not(.miami-split--dark) .miami-split__content {
   background: transparent !important;
-  color: #f0eeea !important;
+  color: var(--mi-ink-soft) !important;
 }
 .miami-split:not(.miami-split--dark) .miami-split__quote { color: #fff !important; }
-.miami-split:not(.miami-split--dark) .miami-split__copy { color: rgba(255,255,255,0.72) !important; }
+.miami-split:not(.miami-split--dark) .miami-split__copy { color: var(--mi-ink) !important; }
 .miami-split:not(.miami-split--dark) .miami-split__content .miami-btn {
-  border-color: var(--miami-gold) !important;
-  color: var(--miami-gold) !important;
+  border-color: var(--mi-accent) !important;
+  color: var(--mi-accent) !important;
 }
 .miami-split:not(.miami-split--dark) .miami-split__content .miami-btn:hover {
-  background: var(--miami-gold) !important;
+  background: var(--mi-accent) !important;
   color: #000 !important;
 }
 
 /* --- 6.5) LOOKBOOK section background + márgenes — negro con grid sutil --- */
 .miami-lookbook {
   background:
-    repeating-linear-gradient(0deg,  rgba(185,155,99,0.025) 0 1px, transparent 1px 70px),
-    repeating-linear-gradient(90deg, rgba(185,155,99,0.025) 0 1px, transparent 1px 70px),
-    radial-gradient(ellipse 90% 50% at 50% 50%, rgba(185,155,99,0.05), transparent 65%),
-    #050505 !important;
-  border-top: 1px solid rgba(185,155,99,0.1) !important;
-  border-bottom: 1px solid rgba(185,155,99,0.1) !important;
+    repeating-linear-gradient(0deg,  rgba(21,22,26,0.025) 0 1px, transparent 1px 70px),
+    repeating-linear-gradient(90deg, rgba(21,22,26,0.025) 0 1px, transparent 1px 70px),
+    radial-gradient(ellipse 90% 50% at 50% 50%, rgba(21,22,26,0.05), transparent 65%),
+    #FBFBFA !important;
+  border-top: 1px solid rgba(21,22,26,0.1) !important;
+  border-bottom: 1px solid rgba(21,22,26,0.1) !important;
 }
 
 /* --- 7) PAGINAS DE TIENDANUBE (category, search, product) — fondo negro + dots --- */
@@ -1814,9 +1814,9 @@ body.template-category,
 body.template-search,
 body.template-product {
   background:
-    radial-gradient(circle at 50% 50%, rgba(185,155,99,0.03) 1px, transparent 1.5px) 0 0 / 30px 30px,
-    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(185,155,99,0.05), transparent 60%),
-    #060606 !important;
+    radial-gradient(circle at 50% 50%, rgba(21,22,26,0.03) 1px, transparent 1.5px) 0 0 / 30px 30px,
+    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(21,22,26,0.05), transparent 60%),
+    #FBFBFA !important;
 }
 body.template-category main,
 body.template-search main,
@@ -1828,7 +1828,7 @@ body.template-product .container {
 }
 /* Texto base sobre fondo oscuro */
 body.template-category, body.template-search, body.template-product {
-  color: #e8e6e1;
+  color: var(--mi-ink-soft);
 }
 body.template-category h1, body.template-search h1, body.template-product h1,
 body.template-category h2, body.template-search h2, body.template-product h2,
@@ -1841,7 +1841,7 @@ body.template-search .item-product,
 body.template-category .js-item-product,
 body.template-search .js-item-product {
   background: rgba(20,18,15,0.55);
-  border: 1px solid rgba(185,155,99,0.08);
+  border: 1px solid rgba(21,22,26,0.08);
   padding: 14px 14px 18px;
   transition:
     border-color 0.4s var(--miami-ease),
@@ -1852,10 +1852,10 @@ body.template-category .item-product:hover,
 body.template-search .item-product:hover,
 body.template-category .js-item-product:hover,
 body.template-search .js-item-product:hover {
-  border-color: rgba(185,155,99,0.5);
+  border-color: rgba(21,22,26,0.5);
   box-shadow:
-    0 0 0 1px rgba(185,155,99,0.2),
-    0 0 24px rgba(185,155,99,0.22),
+    0 0 0 1px rgba(21,22,26,0.2),
+    0 0 24px rgba(21,22,26,0.22),
     0 12px 28px rgba(0,0,0,0.5);
   transform: translateY(-2px);
 }
@@ -1876,12 +1876,12 @@ body.template-product .js-price-display,
 body.template-category .price,
 body.template-search .price,
 body.template-product .price {
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
 }
 body.template-category .price-compare,
 body.template-search .price-compare,
 body.template-product .price-compare {
-  color: rgba(255,255,255,0.4) !important;
+  color: var(--mi-ink) !important;
 }
 /* Slot imagen del item — fondo oscuro para que no quede franja blanca */
 body.template-category .item-image,
@@ -1889,14 +1889,14 @@ body.template-search .item-image,
 body.template-product .item-image,
 body.template-category .item-image-wrapper,
 body.template-search .item-image-wrapper {
-  background: #0a0a0a !important;
+  background: var(--mi-bg) !important;
 }
 /* Sidebar / filtros */
 body.template-category aside,
 body.template-category .filters,
 body.template-category .filter-group {
   background: transparent !important;
-  color: #e8e6e1 !important;
+  color: var(--mi-ink-soft) !important;
 }
 body.template-category aside h3,
 body.template-category aside h4,
@@ -1908,7 +1908,7 @@ body.template-category .filters .text-uppercase {
 body.template-category .form-check-label,
 body.template-category aside label,
 body.template-category aside .text-muted {
-  color: rgba(255,255,255,0.7) !important;
+  color: var(--mi-ink) !important;
 }
 /* Inputs / selects sobre fondo oscuro */
 body.template-category input[type="text"],
@@ -1918,21 +1918,21 @@ body.template-search input[type="text"],
 body.template-product input[type="text"],
 body.template-product select {
   background: rgba(20,18,15,0.55) !important;
-  border: 1px solid rgba(185,155,99,0.18) !important;
+  border: 1px solid rgba(21,22,26,0.18) !important;
   color: #fff !important;
 }
 body.template-category input::placeholder,
-body.template-search input::placeholder { color: rgba(255,255,255,0.4); }
+body.template-search input::placeholder { color: var(--mi-ink); }
 /* Pagination dark */
 body.template-category .pagination .page-link,
 body.template-search .pagination .page-link {
   background: rgba(20,18,15,0.55) !important;
-  border-color: rgba(185,155,99,0.18) !important;
+  border-color: rgba(21,22,26,0.18) !important;
   color: #fff !important;
 }
 body.template-category .pagination .page-item.active .page-link {
-  background: var(--miami-gold) !important;
-  border-color: var(--miami-gold) !important;
+  background: var(--mi-accent) !important;
+  border-color: var(--mi-accent) !important;
   color: #000 !important;
 }
 /* Breadcrumbs */
@@ -1940,19 +1940,19 @@ body.template-category .breadcrumb,
 body.template-search .breadcrumb,
 body.template-product .breadcrumb {
   background: transparent !important;
-  color: rgba(255,255,255,0.6);
+  color: var(--mi-ink);
 }
 body.template-category .breadcrumb a,
 body.template-search .breadcrumb a,
 body.template-product .breadcrumb a {
-  color: rgba(255,255,255,0.7) !important;
+  color: var(--mi-ink) !important;
 }
 /* Product detail dark */
 body.template-product .product-info,
 body.template-product .product-info-wrapper,
 body.template-product .product-detail {
   background: transparent !important;
-  color: #e8e6e1 !important;
+  color: var(--mi-ink-soft) !important;
 }
 body.template-product .product-info .product-name,
 body.template-product .product-info h1 {
@@ -1961,13 +1961,13 @@ body.template-product .product-info h1 {
 body.template-product .form-quantity input[type="number"] {
   background: rgba(20,18,15,0.55) !important;
   color: #fff !important;
-  border-color: rgba(185,155,99,0.25) !important;
+  border-color: rgba(21,22,26,0.25) !important;
 }
 body.template-product .product-info .btn.js-addtocart,
 body.template-product .product-info input.js-addtocart {
-  background: var(--miami-gold) !important;
+  background: var(--mi-accent) !important;
   color: #000 !important;
-  border-color: var(--miami-gold) !important;
+  border-color: var(--mi-accent) !important;
 }
 body.template-product .product-info .btn.js-addtocart:hover {
   background: #fff !important;
@@ -1983,10 +1983,10 @@ body.template-category,
 body.template-search,
 body.template-product {
   background:
-    radial-gradient(circle at 50% 50%, rgba(185,155,99,0.08) 1px, transparent 2px) 0 0 / 30px 30px,
+    radial-gradient(circle at 50% 50%, rgba(21,22,26,0.08) 1px, transparent 2px) 0 0 / 30px 30px,
     radial-gradient(circle at 50% 50%, rgba(255,255,255,0.02) 1px, transparent 1.5px) 14px 14px / 30px 30px,
-    radial-gradient(ellipse 90% 50% at 50% 0%, rgba(185,155,99,0.06), transparent 60%),
-    #060606 !important;
+    radial-gradient(ellipse 90% 50% at 50% 0%, rgba(21,22,26,0.06), transparent 60%),
+    #FBFBFA !important;
   background-attachment: fixed !important;
 }
 
@@ -2037,13 +2037,13 @@ body.template-category .form-select-small,
 body.template-search .form-select-small,
 body.template-product .form-select-small {
   background-color: rgba(20,18,15,0.65) !important;
-  border-color: rgba(185,155,99,0.25) !important;
+  border-color: rgba(21,22,26,0.25) !important;
   color: #fff !important;
 }
 body.template-category select option,
 body.template-search select option,
 body.template-product select option {
-  background: #0a0a0a;
+  background: var(--mi-bg);
   color: #fff;
 }
 
@@ -2055,7 +2055,7 @@ body.template-category .filter-group-title {
 }
 body.template-category .form-check-label,
 body.template-category aside label {
-  color: rgba(255,255,255,0.8) !important;
+  color: var(--mi-ink) !important;
 }
 
 /* "Selección actual de..." (category.description) en blanco suave */
@@ -2063,7 +2063,7 @@ body.template-category .font-small,
 body.template-search .font-small,
 body.template-category p,
 body.template-search p {
-  color: rgba(255,255,255,0.7) !important;
+  color: var(--mi-ink) !important;
 }
 
 /* Barra mobile FILTRAR / ORDENAR — fondo dark con borde dorado fino */
@@ -2072,8 +2072,8 @@ body.template-search .category-controls,
 body.template-category .js-category-controls,
 body.template-search .js-category-controls {
   background: rgba(15,15,15,0.7) !important;
-  border-top: 1px solid rgba(185,155,99,0.18) !important;
-  border-bottom: 1px solid rgba(185,155,99,0.18) !important;
+  border-top: 1px solid rgba(21,22,26,0.18) !important;
+  border-bottom: 1px solid rgba(21,22,26,0.18) !important;
 }
 body.template-category .category-controls button,
 body.template-search .category-controls button,
@@ -2081,29 +2081,29 @@ body.template-category .js-category-controls button,
 body.template-search .js-category-controls button {
   background: transparent !important;
   color: #fff !important;
-  border-color: rgba(185,155,99,0.18) !important;
+  border-color: rgba(21,22,26,0.18) !important;
 }
 body.template-category .category-controls .right-line,
 body.template-search .category-controls .right-line {
-  border-right: 1px solid rgba(185,155,99,0.18) !important;
+  border-right: 1px solid rgba(21,22,26,0.18) !important;
 }
 body.template-category .category-controls .font-weight-bold,
 body.template-search .category-controls .font-weight-bold,
 body.template-category .category-controls .font-smallest,
 body.template-search .category-controls .font-smallest {
-  color: rgba(185,155,99,0.85) !important;
+  color: rgba(21,22,26,0.85) !important;
 }
 body.template-category .top-line,
 body.template-category .bottom-line,
 body.template-search .top-line,
 body.template-search .bottom-line {
-  border-color: rgba(185,155,99,0.18) !important;
+  border-color: rgba(21,22,26,0.18) !important;
 }
 
 /* H1 del nombre de la categoria — solo el nombre en gris claro, prolijo */
 body.template-category .miami-category-title,
 body.template-search .miami-category-title {
-  color: rgba(255,255,255,0.55) !important;
+  color: var(--mi-ink) !important;
   font-size: clamp(28px, 4vw, 42px) !important;
   font-weight: 400 !important;
   letter-spacing: 0.18em !important;
@@ -2167,7 +2167,7 @@ body.template-product .price,
 body.template-product .js-price-display,
 body.template-product .product-price {
   font-size: clamp(20px, 4.5vw, 26px) !important;
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
   margin: 4px 0 12px !important;
   font-weight: 500 !important;
 }
@@ -2193,7 +2193,7 @@ body.template-product .variant-name {
   font-size: 11px !important;
   letter-spacing: 0.2em !important;
   text-transform: uppercase !important;
-  color: rgba(255,255,255,0.7) !important;
+  color: var(--mi-ink) !important;
   margin-bottom: 6px !important;
 }
 body.template-product .js-product-variants,
@@ -2204,7 +2204,7 @@ body.template-product .form-variant,
 body.template-product .js-variation-option,
 body.template-product .variant-button {
   background: rgba(20,18,15,0.55) !important;
-  border: 1px solid rgba(185,155,99,0.25) !important;
+  border: 1px solid rgba(21,22,26,0.25) !important;
   color: #fff !important;
   padding: 8px 14px !important;
   font-size: 12px !important;
@@ -2212,14 +2212,14 @@ body.template-product .variant-button {
 }
 body.template-product .form-variant:hover,
 body.template-product .variant-button:hover {
-  border-color: var(--miami-gold) !important;
+  border-color: var(--mi-accent) !important;
 }
 body.template-product .form-variant.is-active,
 body.template-product .js-variation-option.is-active,
 body.template-product .form-variant.active {
-  background: var(--miami-gold) !important;
+  background: var(--mi-accent) !important;
   color: #000 !important;
-  border-color: var(--miami-gold) !important;
+  border-color: var(--mi-accent) !important;
 }
 
 /* Quantity input */
@@ -2229,7 +2229,7 @@ body.template-product .form-quantity {
 body.template-product .form-quantity input[type="number"] {
   background: rgba(20,18,15,0.55) !important;
   color: #fff !important;
-  border-color: rgba(185,155,99,0.25) !important;
+  border-color: rgba(21,22,26,0.25) !important;
   padding: 8px 12px !important;
   font-size: 13px !important;
   width: 60px !important;
@@ -2238,9 +2238,9 @@ body.template-product .form-quantity input[type="number"] {
 /* Agregar al carrito: boton compacto pero claro */
 body.template-product .btn.js-addtocart,
 body.template-product input.js-addtocart {
-  background: var(--miami-gold) !important;
-  color: #0a0a0a !important;
-  border: 1px solid var(--miami-gold) !important;
+  background: var(--mi-accent) !important;
+  color: var(--mi-bg) !important;
+  border: 1px solid var(--mi-accent) !important;
   padding: 12px 18px !important;
   font-size: 12px !important;
   letter-spacing: 0.25em !important;
@@ -2266,7 +2266,7 @@ body.template-product .icon-text .font-weight-bold {
   text-transform: none !important;
 }
 body.template-product .icon-text {
-  color: rgba(255,255,255,0.7) !important;
+  color: var(--mi-ink) !important;
   font-size: 12px !important;
   line-height: 1.5 !important;
 }
@@ -2276,10 +2276,10 @@ body.template-product .product-description,
 body.template-product .description-content {
   margin-top: 16px !important;
   padding-top: 16px !important;
-  border-top: 1px solid rgba(185,155,99,0.18);
+  border-top: 1px solid rgba(21,22,26,0.18);
   font-size: 13px !important;
   line-height: 1.6 !important;
-  color: rgba(255,255,255,0.75) !important;
+  color: var(--mi-ink) !important;
 }
 body.template-product .product-description h2,
 body.template-product .product-description h3,
@@ -2288,7 +2288,7 @@ body.template-product .description-content h3 {
   font-size: 12px !important;
   letter-spacing: 0.3em !important;
   text-transform: uppercase !important;
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
   margin-bottom: 10px !important;
   margin-top: 0 !important;
 }
@@ -2299,7 +2299,7 @@ body.template-product .product-related h3 {
   font-size: 14px !important;
   letter-spacing: 0.3em !important;
   text-transform: uppercase !important;
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
   margin: 20px 0 16px !important;
 }
 
@@ -2344,7 +2344,7 @@ body.template-product .miami-product-desc-inline {
   body.template-product .miami-product-desc-inline {
     margin-top: 28px;
     padding-top: 24px;
-    border-top: 1px solid rgba(185,155,99,0.18);
+    border-top: 1px solid rgba(21,22,26,0.18);
   }
 }
 
@@ -2362,10 +2362,10 @@ header,
 body > header,
 body header {
   background:
-    radial-gradient(circle at 50% 50%, rgba(185,155,99,0.08) 1px, transparent 2px) 0 0 / 30px 30px,
-    radial-gradient(ellipse 90% 50% at 50% 100%, rgba(185,155,99,0.04), transparent 60%),
-    #050505 !important;
-  border-bottom: 1px solid rgba(185,155,99,0.18) !important;
+    radial-gradient(circle at 50% 50%, rgba(21,22,26,0.08) 1px, transparent 2px) 0 0 / 30px 30px,
+    radial-gradient(ellipse 90% 50% at 50% 100%, rgba(21,22,26,0.04), transparent 60%),
+    #FBFBFA !important;
+  border-bottom: 1px solid rgba(21,22,26,0.18) !important;
   color: #fff !important;
 }
 header > *,
@@ -2393,24 +2393,24 @@ header form input,
 .header input[type="text"],
 .header input[type="search"] {
   background: rgba(20,18,15,0.55) !important;
-  border: 1px solid rgba(185,155,99,0.22) !important;
+  border: 1px solid rgba(21,22,26,0.22) !important;
   color: #fff !important;
 }
 header input::placeholder,
 .header input::placeholder {
-  color: rgba(255,255,255,0.45) !important;
+  color: var(--mi-ink) !important;
 }
 header button.search-btn,
 header .search-btn,
 header [class*="search-submit"],
 header form button {
-  background: rgba(185,155,99,0.18) !important;
-  border-color: rgba(185,155,99,0.35) !important;
-  color: var(--miami-gold) !important;
+  background: rgba(21,22,26,0.18) !important;
+  border-color: rgba(21,22,26,0.35) !important;
+  color: var(--mi-accent) !important;
 }
 header button.search-btn:hover,
 header .search-btn:hover {
-  background: var(--miami-gold) !important;
+  background: var(--mi-accent) !important;
   color: #000 !important;
 }
 /* Links de navegacion */
@@ -2418,11 +2418,11 @@ header a,
 .header a,
 header nav a,
 .navbar a {
-  color: rgba(255,255,255,0.85) !important;
+  color: var(--mi-ink) !important;
 }
 header a:hover,
 .header a:hover {
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
 }
 /* "Entra / Registrate", "Carrito" etc */
 header .account-link,
@@ -2430,31 +2430,31 @@ header .cart-link,
 header [class*="cart"],
 header [class*="account"],
 header [class*="login"] {
-  color: rgba(255,255,255,0.85) !important;
+  color: var(--mi-ink) !important;
 }
 header [class*="cart"] svg,
 header [class*="account"] svg {
   fill: rgba(255,255,255,0.85) !important;
-  color: rgba(255,255,255,0.85) !important;
+  color: var(--mi-ink) !important;
 }
 /* Iconos circular bg que aparecen en "Entra" y "Carrito" */
 header .rounded-circle,
 header .icon-circle,
 header [class*="icon-bg"] {
   background: rgba(20,18,15,0.55) !important;
-  border: 1px solid rgba(185,155,99,0.2) !important;
-  color: var(--miami-gold) !important;
+  border: 1px solid rgba(21,22,26,0.2) !important;
+  color: var(--mi-accent) !important;
 }
 header .rounded-circle svg,
 header .icon-circle svg {
-  fill: var(--miami-gold) !important;
-  color: var(--miami-gold) !important;
+  fill: var(--mi-accent) !important;
+  color: var(--mi-accent) !important;
 }
 /* Cantidad/precio del carrito */
 header .cart-count,
 header .cart-total,
 header [class*="cart-quantity"] {
-  color: rgba(255,255,255,0.7) !important;
+  color: var(--mi-ink) !important;
 }
 /* Navigation menu items: CATEGORIAS, INICIO, PRODUCTOS, CONTACTO */
 header nav,
@@ -2470,36 +2470,36 @@ header .nav-link,
 header .navigation a,
 .navbar-nav a,
 header [class*="navigation"] a {
-  color: rgba(255,255,255,0.78) !important;
+  color: var(--mi-ink) !important;
 }
 header nav a:hover,
 header .nav-link:hover,
 header .navigation a:hover {
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
 }
 /* Dropdown de categorias (cuando se abre) */
 .navigation-categories-desktop,
 .dropdown-menu,
 [class*="dropdown-menu"] {
   background: rgba(10,10,10,0.95) !important;
-  border: 1px solid rgba(185,155,99,0.2) !important;
+  border: 1px solid rgba(21,22,26,0.2) !important;
   color: #fff !important;
 }
 .dropdown-menu a,
 [class*="dropdown"] a {
-  color: rgba(255,255,255,0.8) !important;
+  color: var(--mi-ink) !important;
 }
 .dropdown-menu a:hover {
-  color: var(--miami-gold) !important;
-  background: rgba(185,155,99,0.08) !important;
+  color: var(--mi-accent) !important;
+  background: rgba(21,22,26,0.08) !important;
 }
 /* Header advertising bar (si esta activa) */
 .header-advertising,
 [class*="header-advertising"],
 [class*="advertising"] {
   background: rgba(15,15,15,0.85) !important;
-  color: rgba(255,255,255,0.85) !important;
-  border-bottom: 1px solid rgba(185,155,99,0.15) !important;
+  color: var(--mi-ink) !important;
+  border-bottom: 1px solid rgba(21,22,26,0.15) !important;
 }
 
 /* ==========================================================================
@@ -2507,12 +2507,12 @@ header .navigation a:hover {
    ========================================================================== */
 body.template-cart {
   background:
-    radial-gradient(circle at 50% 50%, rgba(185,155,99,0.08) 1px, transparent 2px) 0 0 / 30px 30px,
+    radial-gradient(circle at 50% 50%, rgba(21,22,26,0.08) 1px, transparent 2px) 0 0 / 30px 30px,
     radial-gradient(circle at 50% 50%, rgba(255,255,255,0.02) 1px, transparent 1.5px) 14px 14px / 30px 30px,
-    radial-gradient(ellipse 90% 50% at 50% 0%, rgba(185,155,99,0.06), transparent 60%),
-    #060606 !important;
+    radial-gradient(ellipse 90% 50% at 50% 0%, rgba(21,22,26,0.06), transparent 60%),
+    #FBFBFA !important;
   background-attachment: fixed !important;
-  color: #f0eeea !important;
+  color: var(--mi-ink-soft) !important;
 }
 body.template-cart .container,
 body.template-cart section,
@@ -2546,7 +2546,7 @@ body.template-cart .cart-row,
 body.template-cart [class*="cart-item-ajax"],
 body.template-cart .js-cart-item {
   background: rgba(15,15,15,0.55) !important;
-  border-bottom: 1px solid rgba(185,155,99,0.15) !important;
+  border-bottom: 1px solid rgba(21,22,26,0.15) !important;
   padding: 16px 12px !important;
   margin-bottom: 8px !important;
   border-radius: 2px;
@@ -2570,7 +2570,7 @@ body.template-cart .item-variation,
 body.template-cart .cart-item-variant,
 body.template-cart .js-cart-item-variant,
 body.template-cart .variant-name {
-  color: rgba(255,255,255,0.6) !important;
+  color: var(--mi-ink) !important;
   font-size: 11px !important;
 }
 
@@ -2583,13 +2583,13 @@ body.template-cart .js-price-display,
 body.template-cart .price,
 body.template-cart .product-price,
 body.template-cart .js-item-price {
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
   font-size: 14px !important;
   font-weight: 500 !important;
 }
 body.template-cart .price-compare,
 body.template-cart .js-compare-price {
-  color: rgba(255,255,255,0.4) !important;
+  color: var(--mi-ink) !important;
   text-decoration: line-through;
 }
 
@@ -2599,7 +2599,7 @@ body.template-cart input[type="number"],
 body.template-cart input.js-cart-item-quantity,
 body.template-cart .quantity-input {
   background: rgba(20,18,15,0.65) !important;
-  border: 1px solid rgba(185,155,99,0.3) !important;
+  border: 1px solid rgba(21,22,26,0.3) !important;
   color: #fff !important;
   padding: 8px !important;
   font-size: 13px !important;
@@ -2609,24 +2609,24 @@ body.template-cart .js-cart-item-quantity-action,
 body.template-cart button.quantity-minus,
 body.template-cart button.quantity-plus {
   background: rgba(20,18,15,0.65) !important;
-  border-color: rgba(185,155,99,0.3) !important;
-  color: var(--miami-gold) !important;
+  border-color: rgba(21,22,26,0.3) !important;
+  color: var(--mi-accent) !important;
 }
 
 /* Boton eliminar item */
 body.template-cart .js-cart-item-remove,
 body.template-cart .cart-item-remove,
 body.template-cart [class*="remove"] {
-  color: rgba(255,255,255,0.6) !important;
+  color: var(--mi-ink) !important;
 }
 body.template-cart .js-cart-item-remove:hover {
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
 }
 
 /* Tabla header de cart (Productos / Cantidad / Precio / Subtotal en desktop) */
 body.template-cart .cart-page-table-header {
-  color: rgba(255,255,255,0.55) !important;
-  border-bottom: 1px solid rgba(185,155,99,0.18) !important;
+  color: var(--mi-ink) !important;
+  border-bottom: 1px solid rgba(21,22,26,0.18) !important;
   font-size: 11px !important;
   letter-spacing: 0.18em !important;
   text-transform: uppercase !important;
@@ -2638,19 +2638,19 @@ body.template-cart .cart-totals,
 body.template-cart .cart-page-summary,
 body.template-cart .js-cart-summary {
   background: rgba(15,15,15,0.6) !important;
-  border: 1px solid rgba(185,155,99,0.2) !important;
+  border: 1px solid rgba(21,22,26,0.2) !important;
   padding: 24px !important;
   margin-top: 16px;
 }
 body.template-cart .cart-summary *,
 body.template-cart .cart-totals * {
-  color: #f0eeea !important;
+  color: var(--mi-ink-soft) !important;
 }
 body.template-cart .cart-summary .total,
 body.template-cart .cart-summary .subtotal,
 body.template-cart .cart-totals .total,
 body.template-cart .js-cart-total {
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
   font-weight: 500 !important;
 }
 
@@ -2661,9 +2661,9 @@ body.template-cart .cart-button-container .btn-primary,
 body.template-cart .js-cart-submit,
 body.template-cart button[type="submit"],
 body.template-cart .checkout-button {
-  background: var(--miami-gold) !important;
-  color: #050505 !important;
-  border: 1px solid var(--miami-gold) !important;
+  background: var(--mi-accent) !important;
+  color: #FBFBFA !important;
+  border: 1px solid var(--mi-accent) !important;
   font-weight: 600 !important;
   letter-spacing: 0.25em !important;
   text-transform: uppercase !important;
@@ -2687,13 +2687,13 @@ body.template-cart .cart-fulfillment,
 body.template-cart .cart-page-fulfillment,
 body.template-cart .js-cart-fulfillment {
   background: rgba(15,15,15,0.45) !important;
-  border: 1px solid rgba(185,155,99,0.15) !important;
+  border: 1px solid rgba(21,22,26,0.15) !important;
   padding: 20px !important;
   margin-bottom: 16px;
 }
 body.template-cart .shipping-calculator-container label,
 body.template-cart .cart-fulfillment label {
-  color: rgba(255,255,255,0.85) !important;
+  color: var(--mi-ink) !important;
   font-size: 12px !important;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -2701,13 +2701,13 @@ body.template-cart .cart-fulfillment label {
 body.template-cart .shipping-calculator-container input,
 body.template-cart .cart-fulfillment input {
   background: rgba(20,18,15,0.65) !important;
-  border: 1px solid rgba(185,155,99,0.3) !important;
+  border: 1px solid rgba(21,22,26,0.3) !important;
   color: #fff !important;
 }
 body.template-cart .shipping-calculator-container select,
 body.template-cart .cart-fulfillment select {
   background: rgba(20,18,15,0.65) !important;
-  border: 1px solid rgba(185,155,99,0.3) !important;
+  border: 1px solid rgba(21,22,26,0.3) !important;
   color: #fff !important;
 }
 
@@ -2723,8 +2723,8 @@ body.template-cart .payment-method-icon {
 body.template-cart .alert,
 body.template-cart .alert-info {
   background: rgba(20,18,15,0.65) !important;
-  border: 1px solid rgba(185,155,99,0.25) !important;
-  color: rgba(255,255,255,0.85) !important;
+  border: 1px solid rgba(21,22,26,0.25) !important;
+  color: var(--mi-ink) !important;
   padding: 32px 24px !important;
 }
 
@@ -2740,7 +2740,7 @@ body.template-cart .cart-row img {
 body.template-cart .continue-shopping,
 body.template-cart .back-to-shop,
 body.template-cart [class*="continue"] {
-  color: rgba(255,255,255,0.7) !important;
+  color: var(--mi-ink) !important;
   font-size: 11px !important;
   letter-spacing: 0.2em !important;
   text-transform: uppercase !important;
@@ -2777,15 +2777,15 @@ body.template-cart [class*="continue"] {
 #modal-cart .modal-dialog,
 #modal-cart .modal-header,
 #modal-cart .modal-footer {
-  background: #0a0a0a !important;
-  color: #f0eeea !important;
-  border-color: rgba(185,155,99,0.2) !important;
+  background: var(--mi-bg) !important;
+  color: var(--mi-ink-soft) !important;
+  border-color: rgba(21,22,26,0.2) !important;
 }
 #modal-cart .modal-content {
   background:
-    radial-gradient(circle at 50% 50%, rgba(185,155,99,0.06) 1px, transparent 1.8px) 0 0 / 30px 30px,
+    radial-gradient(circle at 50% 50%, rgba(21,22,26,0.06) 1px, transparent 1.8px) 0 0 / 30px 30px,
     #0a0a0a !important;
-  border-left: 1px solid rgba(185,155,99,0.25) !important;
+  border-left: 1px solid rgba(21,22,26,0.25) !important;
 }
 
 /* Header del modal con titulo "Carrito de compras" + boton X */
@@ -2798,17 +2798,17 @@ body.template-cart [class*="continue"] {
   letter-spacing: 0.18em !important;
   text-transform: uppercase !important;
   font-weight: 500 !important;
-  border-bottom: 1px solid rgba(185,155,99,0.18) !important;
+  border-bottom: 1px solid rgba(21,22,26,0.18) !important;
   padding: 18px 20px !important;
 }
 #modal-cart .close,
 #modal-cart [data-dismiss="modal"] {
-  color: rgba(255,255,255,0.8) !important;
+  color: var(--mi-ink) !important;
   opacity: 1 !important;
   font-size: 24px;
 }
 #modal-cart .close:hover {
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
 }
 
 /* Items del cart en modal */
@@ -2816,7 +2816,7 @@ body.template-cart [class*="continue"] {
 #modal-cart .js-cart-item,
 #modal-cart .cart-row {
   background: transparent !important;
-  border-bottom: 1px solid rgba(185,155,99,0.15) !important;
+  border-bottom: 1px solid rgba(21,22,26,0.15) !important;
   padding: 16px 0 !important;
 }
 #modal-cart .item-name,
@@ -2834,7 +2834,7 @@ body.template-cart [class*="continue"] {
 #modal-cart .cart-item-variant,
 #modal-cart .variant-name,
 #modal-cart .js-cart-item-variant {
-  color: rgba(255,255,255,0.55) !important;
+  color: var(--mi-ink) !important;
   font-size: 11px !important;
 }
 
@@ -2845,7 +2845,7 @@ body.template-cart [class*="continue"] {
 #modal-cart .js-cart-item-price,
 #modal-cart .js-price-display,
 #modal-cart .js-item-price {
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
   font-size: 14px !important;
   font-weight: 500 !important;
 }
@@ -2861,17 +2861,17 @@ body.template-cart [class*="continue"] {
 }
 #modal-cart .cart-summary *,
 #modal-cart .cart-totals * {
-  color: #f0eeea !important;
+  color: var(--mi-ink-soft) !important;
 }
 #modal-cart .js-cart-total,
 #modal-cart .total,
 #modal-cart [class*="total-amount"] {
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
   font-weight: 600 !important;
 }
 #modal-cart .subtotal-label,
 #modal-cart .total-label {
-  color: rgba(255,255,255,0.7) !important;
+  color: var(--mi-ink) !important;
   font-size: 13px !important;
   letter-spacing: 0.08em !important;
 }
@@ -2882,7 +2882,7 @@ body.template-cart [class*="continue"] {
 #modal-cart input.js-cart-item-quantity,
 #modal-cart .quantity-input {
   background: rgba(20,18,15,0.65) !important;
-  border: 1px solid rgba(185,155,99,0.3) !important;
+  border: 1px solid rgba(21,22,26,0.3) !important;
   color: #fff !important;
 }
 #modal-cart .form-quantity-icon,
@@ -2890,8 +2890,8 @@ body.template-cart [class*="continue"] {
 #modal-cart button.quantity-plus,
 #modal-cart .js-cart-item-quantity-action {
   background: transparent !important;
-  border: 1px solid rgba(185,155,99,0.3) !important;
-  color: var(--miami-gold) !important;
+  border: 1px solid rgba(21,22,26,0.3) !important;
+  color: var(--mi-accent) !important;
 }
 
 /* Eliminar */
@@ -2899,13 +2899,13 @@ body.template-cart [class*="continue"] {
 #modal-cart .cart-item-remove,
 #modal-cart [class*="remove"],
 #modal-cart a[class*="eliminar"] {
-  color: rgba(255,255,255,0.7) !important;
+  color: var(--mi-ink) !important;
   font-size: 12px !important;
   letter-spacing: 0.1em !important;
   text-decoration: none !important;
 }
 #modal-cart .js-cart-item-remove:hover {
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
 }
 
 /* Boton INICIAR COMPRA en modal — gold completo */
@@ -2916,9 +2916,9 @@ body.template-cart [class*="continue"] {
 #modal-cart button[type="submit"],
 #modal-cart .checkout-button,
 #modal-cart a.btn-primary {
-  background: var(--miami-gold) !important;
-  color: #050505 !important;
-  border: 1px solid var(--miami-gold) !important;
+  background: var(--mi-accent) !important;
+  color: #FBFBFA !important;
+  border: 1px solid var(--mi-accent) !important;
   font-weight: 600 !important;
   letter-spacing: 0.25em !important;
   text-transform: uppercase !important;
@@ -2941,21 +2941,21 @@ body.template-cart [class*="continue"] {
 /* "Ver mas productos" link */
 #modal-cart .btn-link,
 #modal-cart a.btn-link {
-  color: rgba(255,255,255,0.75) !important;
+  color: var(--mi-ink) !important;
   font-size: 11px !important;
   letter-spacing: 0.2em !important;
   text-transform: uppercase !important;
   text-decoration: underline;
 }
 #modal-cart a.btn-link:hover {
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
 }
 
 /* GoCuotas / cuotas badge en modal */
 #modal-cart [class*="gocuotas"],
 #modal-cart [class*="installments"] {
   background: transparent !important;
-  color: rgba(255,255,255,0.75) !important;
+  color: var(--mi-ink) !important;
   padding: 12px 0 !important;
 }
 
@@ -2964,7 +2964,7 @@ body.template-cart [class*="continue"] {
 #modal-cart .divider,
 #modal-cart .border-top,
 #modal-cart .border-bottom {
-  border-color: rgba(185,155,99,0.18) !important;
+  border-color: rgba(21,22,26,0.18) !important;
 }
 
 /* Backdrop del modal mas oscuro */
@@ -2991,12 +2991,12 @@ footer,
 body footer,
 body .footer {
   background:
-    radial-gradient(circle at 50% 50%, rgba(185,155,99,0.08) 1px, transparent 2px) 0 0 / 30px 30px,
+    radial-gradient(circle at 50% 50%, rgba(21,22,26,0.08) 1px, transparent 2px) 0 0 / 30px 30px,
     radial-gradient(circle at 50% 50%, rgba(255,255,255,0.02) 1px, transparent 1.5px) 14px 14px / 30px 30px,
-    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(185,155,99,0.05), transparent 60%),
-    #050505 !important;
-  color: #f0eeea !important;
-  border-top: 1px solid rgba(185,155,99,0.18) !important;
+    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(21,22,26,0.05), transparent 60%),
+    #FBFBFA !important;
+  color: var(--mi-ink-soft) !important;
+  border-top: 1px solid rgba(21,22,26,0.18) !important;
 }
 footer > *,
 .footer > *,
@@ -3006,12 +3006,12 @@ footer > *,
 footer a,
 .footer a,
 .miami-footer-extra a {
-  color: rgba(255,255,255,0.85) !important;
+  color: var(--mi-ink) !important;
 }
 footer a:hover,
 .footer a:hover,
 .miami-footer-extra a:hover {
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
 }
 footer input,
 footer textarea,
@@ -3020,7 +3020,7 @@ footer select,
 .footer textarea,
 .footer select {
   background: rgba(20,18,15,0.55) !important;
-  border-color: rgba(185,155,99,0.25) !important;
+  border-color: rgba(21,22,26,0.25) !important;
   color: #fff !important;
 }
 footer h1, footer h2, footer h3, footer h4, footer h5, footer h6,
@@ -3058,27 +3058,27 @@ body.template-product .product-images {
 /* Las flechas y paginacion del swiper en blanco para verlas sobre negro */
 body.template-product .swiper-button-prev,
 body.template-product .swiper-button-next {
-  color: rgba(255,255,255,0.85) !important;
+  color: var(--mi-ink) !important;
 }
 body.template-product .swiper-button-prev:hover,
 body.template-product .swiper-button-next:hover {
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
 }
 body.template-product .swiper-fractions {
-  color: rgba(255,255,255,0.75) !important;
+  color: var(--mi-ink) !important;
 }
 
 /* Thumbs: borde sutil dorado al activo */
 body.template-product .product-thumb-container {
-  border: 1px solid rgba(185,155,99,0.12);
+  border: 1px solid rgba(21,22,26,0.12);
   transition: border-color 0.3s ease;
 }
 body.template-product .product-thumb-container:hover {
-  border-color: rgba(185,155,99,0.5);
+  border-color: rgba(21,22,26,0.5);
 }
 body.template-product .product-thumb-container.swiper-slide-thumb-active,
 body.template-product .product-thumb-container.is-active {
-  border-color: var(--miami-gold) !important;
+  border-color: var(--mi-accent) !important;
 }
 
 /* ==========================================================================
@@ -3090,10 +3090,10 @@ body.template-product .product-thumb-container.is-active {
   padding: 56px 24px 32px;
   text-align: center;
   background:
-    radial-gradient(ellipse 50% 100% at 50% 0%, rgba(185,155,99,0.18) 0%, transparent 65%),
-    radial-gradient(circle at 50% 50%, rgba(185,155,99,0.06) 1px, transparent 1.8px) 0 0 / 30px 30px,
-    #060606;
-  border-bottom: 1px solid rgba(185,155,99,0.18);
+    radial-gradient(ellipse 50% 100% at 50% 0%, rgba(21,22,26,0.18) 0%, transparent 65%),
+    radial-gradient(circle at 50% 50%, rgba(21,22,26,0.06) 1px, transparent 1.8px) 0 0 / 30px 30px,
+    #FBFBFA;
+  border-bottom: 1px solid rgba(21,22,26,0.18);
   z-index: 1;
 }
 .miami-page-header::before {
@@ -3110,19 +3110,19 @@ body.template-product .product-thumb-container.is-active {
   height: auto;
   filter:
     drop-shadow(0 6px 18px rgba(0,0,0,0.55))
-    drop-shadow(0 0 28px rgba(185,155,99,0.28));
+    drop-shadow(0 0 28px rgba(21,22,26,0.28));
   animation: miami-page-logo-breathe 6s ease-in-out infinite;
 }
 @keyframes miami-page-logo-breathe {
   0%, 100% {
     filter:
       drop-shadow(0 6px 18px rgba(0,0,0,0.55))
-      drop-shadow(0 0 28px rgba(185,155,99,0.22));
+      drop-shadow(0 0 28px rgba(21,22,26,0.22));
   }
   50% {
     filter:
       drop-shadow(0 8px 22px rgba(0,0,0,0.6))
-      drop-shadow(0 0 38px rgba(185,155,99,0.4));
+      drop-shadow(0 0 38px rgba(21,22,26,0.4));
   }
 }
 @media (max-width: 768px) {
@@ -3145,7 +3145,7 @@ body.template-search .item-product,
 body.template-category .js-item-product,
 body.template-search .js-item-product {
   background: rgba(15,15,15,0.65) !important;
-  border: 1px solid rgba(185,155,99,0.1) !important;
+  border: 1px solid rgba(21,22,26,0.1) !important;
   padding: 14px 14px 18px !important;
   transition:
     border-color 0.45s var(--miami-ease, ease),
@@ -3155,11 +3155,11 @@ body.template-category .item-product:hover,
 body.template-search .item-product:hover,
 body.template-category .js-item-product:hover,
 body.template-search .js-item-product:hover {
-  border-color: var(--miami-gold) !important;
+  border-color: var(--mi-accent) !important;
   box-shadow:
-    0 0 0 2px var(--miami-gold),
-    0 0 32px rgba(185,155,99,0.45),
-    0 0 64px rgba(185,155,99,0.2) !important;
+    0 0 0 2px var(--mi-accent),
+    0 0 32px rgba(21,22,26,0.45),
+    0 0 64px rgba(21,22,26,0.2) !important;
 }
 
 /* IMAGEN 100% ESTATICA en catalogo — preserva translateX(-50%) original
@@ -3184,7 +3184,7 @@ body.template-search a:focus {
 .miami-lookbook__tile--cinematic {
   min-height: 560px;
   isolation: isolate;
-  background: #050505;
+  background: #FBFBFA;
 }
 .miami-lookbook__tile--cinematic .miami-lookbook__media {
   position: absolute; inset: 0; z-index: 0;
@@ -3311,7 +3311,7 @@ body.template-search a:focus {
   backdrop-filter: blur(12px) saturate(1.1);
   -webkit-backdrop-filter: blur(12px) saturate(1.1);
   border: 1px solid rgba(232,189,116,0.35);
-  color: rgba(255,255,255,0.95) !important;
+  color: var(--mi-ink) !important;
   letter-spacing: 0.4em;
   font-size: 11px;
   font-weight: 500;
@@ -3381,8 +3381,8 @@ body.template-search a:focus {
 /* === SPLIT DARK — paleta negra/dorada en split de dossier === */
 .miami-split--dark {
   background: #000 !important;
-  border-top: 1px solid rgba(185,155,99,0.12);
-  border-bottom: 1px solid rgba(185,155,99,0.12);
+  border-top: 1px solid rgba(21,22,26,0.12);
+  border-bottom: 1px solid rgba(21,22,26,0.12);
 }
 .miami-split--dark .miami-split__media--clean {
   background: #000;
@@ -3393,7 +3393,7 @@ body.template-search a:focus {
   padding: 80px 48px !important;
 }
 .miami-split__content--dark .miami-eyebrow {
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
 }
 .miami-split__content--dark .miami-split__quote {
   color: #fff;
@@ -3401,7 +3401,7 @@ body.template-search a:focus {
   text-transform: uppercase;
 }
 .miami-split__content--dark .miami-split__copy {
-  color: rgba(255,255,255,0.72) !important;
+  color: var(--mi-ink) !important;
 }
 @media (max-width: 900px) {
   .miami-split__content--dark { padding: 56px 28px !important; }
@@ -3417,7 +3417,7 @@ body.template-search a:focus {
   opacity: 0.95;
   filter:
     drop-shadow(0 6px 16px rgba(0,0,0,0.5))
-    drop-shadow(0 0 22px rgba(185,155,99,0.22));
+    drop-shadow(0 0 22px rgba(21,22,26,0.22));
 }
 .miami-section__head--seal {
   flex-direction: row !important;
@@ -3453,12 +3453,12 @@ body.template-search a:focus {
 /* === PRODUCTOS DESTACADOS DARK — paleta unificada negro + aura dorada === */
 .miami-section--products-dark {
   background:
-    radial-gradient(circle at 50% 50%, rgba(185,155,99,0.075) 1px, transparent 2px) 0 0 / 32px 32px,
+    radial-gradient(circle at 50% 50%, rgba(21,22,26,0.075) 1px, transparent 2px) 0 0 / 32px 32px,
     radial-gradient(circle at 50% 50%, rgba(255,255,255,0.02) 1px, transparent 1.5px) 16px 16px / 32px 32px,
-    radial-gradient(ellipse 85% 50% at 50% 100%, rgba(185,155,99,0.06), transparent 65%),
-    #050505 !important;
+    radial-gradient(ellipse 85% 50% at 50% 100%, rgba(21,22,26,0.06), transparent 65%),
+    #FBFBFA !important;
   color: #fff;
-  border-top: 1px solid rgba(185,155,99,0.12);
+  border-top: 1px solid rgba(21,22,26,0.12);
 }
 .miami-section--products-dark .miami-section__title,
 .miami-section--products-dark .miami-section__sub,
@@ -3466,18 +3466,18 @@ body.template-search a:focus {
   color: #fff;
 }
 .miami-section--products-dark .miami-eyebrow {
-  color: var(--miami-gold);
+  color: var(--mi-accent);
 }
 .miami-section--products-dark .miami-section__sub {
-  color: rgba(255,255,255,0.6);
+  color: var(--mi-ink);
 }
 
 /* Cards: fondo oscuro + borde sutil dorado, aura al hover */
 .miami-section--products-dark .miami-products-grid > .js-item-product,
 .miami-section--products-dark .miami-products-grid > .item-product,
 .miami-section--products-dark .miami-products-grid > .js-product-container {
-  background: #0a0a0a;
-  border: 1px solid rgba(185,155,99,0.08);
+  background: var(--mi-bg);
+  border: 1px solid rgba(21,22,26,0.08);
   padding: 14px 14px 18px;
   border-radius: 2px;
   position: relative;
@@ -3520,11 +3520,11 @@ body.template-search a:focus {
 .miami-section--products-dark .miami-products-grid > .js-item-product:hover,
 .miami-section--products-dark .miami-products-grid > .item-product:hover,
 .miami-section--products-dark .miami-products-grid > .js-product-container:hover {
-  border-color: var(--miami-gold) !important;
+  border-color: var(--mi-accent) !important;
   box-shadow:
-    0 0 0 2px var(--miami-gold),
-    0 0 32px rgba(185,155,99,0.45),
-    0 0 64px rgba(185,155,99,0.2) !important;
+    0 0 0 2px var(--mi-accent),
+    0 0 32px rgba(21,22,26,0.45),
+    0 0 64px rgba(21,22,26,0.2) !important;
 }
 /* Sin outline default del browser en los <a> al focus */
 .miami-section--products-dark .miami-products-grid a:focus,
@@ -3543,15 +3543,15 @@ body.template-search a:focus {
 .miami-section--products-dark .js-price-display,
 .miami-section--products-dark .js-item-price,
 .miami-section--products-dark .price {
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
 }
 .miami-section--products-dark .price-compare,
 .miami-section--products-dark .js-compare-price {
-  color: rgba(255,255,255,0.4) !important;
+  color: var(--mi-ink) !important;
 }
 .miami-section--products-dark .custom-installments,
 .miami-section--products-dark .product-item-installments {
-  color: rgba(255,255,255,0.55) !important;
+  color: var(--mi-ink) !important;
 }
 .miami-section--products-dark .item-product-name a {
   color: inherit !important;
@@ -3562,14 +3562,14 @@ body.template-search a:focus {
 .miami-section--products-dark .item-image,
 .miami-section--products-dark .js-item-image,
 .miami-section--products-dark .item-image-wrapper {
-  background: #0a0a0a !important;
+  background: var(--mi-bg) !important;
 }
 
 /* === TRUST STRIP DARK — paleta unificada negro + dorado === */
 .miami-trust {
   background: #000 !important;
-  border-top: 1px solid rgba(185,155,99,0.15) !important;
-  border-bottom: 1px solid rgba(185,155,99,0.15) !important;
+  border-top: 1px solid rgba(21,22,26,0.15) !important;
+  border-bottom: 1px solid rgba(21,22,26,0.15) !important;
   padding: 44px 16px !important;
   position: relative;
 }
@@ -3590,13 +3590,13 @@ body.template-search a:focus {
   position: relative; z-index: 1;
 }
 .miami-trust__item {
-  color: rgba(255,255,255,0.85) !important;
+  color: var(--mi-ink) !important;
 }
 .miami-trust__item strong {
-  color: var(--miami-gold) !important;
+  color: var(--mi-accent) !important;
 }
 .miami-trust__item span {
-  color: rgba(255,255,255,0.55) !important;
+  color: var(--mi-ink) !important;
 }
 
 /* === HERO BANNER — foto full-bleed con texto overlay sobre la derecha === */
@@ -3633,7 +3633,7 @@ body.template-search a:focus {
   text-align: left;
 }
 .miami-hero-banner__content .miami-eyebrow {
-  color: var(--miami-gold);
+  color: var(--mi-accent);
   margin-bottom: 18px;
   display: block;
 }
@@ -3648,13 +3648,13 @@ body.template-search a:focus {
 .miami-hero-banner__copy {
   font-size: 15px;
   line-height: 1.75;
-  color: rgba(255,255,255,0.78);
+  color: var(--mi-ink);
   margin: 0 0 32px;
 }
 .miami-btn--gold {
   display: inline-block;
-  border: 1px solid var(--miami-gold);
-  color: var(--miami-gold);
+  border: 1px solid var(--mi-accent);
+  color: var(--mi-accent);
   padding: 16px 36px;
   font-size: 11px;
   letter-spacing: 0.35em;
@@ -3663,7 +3663,7 @@ body.template-search a:focus {
   transition: all 0.3s var(--miami-ease);
 }
 .miami-btn--gold:hover {
-  background: var(--miami-gold);
+  background: var(--mi-accent);
   color: #000;
 }
 @media (max-width: 768px) {
@@ -3722,7 +3722,7 @@ body.template-search a:focus {
   width: 70%;
   max-width: 560px;
   aspect-ratio: 2 / 1;
-  background: radial-gradient(ellipse at center, rgba(185,155,99,0.22) 0%, rgba(185,155,99,0.06) 40%, transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(21,22,26,0.22) 0%, rgba(21,22,26,0.06) 40%, transparent 70%);
   pointer-events: none;
   z-index: 0;
   filter: blur(6px);
@@ -3736,19 +3736,19 @@ body.template-search a:focus {
   display: block;
   filter:
     drop-shadow(0 12px 28px rgba(0,0,0,0.55))
-    drop-shadow(0 0 24px rgba(185,155,99,0.18));
+    drop-shadow(0 0 24px rgba(21,22,26,0.18));
   animation: miami-logo-breathe 6s ease-in-out infinite;
 }
 @keyframes miami-logo-breathe {
   0%, 100% {
     filter:
       drop-shadow(0 12px 28px rgba(0,0,0,0.55))
-      drop-shadow(0 0 24px rgba(185,155,99,0.18));
+      drop-shadow(0 0 24px rgba(21,22,26,0.18));
   }
   50% {
     filter:
       drop-shadow(0 14px 32px rgba(0,0,0,0.6))
-      drop-shadow(0 0 38px rgba(185,155,99,0.32));
+      drop-shadow(0 0 38px rgba(21,22,26,0.32));
   }
 }
 .miami-hero__title--with-logo {
@@ -3775,11 +3775,11 @@ body.template-search a:focus {
 /* === BRAND GRID FLOAT — imagenes sin fondo sobre negro + aura dorada === */
 .miami-section--brands-float {
   background:
-    radial-gradient(circle at 50% 50%, rgba(185,155,99,0.06) 1px, transparent 1.8px) 0 0 / 36px 36px,
-    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(185,155,99,0.05), transparent 60%),
-    #060606 !important;
+    radial-gradient(circle at 50% 50%, rgba(21,22,26,0.06) 1px, transparent 1.8px) 0 0 / 36px 36px,
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(21,22,26,0.05), transparent 60%),
+    #FBFBFA !important;
   color: #fff;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid var(--mi-line);
 }
 .miami-section--brands-float .miami-section__title,
 .miami-section--brands-float .miami-section__sub,
@@ -3787,7 +3787,7 @@ body.template-search a:focus {
   color: #fff;
 }
 .miami-section--brands-float .miami-eyebrow {
-  color: rgba(255,255,255,0.55);
+  color: var(--mi-ink);
 }
 .miami-brand-grid--float {
   background: #000;
@@ -3795,7 +3795,7 @@ body.template-search a:focus {
 }
 .miami-brand-tile--float {
   background:
-    radial-gradient(ellipse at 50% 50%, rgba(185,155,99,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 50%, rgba(21,22,26,0.04) 0%, transparent 60%),
     #000;
   overflow: hidden;
   transition: background 0.6s var(--miami-ease);
@@ -3823,14 +3823,14 @@ body.template-search a:focus {
 .miami-brand-tile--float:hover .miami-brand-tile__img {
   transform: scale(1.07) translateY(-4px);
   filter:
-    drop-shadow(0 0 22px rgba(185,155,99,0.55))
-    drop-shadow(0 0 48px rgba(185,155,99,0.35))
+    drop-shadow(0 0 22px rgba(21,22,26,0.55))
+    drop-shadow(0 0 48px rgba(21,22,26,0.35))
     drop-shadow(0 22px 32px rgba(0,0,0,0.6));
 }
 .miami-brand-tile--float:hover {
   background:
-    radial-gradient(ellipse at 50% 45%, rgba(185,155,99,0.18) 0%, rgba(185,155,99,0.04) 38%, transparent 70%),
-    #050505;
+    radial-gradient(ellipse at 50% 45%, rgba(21,22,26,0.18) 0%, rgba(21,22,26,0.04) 38%, transparent 70%),
+    #FBFBFA;
 }
 .miami-brand-tile--float:hover::before { opacity: 0.25; }
 .miami-brand-tile--float .miami-brand-tile__name,

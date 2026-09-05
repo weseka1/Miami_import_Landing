@@ -40,14 +40,14 @@
   <style>
     /* Shell de la tienda propia — header/footer/grid coherentes con Champagne Noir */
     *{box-sizing:border-box}
-    body{margin:0;background:var(--miami-dark,#050505);color:var(--miami-text,#f5f3ee);
+    body{margin:0;background:var(--mi-bg,#FBFBFA);color:var(--mi-ink,#15161A);
          font-family:'Helvetica Neue',Helvetica,Inter,Arial,sans-serif;-webkit-font-smoothing:antialiased}
     a{color:inherit;text-decoration:none}
     img{max-width:100%;display:block}
     .mi-container{max-width:1280px;margin:0 auto;padding:0 24px}
     /* Header */
-    .mi-header{position:sticky;top:0;z-index:200;background:rgba(5,5,5,.92);
-      backdrop-filter:blur(8px);border-bottom:1px solid rgba(185,155,99,.18)}
+    .mi-header{position:sticky;top:0;z-index:200;background:rgba(251,251,250,.92);
+      backdrop-filter:blur(8px);border-bottom:1px solid rgba(21,22,26,.18)}
     .mi-header__bar{display:flex;align-items:center;gap:24px;height:74px}
     .mi-logo img{height:40px;width:auto}
     /* ---- Menú de tienda (desktop): TIPOS en el header + MEGA-PANEL glass ----
@@ -58,7 +58,7 @@
     .mi-nav__link{display:flex;align-items:center;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
       color:rgba(245,243,238,.78);padding:0 10px;transition:color .25s;white-space:nowrap}
     .mi-nav:hover .mi-nav__link,.mi-nav:focus-within .mi-nav__link{color:rgba(245,243,238,.55)}
-    .mi-nav .mi-nav__link:hover,.mi-nav .mi-nav__link:focus-visible{color:var(--miami-gold,#b99b63)}
+    .mi-nav .mi-nav__link:hover,.mi-nav .mi-nav__link:focus-visible{color:var(--mi-accent,#15161A)}
     /* ===== MEGA-MENÚ glass (vara Richard Lens) ===== */
     /* el .mi-nav viejo tenía overflow:hidden y clipeaba los paneles */
     .mi-nav{overflow:visible !important;max-height:none !important;flex-wrap:nowrap !important}
@@ -66,8 +66,8 @@
     .mi-nav__panel{
       position:absolute;top:100%;left:50%;z-index:300;
       min-width:270px;padding:20px 22px;
-      background:rgba(14,11,8,.96);
-      border:1px solid rgba(255,255,255,.09);border-top:1px solid rgba(198,167,104,.45);
+      background:rgba(251,251,250,.96);
+      border:1px solid var(--mi-line);border-top:1px solid rgba(21,22,26,.45);
       border-radius:18px;
       -webkit-backdrop-filter:blur(22px) saturate(150%);backdrop-filter:blur(22px) saturate(150%);
       box-shadow:0 30px 70px rgba(0,0,0,.55);
@@ -84,17 +84,17 @@
     .mi-nav__item:hover>.mi-nav__panel,.mi-nav__item:focus-within>.mi-nav__panel{
       opacity:1;visibility:visible;transform:translate(-50%,12px);transition-delay:0s;pointer-events:auto}
     .mi-nav__all{display:block;font-size:10px;letter-spacing:.22em;text-transform:uppercase;font-weight:600;
-      color:var(--miami-gold,#c6a768) !important;padding:0 0 12px;margin-bottom:12px;
-      border-bottom:1px solid rgba(255,255,255,.08) !important;white-space:nowrap}
+      color:var(--mi-accent,#15161A) !important;padding:0 0 12px;margin-bottom:12px;
+      border-bottom:1px solid var(--mi-line) !important;white-space:nowrap}
     .mi-nav__brands{display:grid;grid-template-columns:repeat(2,minmax(112px,1fr));gap:2px 20px}
     .mi-nav__brands a{display:block;font-size:12.5px;letter-spacing:.03em;text-transform:none;
-      color:rgba(242,234,217,.78);padding:6px 0;white-space:nowrap;border-bottom:0 !important}
-    .mi-nav__brands a:hover{color:var(--miami-gold,#c6a768)}
+      color:rgba(21,22,26,.78);padding:6px 0;white-space:nowrap;border-bottom:0 !important}
+    .mi-nav__brands a:hover{color:var(--mi-accent,#15161A)}
     .mi-mega{position:absolute;top:100%;left:50%;transform:translate(-50%,10px);
       width:min(1232px,calc(100vw - 32px));
       display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px 22px;
       padding:26px 30px 30px;
-      background:rgba(12,9,7,.92);border:1px solid rgba(198,167,104,.22);border-radius:24px;
+      background:rgba(12,9,7,.92);border:1px solid rgba(21,22,26,.22);border-radius:24px;
       -webkit-backdrop-filter:blur(22px) saturate(150%);backdrop-filter:blur(22px) saturate(150%);
       box-shadow:0 30px 80px rgba(0,0,0,.55);
       opacity:0;visibility:hidden;
@@ -104,32 +104,32 @@
       opacity:1;visibility:visible;transform:translate(-50%,0);
       transition:opacity .35s cubic-bezier(.16,1,.3,1),transform .35s cubic-bezier(.16,1,.3,1),visibility 0s}
     .mi-mega__label{display:block;font-size:10px;letter-spacing:.3em;text-transform:uppercase;
-      color:var(--miami-gold,#b99b63);font-weight:600;margin:0 0 10px;padding-bottom:10px;
-      border-bottom:1px solid rgba(198,167,104,.18);white-space:nowrap}
-    a.mi-mega__label:hover{color:var(--miami-gold-2,#e0c88f)}
+      color:var(--mi-accent,#15161A);font-weight:600;margin:0 0 10px;padding-bottom:10px;
+      border-bottom:1px solid rgba(21,22,26,.18);white-space:nowrap}
+    a.mi-mega__label:hover{color:var(--mi-accent-2,#3A3C44)}
     .mi-mega__col a:not(.mi-mega__label){display:block;font-size:12px;line-height:2.3;
       color:rgba(245,243,238,.72);letter-spacing:.04em;white-space:nowrap;transition:color .25s}
-    .mi-mega__col a:not(.mi-mega__label):hover{color:var(--miami-gold,#b99b63)}
-    .mi-mega__col .mi-mega__all{color:var(--miami-gold,#b99b63);font-size:11px;letter-spacing:.12em;
+    .mi-mega__col a:not(.mi-mega__label):hover{color:var(--mi-accent,#15161A)}
+    .mi-mega__col .mi-mega__all{color:var(--mi-accent,#15161A);font-size:11px;letter-spacing:.12em;
       text-transform:uppercase;margin-top:6px}
     .mi-nav__link:focus-visible,.mi-mega a:focus-visible{
-      outline:2px solid var(--miami-gold,#b99b63);outline-offset:2px;border-radius:4px}
+      outline:2px solid var(--mi-accent,#15161A);outline-offset:2px;border-radius:4px}
     /* ---- Hamburguesa (solo mobile, a la izquierda del logo) ---- */
     .mi-burger{display:none;align-items:center;justify-content:center;width:42px;height:42px;flex:none;
-      background:rgba(255,255,255,.05);border:1px solid rgba(245,243,238,.16);border-radius:999px;
+      background:var(--mi-glass);border:1px solid rgba(245,243,238,.16);border-radius:999px;
       color:rgba(245,243,238,.85);cursor:pointer;padding:0}
-    .mi-burger:focus-visible{outline:2px solid var(--miami-gold,#b99b63);outline-offset:2px}
+    .mi-burger:focus-visible{outline:2px solid var(--mi-accent,#15161A);outline-offset:2px}
     .mi-utils{display:flex;align-items:center;gap:18px;margin-left:auto}
     .mi-utils a,.mi-utils button{color:rgba(245,243,238,.85);background:none;border:0;cursor:pointer;
       font-size:13px;letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
-    .mi-utils a:hover{color:var(--miami-gold,#b99b63)}
+    .mi-utils a:hover{color:var(--mi-accent,#15161A)}
     .mi-search{display:flex;align-items:center;gap:8px;border:1px solid rgba(245,243,238,.14);border-radius:999px;
-      padding:9px 16px;background:rgba(255,255,255,.05);
+      padding:9px 16px;background:var(--mi-glass);
       -webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%);
       transition:border-color .3s ease, background .3s ease}
     .mi-search::before{content:"";width:14px;height:14px;flex:none;border-radius:50%;
       border:1.5px solid rgba(245,243,238,.5);box-shadow:6px 6px 0 -5px rgba(245,243,238,.5)}
-    .mi-search:focus-within{border-color:rgba(185,155,99,.55);background:rgba(255,255,255,.08)}
+    .mi-search:focus-within{border-color:rgba(21,22,26,.55);background:var(--mi-glass)}
     .mi-search input{-webkit-appearance:none;appearance:none;background:transparent;border:0;color:#fff;
       outline:none;font-size:13px;width:150px;letter-spacing:.02em}
     .mi-search input::placeholder{color:rgba(245,243,238,.5)}
@@ -137,18 +137,18 @@
     /* Footer */
     /* El padding de abajo reserva el lugar del botón flotante de Mia: sin esto
        la burbuja se sienta encima del texto del footer en el celular. */
-    .mi-footer{background:#050505;border-top:1px solid rgba(185,155,99,.18);margin-top:80px;padding:56px 0 40px}
+    .mi-footer{background:#FBFBFA;border-top:1px solid rgba(21,22,26,.18);margin-top:80px;padding:56px 0 40px}
     @media(max-width:900px){.mi-footer{padding-bottom:108px}}
     .mi-footer__grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px}
-    .mi-footer h4{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--miami-gold,#b99b63);margin:0 0 16px}
+    .mi-footer h4{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--mi-accent,#15161A);margin:0 0 16px}
     .mi-footer a,.mi-footer p{color:rgba(245,243,238,.6);font-size:14px;line-height:2}
-    .mi-footer__legal{margin-top:40px;padding-top:24px;border-top:1px solid rgba(255,255,255,.08);
+    .mi-footer__legal{margin-top:40px;padding-top:24px;border-top:1px solid var(--mi-line);
       font-size:12px;color:rgba(245,243,238,.4);text-align:center;letter-spacing:.05em}
     /* Grid de productos */
     .mi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
-    .mi-card{position:relative;display:block;background:#0c0c0c;border:1px solid rgba(255,255,255,.06);
+    .mi-card{position:relative;display:block;background:#0c0c0c;border:1px solid var(--mi-line);
       border-radius:10px;overflow:hidden;transition:.35s}
-    .mi-card:hover{border-color:rgba(185,155,99,.4);transform:translateY(-4px)}
+    .mi-card:hover{border-color:rgba(21,22,26,.4);transform:translateY(-4px)}
     /* Prenda ENTERA siempre (pedido de Diego), amoldada a cualquier proporción:
        la MISMA foto difuminada de fondo llena el cuadro + la nítida completa
        encima. Grilla 3/4 pareja, sin recortes salvajes ni tiras flacas. */
@@ -159,10 +159,10 @@
     .mi-card:hover .mi-card__pic{transform:scale(1.05)}
     .mi-card:hover .mi-card__img img{transform:scale(1.05)}
     .mi-card__body{padding:16px 16px 20px}
-    .mi-card__brand{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--miami-gold,#b99b63)}
-    .mi-card__name{font-size:14px;margin:6px 0 12px;color:#f5f3ee;line-height:1.35;min-height:38px}
+    .mi-card__brand{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--mi-accent,#15161A)}
+    .mi-card__name{font-size:14px;margin:6px 0 12px;color:var(--mi-ink);line-height:1.35;min-height:38px}
     .mi-soldout{position:absolute;top:12px;left:12px;background:#000;color:#fff;font-size:10px;
-      letter-spacing:.15em;text-transform:uppercase;padding:5px 10px;border:1px solid rgba(255,255,255,.3)}
+      letter-spacing:.15em;text-transform:uppercase;padding:5px 10px;border:1px solid var(--mi-line)}
     .mi-section-title{font-size:clamp(22px,3vw,34px);letter-spacing:.06em;text-transform:uppercase;
       text-align:center;margin:64px 0 40px;font-weight:700}
     @media(max-width:900px){.mi-grid{grid-template-columns:repeat(2,1fr)}.mi-footer__grid{grid-template-columns:1fr}}
@@ -178,31 +178,31 @@
     .mi-drawer.is-open .mi-drawer__backdrop{opacity:1}
     .mi-drawer__sheet{position:absolute;top:0;bottom:0;left:0;width:min(86vw,360px);overflow-y:auto;
       -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
-      background:rgba(14,11,8,.96);border-right:1px solid rgba(198,167,104,.22);
+      background:rgba(251,251,250,.96);border-right:1px solid rgba(21,22,26,.22);
       -webkit-backdrop-filter:blur(22px) saturate(140%);backdrop-filter:blur(22px) saturate(140%);
       border-radius:0 28px 28px 0;padding:16px 20px 36px;
       transform:translateX(-102%);transition:transform .45s cubic-bezier(.16,1,.3,1)}
     .mi-drawer.is-open .mi-drawer__sheet{transform:none}
     .mi-drawer__head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-    .mi-drawer__brand{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--miami-gold,#b99b63);font-weight:600}
+    .mi-drawer__brand{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--mi-accent,#15161A);font-weight:600}
     .mi-drawer__close{display:flex;align-items:center;justify-content:center;width:44px;height:44px;flex:none;
-      background:rgba(255,255,255,.05);border:1px solid rgba(245,243,238,.16);border-radius:999px;
+      background:var(--mi-glass);border:1px solid rgba(245,243,238,.16);border-radius:999px;
       color:rgba(245,243,238,.85);cursor:pointer;padding:0}
-    .mi-drawer__group{border-bottom:1px solid rgba(255,255,255,.07)}
+    .mi-drawer__group{border-bottom:1px solid var(--mi-line)}
     .mi-drawer__tipo{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
-      min-height:52px;background:none;border:0;color:#f5f3ee;cursor:pointer;padding:0 2px;font-family:inherit;
+      min-height:52px;background:none;border:0;color:var(--mi-ink);cursor:pointer;padding:0 2px;font-family:inherit;
       font-size:13px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;text-align:left}
     .mi-drawer__chev{flex:none;transition:transform .3s ease;color:rgba(245,243,238,.5)}
-    .mi-drawer__group.is-open .mi-drawer__chev{transform:rotate(180deg);color:var(--miami-gold,#b99b63)}
+    .mi-drawer__group.is-open .mi-drawer__chev{transform:rotate(180deg);color:var(--mi-accent,#15161A)}
     .mi-drawer__sub{display:none;padding:0 2px 12px}
     .mi-drawer__group.is-open .mi-drawer__sub{display:block}
     .mi-drawer__sub a{display:flex;align-items:center;min-height:44px;font-size:14px;
       color:rgba(245,243,238,.72);letter-spacing:.05em;padding:0 8px}
-    .mi-drawer__sub a:first-child{color:var(--miami-gold,#b99b63);font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+    .mi-drawer__sub a:first-child{color:var(--mi-accent,#15161A);font-size:11px;letter-spacing:.16em;text-transform:uppercase}
     .mi-drawer__plain{display:flex;align-items:center;min-height:52px;font-size:13px;letter-spacing:.18em;
       text-transform:uppercase;font-weight:600;color:rgba(245,243,238,.85);padding:0 2px}
     .mi-drawer__tipo:focus-visible,.mi-drawer__close:focus-visible,.mi-drawer__sub a:focus-visible,
-    .mi-drawer__plain:focus-visible{outline:2px solid var(--miami-gold,#b99b63);outline-offset:2px;border-radius:6px}
+    .mi-drawer__plain:focus-visible{outline:2px solid var(--mi-accent,#15161A);outline-offset:2px;border-radius:6px}
     body.mi-lock{overflow:hidden}
     @media(prefers-reduced-motion:reduce){
       .mi-drawer,.mi-drawer__backdrop,.mi-drawer__sheet,.mi-drawer__chev,
@@ -218,7 +218,7 @@
          que lleva a /buscar (patrón e-commerce), y el header respira. */
       .mi-search{display:none}
       .mi-search-icon{display:flex;align-items:center;justify-content:center;width:38px;height:38px;
-        border:1px solid rgba(245,243,238,.16);border-radius:999px;background:rgba(255,255,255,.05);flex:none}
+        border:1px solid rgba(245,243,238,.16);border-radius:999px;background:var(--mi-glass);flex:none}
       .mi-search-icon::before{content:"";width:13px;height:13px;border-radius:50%;
         border:1.5px solid rgba(245,243,238,.65);box-shadow:5px 5px 0 -4px rgba(245,243,238,.65)}
       .mi-utils{gap:10px}
@@ -255,7 +255,7 @@
      El snippet de precios contempla que la clase `is-preloading` no esté: en
      ese caso muestra el aviso directamente. #}
 
-  <div class="mi-adbar" style="background:var(--miami-gold,#b99b63);color:#0a0a0a;text-align:center;
+  <div class="mi-adbar" style="background:var(--mi-accent);color:var(--mi-bg);text-align:center;
     font-size:11px;letter-spacing:.18em;text-transform:uppercase;padding:8px 16px;font-weight:600">
     Envíos a todo el país · Importación con licencia de origen · Atención por WhatsApp
   </div>

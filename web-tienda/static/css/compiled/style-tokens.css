@@ -4,34 +4,34 @@
 :root {
   --main-background: #050505;
   --main-foreground: #f5f3ee;
-  --accent-color: #b99b63;
+  --accent-color: #15161A;
 
-  --button-background: #b99b63;
+  --button-background: #15161A;
   --button-foreground: #0a0a0a;
 
-  --label-background: #b99b63;
+  --label-background: #15161A;
   --label-foreground: #0a0a0a;
 
   --label-shipping-background: #4bb98c;
   --label-shipping-foreground: #0a0a0a;
 
-  --stock-color: #b99b63;
+  --stock-color: #15161A;
 
   --header-background: #050505;
   --header-foreground: #f5f3ee;
-  --header-badge-background: #b99b63;
+  --header-badge-background: #15161A;
   --header-badge-foreground: #0a0a0a;
-  --header-search-btn-background: #b99b63;
+  --header-search-btn-background: #15161A;
   --header-search-btn-foreground: #0a0a0a;
   --header-desktop-utilities-background: #050505;
   --header-desktop-utilities-foreground: #f5f3ee;
   --header-desktop-nav-background: #050505;
   --header-desktop-nav-foreground: #f5f3ee;
-  --header-featured-link-foreground: #b99b63;
+  --header-featured-link-foreground: #15161A;
 
   --primary-adbar-background: #0a0a0a;
   --primary-adbar-foreground: #f5f3ee;
-  --secondary-adbar-background: #b99b63;
+  --secondary-adbar-background: #15161A;
   --secondary-adbar-foreground: #0a0a0a;
 
   --footer-background: #050505;
@@ -46,7 +46,7 @@
   --video-foreground: #f5f3ee;
   --timer-offers-background: #0a0a0a;
   --timer-offers-foreground: #f5f3ee;
-  --timer-offers-module-background: #b99b63;
+  --timer-offers-module-background: #15161A;
   --timer-offers-module-foreground: #0a0a0a;
   --newsletter-background: #0a0a0a;
   --newsletter-foreground: #f5f3ee;
@@ -130,9 +130,9 @@
   --border-solid: 1px solid;
 
   /* Variables del layer Miami (fallbacks; miami-styles.tpl las redefine) */
-  --miami-gold: #b99b63;
-  --miami-gold-soft: #d4bb88;
-  --miami-dark: #050505;
-  --miami-text: #f5f3ee;
+  --mi-accent: #15161A;
+  --mi-accent-2: #15161A;
+  --mi-bg: #050505;
+  --mi-ink: #f5f3ee;
   --miami-border: rgba(255,255,255,0.12);
 }
