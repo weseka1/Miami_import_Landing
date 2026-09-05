@@ -16,12 +16,10 @@
 {% set _ig = home.instagram if home.instagram is defined else none %}
 {% set _usuario = (_ig.usuario if _ig and _ig.usuario else 'miamimport_') %}
 {% set _reels = (_ig['items'] if _ig and _ig['items'] else [
-  {'code': 'DbBqSPspuOB', 'tipo': 'reel', 'pie': 'La oficina nueva, en el Hilton'},
+  {'code': 'DbBqSPspuOB', 'tipo': 'reel', 'pie': 'La oficina nueva, en el Hilton', 'video': true},
   {'code': 'DayZW8LiZU5', 'tipo': 'p',    'pie': 'Clientes con sus piezas'},
   {'code': 'DZ5-TAWkXY-', 'tipo': 'p',    'pie': 'Lo que llegó de Milán'}
 ]) %}
-{# Los que tienen miniatura guardada en /static/images/ig/ #}
-{% set _thumbs = ['DbBqSPspuOB', 'DayZW8LiZU5', 'DZ5-TAWkXY-'] %}
 
 {% if _reels %}
 <section class="mi-ig" aria-label="Miami Import en Instagram">
@@ -48,28 +46,28 @@
       <div class="mi-ig__track" data-ig-track>
         {% for r in _reels %}
         <article class="mi-ig__card">
-          <div class="mi-ig__phone">
-            {# 🔴 LA MINIATURA VA DEBAJO, SIEMPRE. El embed de Instagram no
-               carga si el visitante bloquea cookies de terceros, si está en
-               modo privado o si Instagram decide que no — y ahí la tarjeta
-               quedaba en BLANCO. Con la foto abajo, en el peor caso se ve la
-               publicación y se toca para abrirla. Guardada local: las URLs
-               del CDN de Instagram vencen. #}
-            {% if r.code in _thumbs %}
-            <a class="mi-ig__fallback" href="https://www.instagram.com/{{ r.tipo or 'p' }}/{{ r.code }}/"
-               target="_blank" rel="noopener" aria-label="Ver en Instagram: {{ r.pie }}">
-              <img src="{{ ('images/ig/' ~ r.code ~ '.webp') | static_url }}" alt="{{ r.pie }}" loading="lazy"/>
-              <span class="mi-ig__play" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>
-              </span>
-            </a>
+          {# 🔴 SIN IFRAME. El embed de Instagram no carga si el visitante
+             bloquea cookies de terceros o está en modo privado, y encima
+             quedaba ENCIMA de la miniatura tapándole el click: la tarjeta se
+             volvía un panel muerto. Ahora la tarjeta entera es el link, y el
+             reel se reproduce con su propio video —guardado local, porque las
+             URLs de Instagram vencen—. En el celular el link abre la app. #}
+          <a class="mi-ig__phone" href="https://www.instagram.com/{{ r.tipo or 'p' }}/{{ r.code }}/"
+             target="_blank" rel="noopener" aria-label="Ver en Instagram: {{ r.pie }}">
+            {% if r.video %}
+            <video class="mi-ig__media" muted loop playsinline preload="none"
+                   poster="{{ ('images/ig/' ~ r.code ~ '.webp') | static_url }}" data-ig-video>
+              <source src="{{ ('videos/ig/' ~ r.code ~ '.mp4') | static_url }}" type="video/mp4"/>
+            </video>
+            {% else %}
+            <img class="mi-ig__media" src="{{ ('images/ig/' ~ r.code ~ '.webp') | static_url }}"
+                 alt="{{ r.pie }}" loading="lazy"/>
             {% endif %}
-            {# loading=lazy: son iframes pesados y están abajo de todo. Sin
-               esto, la home carga tres reels que nadie pidió todavía. #}
-            <iframe src="https://www.instagram.com/{{ r.tipo or 'p' }}/{{ r.code }}/embed/"
-                    title="{{ r.pie or 'Publicación de Instagram' }}"
-                    loading="lazy" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
-          </div>
+            <span class="mi-ig__play" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>
+            </span>
+            <span class="mi-ig__ver">Ver en Instagram</span>
+          </a>
           {% if r.pie %}<p class="mi-ig__pie">{{ r.pie }}</p>{% endif %}
         </article>
         {% endfor %}
@@ -138,27 +136,30 @@
      se lo recorta a proporción fija y se lo empuja hacia arriba para tapar la
      barra de la cuenta, que repite lo que ya dice el encabezado. */
   .mi-ig__phone{
-    position:relative; aspect-ratio:9/15; overflow:hidden;
+    display:block; position:relative; aspect-ratio:9/15; overflow:hidden;
     border-radius:26px; background:var(--mi-bg-2);
     border:1px solid var(--mi-line); box-shadow:var(--mi-shadow);
     transition:transform .5s var(--mi-ease), box-shadow .5s var(--mi-ease);
   }
   .mi-ig__card:hover .mi-ig__phone{ transform:translateY(-4px); box-shadow:var(--mi-shadow-lift); }
-  /* La miniatura, debajo del iframe. Si el embed carga, lo tapa; si no, esto
-     es lo que se ve, y se puede tocar para ir a Instagram. */
-  .mi-ig__fallback{ position:absolute; inset:0; display:block; z-index:0; }
-  .mi-ig__fallback img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .mi-ig__media{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
   .mi-ig__play{
     position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
     width:54px; height:54px; display:grid; place-items:center; border-radius:50%;
     background:var(--mi-glass-strong); border:1px solid var(--mi-line);
     -webkit-backdrop-filter:blur(var(--mi-blur)) saturate(180%); backdrop-filter:blur(var(--mi-blur)) saturate(180%);
-    box-shadow:var(--mi-shadow);
+    box-shadow:var(--mi-shadow); transition:transform .4s var(--mi-ease), opacity .4s var(--mi-ease);
   }
   .mi-ig__play svg{ width:22px; height:22px; fill:var(--mi-ink); margin-left:2px; }
-  .mi-ig__phone iframe{ z-index:1;
-    position:absolute; top:-54px; left:50%; transform:translateX(-50%);
-    width:100%; height:calc(100% + 108px); border:0; display:block;
+  .mi-ig__card:hover .mi-ig__play{ transform:translate(-50%,-50%) scale(1.08); }
+  /* Mientras el video corre, el play estorba: se va solo. */
+  .mi-ig__phone.is-playing .mi-ig__play{ opacity:0; }
+  .mi-ig__ver{
+    position:absolute; left:12px; right:12px; bottom:12px; text-align:center;
+    padding:9px 12px; border-radius:var(--mi-pill);
+    background:var(--mi-glass-strong); border:1px solid var(--mi-line);
+    -webkit-backdrop-filter:blur(var(--mi-blur)) saturate(180%); backdrop-filter:blur(var(--mi-blur)) saturate(180%);
+    font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; font-weight:600; color:var(--mi-ink);
   }
   .mi-ig__pie{ margin:11px 2px 0; font-size:12px; line-height:1.4; color:var(--mi-ink-soft); }
 
@@ -237,6 +238,25 @@
       var fin = track.scrollLeft + track.clientWidth >= track.scrollWidth - 8;
       track.scrollTo({left: fin ? 0 : track.scrollLeft + paso(), behavior:'smooth'});
     }, 5200);
+  }
+
+  /* El video arranca solo cuando la tarjeta se ve, y se frena al salir: un
+     video reproduciendose fuera de pantalla es bateria del visitante tirada. */
+  var vids = rail.querySelectorAll('[data-ig-video]');
+  if (vids.length && 'IntersectionObserver' in window){
+    var ioV = new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        var v = e.target;
+        if (e.isIntersecting && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+          var pr = v.play();
+          if (pr && pr.catch) pr.catch(function(){});   // iOS Bajo Consumo lo rechaza: no pasa nada
+          v.closest('.mi-ig__phone').classList.add('is-playing');
+        } else {
+          v.pause(); v.closest('.mi-ig__phone').classList.remove('is-playing');
+        }
+      });
+    }, {threshold:.55});
+    vids.forEach(function(v){ ioV.observe(v); });
   }
 
   /* Se agarra y se tira, como el resto de la web. Los iframes se comen el
