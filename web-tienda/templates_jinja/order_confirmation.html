@@ -16,7 +16,7 @@
     </div>
     <span id="mi-pago-ok" hidden></span>{# marcador estable para el sondeo #}
     <h1 style="font-size:30px;margin:0 0 12px;letter-spacing:.02em">¡Gracias por tu compra!</h1>
-    <p style="color:rgba(245,243,238,.65);font-size:15px;line-height:1.6;margin:0">
+    <p style="color:rgba(21,22,26,.65);font-size:15px;line-height:1.6;margin:0">
       Tu pago fue aprobado y ya estamos preparando tu pedido.<br>
       Te vamos a contactar para coordinar la entrega.
     </p>
@@ -30,7 +30,7 @@
       </svg>
     </div>
     <h1 style="font-size:28px;margin:0 0 12px">Estamos confirmando tu pago</h1>
-    <p style="color:rgba(245,243,238,.65);font-size:15px;line-height:1.6;margin:0">
+    <p style="color:rgba(21,22,26,.65);font-size:15px;line-height:1.6;margin:0">
       Esto puede tardar unos segundos. No cierres esta página.
     </p>
     <p id="mi-pago-lento" hidden style="color:#dca06a;font-size:14px;margin-top:18px;line-height:1.6">
@@ -41,19 +41,19 @@
   {% endif %}
 
   <div style="margin-top:28px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;
-              color:rgba(245,243,238,.45)">
+              color:rgba(21,22,26,.45)">
     Pedido <span style="color:var(--mi-accent,#15161A);font-weight:700">#{{ order.number }}</span>
   </div>
 
   {# Resumen #}
-  <div style="background:#0c0c0c;border:1px solid var(--mi-line);border-radius:14px;
+  <div style="background:var(--mi-bg-2);border:1px solid var(--mi-line);border-radius:14px;
               padding:24px;margin:28px 0;text-align:left;color:var(--mi-ink)">
     {% for it in order.items %}
     <div style="display:flex;justify-content:space-between;gap:14px;padding:11px 0;
                 border-bottom:1px solid var(--mi-line)">
       <span style="font-size:14px">{{ it.product_name }}{% if it.variant_value %}
-        <span style="color:rgba(245,243,238,.5)"> · {{ it.variant_value }}</span>{% endif %}
-        <span style="color:rgba(245,243,238,.5)"> ×{{ it.quantity }}</span></span>
+        <span style="color:rgba(21,22,26,.5)"> · {{ it.variant_value }}</span>{% endif %}
+        <span style="color:rgba(21,22,26,.5)"> ×{{ it.quantity }}</span></span>
       <span style="font-weight:600;font-size:14px;white-space:nowrap">{{ it.subtotal | money(order.currency) }}</span>
     </div>
     {% endfor %}
@@ -62,7 +62,7 @@
     </div>
     {% if order.shipping_address and order.shipping_address.get('street') %}
     <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--mi-line);
-                font-size:13px;color:rgba(245,243,238,.6);line-height:1.6">
+                font-size:13px;color:rgba(21,22,26,.6);line-height:1.6">
       <strong style="color:var(--mi-ink)">Envío a:</strong>
       {{ order.shipping_address.get('street') }} {{ order.shipping_address.get('number','') }}{% if order.shipping_address.get('floor') %}, {{ order.shipping_address.get('floor') }}{% endif %}<br>
       {{ order.shipping_address.get('city','') }}{% if order.shipping_address.get('province') %}, {{ order.shipping_address.get('province') }}{% endif %} {{ order.shipping_address.get('zipcode','') }}
@@ -72,16 +72,16 @@
 
   <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
     <a href="/productos" style="display:inline-block;padding:14px 30px;border-radius:999px;
-       background:var(--mi-accent,#15161A);color:#0a0a0a;letter-spacing:.16em;
+       background:var(--mi-accent,#15161A);color:var(--mi-bg);letter-spacing:.16em;
        text-transform:uppercase;font-size:12px;font-weight:700">Seguir comprando</a>
     {# El link de seguimiento se copia con un botón: mostrar la URL cruda con
        todos los parámetros de Stripe quedaba ilegible y poco serio. #}
     <button type="button" id="mi-copiar-link" style="padding:14px 26px;border-radius:999px;
-       background:none;border:1px solid rgba(245,243,238,.25);color:rgba(245,243,238,.8);
+       background:none;border:1px solid rgba(245,243,238,.25);color:rgba(21,22,26,.8);
        letter-spacing:.14em;text-transform:uppercase;font-size:12px;cursor:pointer">
       Copiar link del pedido</button>
   </div>
-  <p style="color:rgba(245,243,238,.4);font-size:12px;margin-top:14px">
+  <p style="color:rgba(21,22,26,.4);font-size:12px;margin-top:14px">
     Guardá el link si querés volver a ver este pedido más adelante.
   </p>
 </div>

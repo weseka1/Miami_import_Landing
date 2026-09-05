@@ -29,7 +29,8 @@
 
 <section class="mh" id="mi-hero" aria-label="Miami Import — comprado en Milán, traído a mano">
 
-  {# ---------- la tira de fotos, a sangre ---------- #}
+  <div class="mh__wrap">
+  {# ---------- la foto, entera, en marco vertical ---------- #}
   <div class="mh__rail" data-mh-rail>
     <div class="mh__track" data-mh-track>
       {% for s in _slides %}
@@ -48,26 +49,7 @@
       {% endfor %}
     </div>
 
-    {# ---------- la placa de vidrio con el mensaje ---------- #}
-    <div class="mh__panel u-glass">
-      <span class="mh__badge">
-        <i aria-hidden="true"></i>{{ home.hero.eyebrow or 'Comprado en Milán, traído a mano' }}
-      </span>
-      <h1 class="mh__title">{{ home.hero.titulo or 'Cada pieza la compramos en Milán.' }}</h1>
-      <p class="mh__lead">{{ home.hero.subtitulo or 'En la tienda oficial, una unidad por talle. Cuando no está, no vuelve.' }}</p>
-      <div class="mh__cta">
-        <a class="mh__btn mh__btn--solid" href="{{ home.hero.cta_link or store.products_url }}">
-          {{ home.hero.cta_texto or 'Ver lo que llegó' }}
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
-        </a>
-        <a class="mh__btn mh__btn--ghost" target="_blank" rel="noopener"
-           href="{{ home.hero.cta2_link or ('https://wa.me/5491162321391?text=' ~ ('Hola, quiero encargar una pieza para el proximo viaje a Milan.' | urlencode)) }}">
-          {{ home.hero.cta2_texto or 'Encargar del próximo viaje' }}
-        </a>
-      </div>
-    </div>
-
-    {# ---------- controles ---------- #}
+    {# ---------- controles, en la base de la foto ---------- #}
     <div class="mh__ctrl">
       <button type="button" class="mh__arrow" data-mh-prev aria-label="Foto anterior">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
@@ -84,6 +66,39 @@
     </div>
   </div>
 
+    {# ---------- el mensaje, al lado de la foto ---------- #}
+    <div class="mh__panel">
+      <span class="mh__badge">
+        <i aria-hidden="true"></i>{{ home.hero.eyebrow or 'Comprado en Milán, traído a mano' }}
+      </span>
+      <h1 class="mh__title">{{ home.hero.titulo or 'Cada pieza la compramos en Milán.' }}</h1>
+      <p class="mh__lead">{{ home.hero.subtitulo or 'En la tienda oficial, una unidad por talle. Cuando no está, no vuelve.' }}</p>
+      <div class="mh__cta">
+        <a class="mh__btn mh__btn--solid" href="{{ home.hero.cta_link or store.products_url }}">
+          {{ home.hero.cta_texto or 'Ver lo que llegó' }}
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+        </a>
+        <a class="mh__btn mh__btn--ghost" target="_blank" rel="noopener"
+           href="{{ home.hero.cta2_link or ('https://wa.me/5491162321391?text=' ~ ('Hola, quiero encargar una pieza para el proximo viaje a Milan.' | urlencode)) }}">
+          {{ home.hero.cta2_texto or 'Encargar del próximo viaje' }}
+        </a>
+      </div>
+
+      {# Las otras fotos del viaje. Llenan el aire que dejaba el mensaje y
+         dan a entender de una que hay más de una foto para ver. #}
+      <div class="mh__thumbs">
+        {% for s in _slides %}
+        <button type="button" class="mh__thumb{% if loop.first %} is-on{% endif %}"
+                data-mh-go="{{ loop.index0 }}" aria-label="Ver {{ s.lugar }}">
+          <img src="{{ s.small | static_url }}" alt="" loading="lazy" draggable="false"/>
+          <span>{{ s.lugar }}</span>
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
   {# ---------- la línea de abajo: por qué comprar acá ---------- #}
   <dl class="mh__facts">
     <div><dt>Viaja todos los meses</dt><dd>Compra en tienda oficial, en Milán.</dd></div>
@@ -98,27 +113,26 @@
   /* ====== HERO — tira arrastrable + placa de vidrio ====== */
   .mh{ background:var(--mi-bg); padding:0 0 clamp(28px,4vw,52px); }
 
+  /* ---- EL MARCO ES VERTICAL, COMO LA FOTO ------------------------------
+     🔴 Las fotos de Milán son verticales (3:4). Metidas en una franja
+     apaisada hay que recortarles arriba y abajo — por eso el Duomo aparecía
+     cortado. Acá el marco tiene LA MISMA proporción que la foto, así entra
+     entera y no se recorta nada. En PC la foto va a un lado y el mensaje al
+     otro; en el celular, la foto arriba y el mensaje abajo. */
+  .mh__wrap{
+    max-width:1280px; margin:0 auto; padding:0 clamp(20px,5vw,48px);
+    display:grid; grid-template-columns:auto minmax(0,1fr);
+    gap:clamp(26px,4vw,56px); align-items:center;
+  }
   .mh__rail{
-    position:relative; overflow:hidden;
-    /* Altura acotada SIEMPRE: con la proporción de la foto suelta, a 800px de
-       ancho el hero medía 1000px de alto y el mensaje quedaba fuera de la
-       pantalla. Nunca vh pelado: la barra de Safari mobile miente. */
-    height:clamp(430px, 74svh, 720px);
-    /* 🔴 ANCHO ACOTADO, y no es una decisión estética: las fotos llegaron por
-       WhatsApp a 960px de ancho y no hay más píxeles que esos. A sangre en un
-       monitor de 1920 había que estirarlas 2x y se veían pixeladas. Con el
-       tope en 1280 el escalado baja a ~1,3x y la foto aguanta. Si algún día
-       llegan las originales del teléfono (3024px), este tope se levanta. */
-    max-width:1280px; margin:0 auto; border-radius:var(--mi-r-lg);
-    background:var(--mi-bg-3);
-    cursor:grab; touch-action:pan-y;         /* el scroll vertical sigue siendo del navegador */
+    position:relative; overflow:hidden; border-radius:var(--mi-r-lg);
+    /* La altura manda y el ancho sale de la proporción de la foto: así el
+       marco nunca pide más foto de la que hay. */
+    height:clamp(460px, 82svh, 780px); aspect-ratio:3/4;
+    background:var(--mi-bg-3); box-shadow:var(--mi-shadow);
+    cursor:grab; touch-action:pan-y;
     user-select:none; -webkit-user-select:none;
   }
-  @media (min-width:901px){ .mh{ padding-top:clamp(12px,1.6vw,22px); } }
-  @media (max-width:1360px) and (min-width:901px){
-    .mh__rail{ margin:0 clamp(20px,3vw,40px); }
-  }
-  @media (max-width:900px){ .mh__rail{ border-radius:0; } }
   .mh__rail.is-drag{ cursor:grabbing; }
 
   .mh__track{ display:flex; height:100%; will-change:transform;
@@ -129,18 +143,11 @@
     width:100%; height:100%; object-fit:cover; object-position:center;
     display:block; pointer-events:none;
   }
-  /* Velo claro: garantiza que la placa se lea sobre CUALQUIER foto, tanto la
-     del Duomo (gris) como la de la boutique (casi blanca). */
+  /* Sólo un velo abajo, para que la chapa del lugar se lea. El mensaje ya no
+     va encima de la foto, así que no hace falta lavarla entera. */
   .mh__cell::after{
-    content:""; position:absolute; inset:0; pointer-events:none;
-    background:linear-gradient(100deg, rgba(251,251,250,.94) 0%, rgba(251,251,250,.72) 34%,
-                                       rgba(251,251,250,.10) 62%, rgba(251,251,250,0) 100%);
-  }
-  @media (max-width:900px){
-    .mh__cell::after{
-      background:linear-gradient(180deg, rgba(251,251,250,.10) 0%, rgba(251,251,250,.34) 38%,
-                                         rgba(251,251,250,.93) 78%, var(--mi-bg) 100%);
-    }
+    content:""; position:absolute; inset:auto 0 0 0; height:34%; pointer-events:none;
+    background:linear-gradient(180deg, rgba(251,251,250,0), rgba(251,251,250,.55));
   }
 
   .mh__place{
@@ -155,11 +162,9 @@
   .mh__pin{ width:7px; height:7px; border-radius:50%; background:var(--mi-ink); opacity:.5; flex:none; align-self:center; }
 
   /* ---- la placa del mensaje ---- */
-  .mh__panel{
-    position:absolute; z-index:3; left:clamp(20px,5vw,56px); top:50%; transform:translateY(-50%);
-    width:min(486px, calc(100% - clamp(40px,10vw,112px)));
-    padding:clamp(24px,3vw,38px); border-radius:var(--mi-r-lg);
-  }
+  .mh__panel{ min-width:0; }
+  .u-glass.mh__panel{ background:none; border:0; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; padding:0; }
+
   .mh__badge{
     display:inline-flex; align-items:center; gap:8px;
     font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; font-weight:600; color:var(--mi-ink);
@@ -187,8 +192,8 @@
 
   /* ---- controles: barras que se llenan, no números ---- */
   .mh__ctrl{
-    position:absolute; z-index:3; right:clamp(16px,3vw,28px); bottom:clamp(16px,3vw,24px);
-    display:flex; align-items:center; gap:10px;
+    position:absolute; z-index:3; left:14px; right:14px; bottom:14px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
   }
   .mh__arrow{
     width:44px; height:44px; display:grid; place-items:center; cursor:pointer;
@@ -218,6 +223,30 @@
   .mh__bar:focus-visible{ outline:2px solid var(--mi-ink); outline-offset:2px; border-radius:4px; }
 
   /* ---- la línea de abajo ---- */
+  .mh__thumbs{
+    display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:10px; margin-top:clamp(26px,3vw,38px);
+    padding-top:clamp(20px,2.4vw,28px); border-top:1px solid var(--mi-line);
+  }
+  .mh__thumb{
+    display:block; padding:0; border:0; background:none; cursor:pointer;
+    text-align:left; min-width:0;
+  }
+  .mh__thumb img{
+    width:100%; aspect-ratio:4/5; object-fit:cover; display:block;
+    border-radius:var(--mi-r-sm); border:1px solid var(--mi-line);
+    opacity:.55; transition:opacity .4s var(--mi-ease), transform .4s var(--mi-ease);
+  }
+  .mh__thumb span{
+    display:block; margin-top:7px; font-size:10px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--mi-ink-mute);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .mh__thumb:hover img{ opacity:.85; transform:translateY(-3px); }
+  .mh__thumb.is-on img{ opacity:1; border-color:var(--mi-ink); }
+  .mh__thumb.is-on span{ color:var(--mi-ink); }
+  @media (max-width:900px){ .mh__thumbs{ display:none; } }
+
   .mh__facts{
     max-width:1280px; margin:clamp(22px,3vw,34px) auto 0; padding:0 clamp(20px,5vw,48px);
     display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:clamp(14px,2vw,28px);
@@ -226,14 +255,9 @@
   .mh__facts dd{ margin:5px 0 0; font-size:12px; line-height:1.5; color:var(--mi-ink-soft); }
 
   @media (max-width:900px){
-    .mh__rail{ height:clamp(500px, 82svh, 760px); }
-    .mh__panel{
-      top:auto; bottom:74px; transform:none;
-      left:clamp(16px,4vw,24px); right:clamp(16px,4vw,24px); width:auto;
-      padding:20px;
-    }
+    .mh__wrap{ grid-template-columns:minmax(0,1fr); gap:22px; }
+    .mh__rail{ height:auto; width:100%; aspect-ratio:4/5; }
     .mh__place{ max-width:calc(100% - 32px); }
-    .mh__ctrl{ left:clamp(16px,4vw,24px); right:clamp(16px,4vw,24px); justify-content:space-between; }
     .mh__btn{ flex:1 1 auto; }
     .mh__facts{ grid-template-columns:repeat(2,minmax(0,1fr)); }
   }
@@ -268,7 +292,8 @@
   var rail  = hero.querySelector('[data-mh-rail]');
   var track = hero.querySelector('[data-mh-track]');
   var cells = [].slice.call(hero.querySelectorAll('[data-mh-cell]'));
-  var bars  = [].slice.call(hero.querySelectorAll('[data-mh-go]'));
+  var bars  = [].slice.call(hero.querySelectorAll('.mh__bar[data-mh-go]'));
+  var minis = [].slice.call(hero.querySelectorAll('.mh__thumb[data-mh-go]'));
   if (!rail || !track || cells.length < 2) return;
 
   var i = 0, timer = null, lento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -279,12 +304,14 @@
       b.classList.toggle('is-on', n === i);
       b.setAttribute('aria-selected', n === i ? 'true' : 'false');
     });
+    minis.forEach(function(m, n){ m.classList.toggle('is-on', n === i); });
   }
   function ir(n){ i = (n + cells.length) % cells.length; pintar(); reloj(); }
   function reloj(){ parar(); if (!lento) timer = setInterval(function(){ ir(i + 1); }, 5600); }
   function parar(){ if (timer) { clearInterval(timer); timer = null; } }
 
   bars.forEach(function(b, n){ b.addEventListener('click', function(){ ir(n); }); });
+  minis.forEach(function(m, n){ m.addEventListener('click', function(){ ir(n); }); });
   var prev = hero.querySelector('[data-mh-prev]'), next = hero.querySelector('[data-mh-next]');
   if (prev) prev.addEventListener('click', function(){ ir(i - 1); });
   if (next) next.addEventListener('click', function(){ ir(i + 1); });

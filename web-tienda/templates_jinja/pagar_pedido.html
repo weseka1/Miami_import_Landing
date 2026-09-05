@@ -17,27 +17,27 @@
         </svg>
       </div>
       <h1 style="font-size:26px;margin:0 0 10px">¡Pago recibido!</h1>
-      <p style="color:rgba(245,243,238,.65);font-size:15px">
+      <p style="color:rgba(21,22,26,.65);font-size:15px">
         Gracias por tu compra. Ya podés retirar tu pedido.
       </p>
     </div>
   {% else %}
     <h1 style="font-size:24px;margin:0 0 6px;text-align:center">Pagar tu compra</h1>
-    <p style="text-align:center;color:rgba(245,243,238,.5);font-size:13px;
+    <p style="text-align:center;color:rgba(21,22,26,.5);font-size:13px;
               letter-spacing:.12em;text-transform:uppercase;margin:0 0 26px">
       Pedido #{{ order.number }}
     </p>
   {% endif %}
 
   {# Detalle #}
-  <div style="background:#0c0c0c;border:1px solid var(--mi-line);border-radius:14px;
+  <div style="background:var(--mi-bg-2);border:1px solid var(--mi-line);border-radius:14px;
               padding:22px;margin-bottom:24px;color:var(--mi-ink)">
     {% for it in order.items %}
     <div style="display:flex;justify-content:space-between;gap:14px;padding:10px 0;
                 border-bottom:1px solid var(--mi-line)">
       <span style="font-size:14px">{{ it.product_name }}{% if it.variant_value %}
-        <span style="color:rgba(245,243,238,.5)"> · {{ it.variant_value }}</span>{% endif %}
-        <span style="color:rgba(245,243,238,.5)"> ×{{ it.quantity }}</span></span>
+        <span style="color:rgba(21,22,26,.5)"> · {{ it.variant_value }}</span>{% endif %}
+        <span style="color:rgba(21,22,26,.5)"> ×{{ it.quantity }}</span></span>
       <span style="font-weight:600;font-size:14px;white-space:nowrap">{{ it.subtotal | money(order.currency) }}</span>
     </div>
     {% endfor %}
@@ -50,12 +50,12 @@
     {% if stripe_enabled %}
       <div id="mi-pago"></div>
       <button type="button" id="btn-pagar" style="margin-top:20px;width:100%;padding:17px;
-        border:0;border-radius:999px;background:var(--mi-accent,#15161A);color:#0a0a0a;
+        border:0;border-radius:999px;background:var(--mi-accent,#15161A);color:var(--mi-bg);
         font-weight:700;letter-spacing:.15em;text-transform:uppercase;font-size:14px;cursor:pointer">
         Pagar {{ order.total | money(order.currency) }}
       </button>
       <p id="mi-msg" style="margin-top:14px;font-size:14px;color:#ff8a8a;text-align:center;min-height:20px"></p>
-      <p style="margin-top:10px;font-size:12px;color:rgba(245,243,238,.4);text-align:center">
+      <p style="margin-top:10px;font-size:12px;color:rgba(21,22,26,.4);text-align:center">
         Pago protegido por Stripe. No guardamos los datos de tu tarjeta.
       </p>
     {% else %}

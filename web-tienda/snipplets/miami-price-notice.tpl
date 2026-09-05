@@ -40,7 +40,7 @@
     position: absolute; inset: 0;
     background:
       radial-gradient(ellipse 60% 40% at 50% 50%, rgba(21,22,26,0.08) 0%, transparent 70%),
-      rgba(0,0,0,0.78);
+      var(--mi-glass-strong);
     -webkit-backdrop-filter: blur(8px) saturate(140%);
     backdrop-filter: blur(8px) saturate(140%);
     cursor: pointer;
@@ -53,12 +53,12 @@
       radial-gradient(circle at 50% 50%, rgba(21,22,26,0.06) 1px, transparent 1.6px) 0 0 / 28px 28px,
       #FBFBFA;
     border: 1px solid rgba(21,22,26,0.22);
-    border-top: 1px solid rgba(21,22,26,0.5);
+    border-top: 1px solid var(--mi-line);
     padding: 38px 36px 28px;
     text-align: center;
     color: var(--mi-ink-soft);
     box-shadow:
-      0 28px 80px rgba(0,0,0,0.7),
+      0 28px 80px var(--mi-glass-strong),
       0 0 0 1px rgba(21,22,26,0.08),
       0 0 60px rgba(21,22,26,0.08);
     transform: translateY(20px) scale(0.96);
@@ -77,7 +77,7 @@
     width: auto; max-width: 92px; height: auto;
     display: inline-block;
     filter:
-      drop-shadow(0 4px 12px rgba(0,0,0,0.5))
+      drop-shadow(0 4px 12px var(--mi-glass-strong))
       drop-shadow(0 0 18px rgba(21,22,26,0.3));
   }
   .miami-price-notice__eyebrow {
@@ -94,7 +94,7 @@
     letter-spacing: 0.02em;
     line-height: 1.3;
     margin: 0 0 18px;
-    color: #fff;
+    color: var(--mi-ink);
   }
   .miami-price-notice__usd {
     color: #15161A;
@@ -108,15 +108,15 @@
     margin: 0 0 26px;
   }
   .miami-price-notice__body strong {
-    color: #fff;
+    color: var(--mi-ink);
     font-weight: 500;
   }
   .miami-price-notice__btn {
     display: inline-flex; align-items: center; justify-content: center;
     gap: 12px;
     padding: 14px 36px;
-    background: rgba(20,18,15,0.5);
-    border: 1px solid rgba(21,22,26,0.55);
+    background: var(--mi-glass);
+    border: 1px solid var(--mi-line);
     color: #15161A;
     font-family: inherit;
     font-size: 11px;
@@ -141,7 +141,7 @@
     pointer-events: none;
   }
   .miami-price-notice__btn:hover {
-    background: #15161A;
+    background: var(--mi-bg-2);
     color: #FBFBFA;
     border-color: #15161A;
     box-shadow: 0 0 28px rgba(21,22,26,0.45);

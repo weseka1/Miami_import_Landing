@@ -185,4 +185,49 @@ input[type="search"]:not(.mi-search input){
 }
 .mi-footer a, .mi-footer p, .mi-footer li{ color:var(--mi-ink-soft) !important; }
 .mi-footer a:hover{ color:var(--mi-ink) !important; }
+
+/* ---- Menú lateral: vidrio de verdad ------------------------------------
+   Tenía background transparent y backdrop-filter none, así que se veía
+   blanco plano por el body de atrás. Un panel que se superpone al contenido
+   es EL lugar donde el vidrio de iOS tiene sentido: dejás ver que hay algo
+   debajo sin que compita con lo que estás leyendo. */
+.mi-drawer{
+  background:var(--mi-glass-strong) !important;
+  -webkit-backdrop-filter:blur(var(--mi-blur)) saturate(180%); backdrop-filter:blur(var(--mi-blur)) saturate(180%);
+  border-right:1px solid var(--mi-line) !important;
+  box-shadow:var(--mi-shadow-lift) !important;
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .mi-drawer{ background:var(--mi-bg-2) !important; }
+}
+/* El velo de atrás: oscurece apenas el fondo para que el panel se despegue */
+.mi-drawer-scrim, .mi-drawer__scrim, .mi-overlay{
+  background:rgba(21,22,26,.18) !important;
+  -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
+}
+
+/* ---- Campos de formulario: vidrio, nunca caja hundida ---- */
+input:not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]),
+select, textarea{
+  background:var(--mi-glass) !important; color:var(--mi-ink) !important;
+  border:1px solid var(--mi-line) !important; border-radius:var(--mi-r-sm);
+  -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+}
+input:focus, select:focus, textarea:focus{
+  outline:none; border-color:var(--mi-line-2) !important; background:var(--mi-bg-2) !important;
+}
+::placeholder{ color:var(--mi-ink-mute) !important; opacity:1; }
+/* El buscador es la excepción: el vidrio lo pone la píldora que lo contiene,
+   si además lo pone el input quedan dos cajas, una adentro de la otra. */
+/* 🔴 La especificidad importa: la regla general de arriba es
+   `input:not(...):not(...):not(...):not(...)` = (0,4,1), y le ganaba a
+   `.mi-search input` = (0,1,1). Por eso el recuadro volvia a aparecer aunque
+   la excepcion estuviera escrita despues. Se iguala la cuenta de :not(). */
+.mi-search input:not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]){
+  background:transparent !important; border:0 !important; border-radius:0 !important;
+  -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
+}
+/* Chrome pinta el autocompletado de amarillo y se come el vidrio */
+input:-webkit-autofill{ -webkit-text-fill-color:var(--mi-ink);
+  -webkit-box-shadow:0 0 0 40px var(--mi-bg-2) inset; }
 </style>

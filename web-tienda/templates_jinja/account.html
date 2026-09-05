@@ -13,7 +13,7 @@
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px" class="mi-account-grid">
     {# Perfil #}
-    <section style="background:#0c0c0c;border:1px solid var(--mi-line);border-radius:12px;padding:26px">
+    <section style="background:var(--mi-bg-2);border:1px solid var(--mi-line);border-radius:12px;padding:26px">
       <h3 style="margin:0 0 18px;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--mi-accent,#15161A)">Datos personales</h3>
       <form id="form-profile" class="mi-form">
         <label>Nombre</label><input name="full_name" value="{{ account.full_name or '' }}"/>
@@ -25,17 +25,17 @@
     </section>
 
     {# Direcciones #}
-    <section style="background:#0c0c0c;border:1px solid var(--mi-line);border-radius:12px;padding:26px">
+    <section style="background:var(--mi-bg-2);border:1px solid var(--mi-line);border-radius:12px;padding:26px">
       <h3 style="margin:0 0 18px;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--mi-accent,#15161A)">Direcciones</h3>
       <div id="mi-addresses">
         {% for a in addresses %}
-        <div class="mi-addr" data-id="{{ a.id }}" style="border:1px solid var(--mi-line);border-radius:8px;padding:12px 14px;margin-bottom:10px;font-size:14px;color:rgba(245,243,238,.8)">
+        <div class="mi-addr" data-id="{{ a.id }}" style="border:1px solid var(--mi-line);border-radius:8px;padding:12px 14px;margin-bottom:10px;font-size:14px;color:rgba(21,22,26,.8)">
           {{ a.street or '' }} {{ a.number or '' }}{% if a.floor %}, {{ a.floor }}{% endif %}<br>
           {{ a.city or '' }}{% if a.province %}, {{ a.province }}{% endif %} {{ a.zipcode or '' }}
-          <button class="mi-addr-del" data-id="{{ a.id }}" style="float:right;background:none;border:0;color:rgba(245,243,238,.4);cursor:pointer">✕</button>
+          <button class="mi-addr-del" data-id="{{ a.id }}" style="float:right;background:none;border:0;color:rgba(21,22,26,.4);cursor:pointer">✕</button>
         </div>
         {% else %}
-        <p style="color:rgba(245,243,238,.4);font-size:14px" data-empty-addr>Todavía no cargaste direcciones.</p>
+        <p style="color:rgba(21,22,26,.4);font-size:14px" data-empty-addr>Todavía no cargaste direcciones.</p>
         {% endfor %}
       </div>
       <form id="form-address" class="mi-form" style="margin-top:14px">
@@ -55,27 +55,27 @@
   </div>
 
   {# Pedidos #}
-  <section style="margin-top:32px;background:#0c0c0c;border:1px solid var(--mi-line);border-radius:12px;padding:26px">
+  <section style="margin-top:32px;background:var(--mi-bg-2);border:1px solid var(--mi-line);border-radius:12px;padding:26px">
     <h3 style="margin:0 0 18px;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--mi-accent,#15161A)">Mis pedidos</h3>
     {% if orders %}
       {% for o in orders %}
       <div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--mi-line)">
         <div><strong>#{{ o.number }}</strong> · {{ o.created_at.strftime('%d/%m/%Y') if o.created_at }}
-          <span style="color:rgba(245,243,238,.5);font-size:13px"> · {{ o.status }}</span></div>
+          <span style="color:rgba(21,22,26,.5);font-size:13px"> · {{ o.status }}</span></div>
         <div style="font-weight:600">{{ o.total | ars }}</div>
       </div>
       {% endfor %}
     {% else %}
-      <p style="color:rgba(245,243,238,.4);font-size:14px">Todavía no tenés pedidos. <a href="/productos" style="color:var(--mi-accent,#15161A)">Ver catálogo →</a></p>
+      <p style="color:rgba(21,22,26,.4);font-size:14px">Todavía no tenés pedidos. <a href="/productos" style="color:var(--mi-accent,#15161A)">Ver catálogo →</a></p>
     {% endif %}
   </section>
 </div>
 
 <style>
-  .mi-form label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,243,238,.55);margin:12px 0 5px}
-  .mi-form input{width:100%;padding:10px 12px;background:#0d0d0d;border:1px solid var(--mi-line);color:#fff;border-radius:8px;outline:none;/* 16px: abajo de eso iOS hace zoom al tocar el campo */font-size:16px}
+  .mi-form label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(21,22,26,.55);margin:12px 0 5px}
+  .mi-form input{width:100%;padding:10px 12px;background:var(--mi-bg-2);border:1px solid var(--mi-line);color:var(--mi-ink);border-radius:8px;outline:none;/* 16px: abajo de eso iOS hace zoom al tocar el campo */font-size:16px}
   .mi-form input:focus{border-color:var(--mi-accent,#15161A)}
-  .mi-form button{margin-top:16px;padding:11px 22px;border:0;border-radius:999px;background:var(--mi-accent,#15161A);color:#0a0a0a;font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:12px;cursor:pointer}
+  .mi-form button{margin-top:16px;padding:11px 22px;border:0;border-radius:999px;background:var(--mi-accent,#15161A);color:var(--mi-bg);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:12px;cursor:pointer}
   .mi-form-msg{margin-left:12px;font-size:13px;color:var(--mi-accent,#15161A)}
   @media(max-width:760px){.mi-account-grid{grid-template-columns:1fr !important}}
 </style>

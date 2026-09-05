@@ -76,7 +76,7 @@
 .miami-trilogy {
   position: relative;
   background: #FBFBFA;
-  color: #fff;
+  color: var(--mi-ink);
   height: 100vh; min-height: 720px;
   overflow: hidden;
   isolation: isolate;
@@ -190,8 +190,8 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
       drop-shadow(0 36px 60px rgba(21,22,26,.10))
       drop-shadow(0 0 3px rgba(255,215,150,0.95))
       drop-shadow(0 0 8px rgba(212,187,136,0.85))
-      drop-shadow(0 0 16px rgba(21,22,26,0.7))
-      drop-shadow(0 0 32px rgba(21,22,26,0.5))
+      drop-shadow(0 0 16px var(--mi-glass-strong))
+      drop-shadow(0 0 32px var(--mi-glass-strong))
       drop-shadow(0 0 60px rgba(21,22,26,0.35));
   }
   50% {
@@ -199,8 +199,8 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
       drop-shadow(0 36px 60px rgba(21,22,26,.10))
       drop-shadow(0 0 5px rgba(255,230,176,1))
       drop-shadow(0 0 14px rgba(212,187,136,1))
-      drop-shadow(0 0 26px rgba(21,22,26,0.95))
-      drop-shadow(0 0 50px rgba(21,22,26,0.75))
+      drop-shadow(0 0 26px var(--mi-glass-strong))
+      drop-shadow(0 0 50px var(--mi-glass-strong))
       drop-shadow(0 0 100px rgba(21,22,26,0.45));
   }
 }
@@ -271,7 +271,7 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   display: inline-flex; align-items: center; gap: 16px;
 }
 .miami-trilogy__eyebrow::before {
-  content: ""; width: 48px; height: 1px; background: #15161A;
+  content: ""; width: 48px; height: 1px; background: var(--mi-bg-2);
 }
 
 .miami-trilogy__name {
@@ -335,7 +335,7 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   color: var(--mi-ink);
 }
 .miami-trilogy__glass-meta strong {
-  color: #fff; font-weight: 500; letter-spacing: 0.18em;
+  color: var(--mi-ink); font-weight: 500; letter-spacing: 0.18em;
 }
 
 /* ========== Nav abajo ========== */
@@ -386,7 +386,7 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
 }
 .miami-trilogy__nav [data-go]:hover { border-color: #15161A; }
 .miami-trilogy__nav [data-go].is-active {
-  background: #15161A; border-color: #15161A;
+  background: var(--mi-bg-2); border-color: #15161A;
 }
 
 /* ========== Responsive mobile ========== */
@@ -416,12 +416,12 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
     0%, 100% {
       filter:
         drop-shadow(0 18px 28px rgba(21,22,26,.10))
-        drop-shadow(0 0 20px rgba(21,22,26,0.55));
+        drop-shadow(0 0 20px var(--mi-glass-strong));
     }
     50% {
       filter:
         drop-shadow(0 18px 28px rgba(21,22,26,.10))
-        drop-shadow(0 0 32px rgba(21,22,26,0.75));
+        drop-shadow(0 0 32px var(--mi-glass-strong));
     }
   }
   /* Float: lo dejamos pero mas suave (menos repintados) */

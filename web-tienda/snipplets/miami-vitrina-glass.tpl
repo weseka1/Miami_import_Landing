@@ -168,7 +168,7 @@
   position:relative; z-index:1; min-height:44px; padding:0 clamp(20px,3.4vw,34px);
   border:0; background:none; cursor:pointer; font:inherit; font-size:12px;
   letter-spacing:.2em; text-transform:uppercase;
-  color:rgba(21,22,26,.5); transition:color .3s ease;
+  color:var(--mi-ink-soft); transition:color .3s ease;
 }
 .mi-vt__seg-btn.is-on{ color:var(--tinta); }
 .mi-vt__seg-btn[hidden]{ display:none; }
@@ -186,8 +186,8 @@
      se adapta a la foto, no al reves: asi entran ENTERAS y no se recorta nada. */
   position:relative; width:100%; max-width:404px; aspect-ratio:3/4;
   margin-inline:auto; border-radius:26px; overflow:hidden;
-  background:#0E0C0B; border:1px solid var(--hair);
-  box-shadow:0 44px 96px -34px rgba(0,0,0,.92),
+  background:var(--mi-bg-2); border:1px solid var(--hair);
+  box-shadow:0 44px 96px -34px var(--mi-glass-strong),
              inset 0 1px 0 rgba(255,255,255,.10);
   cursor:grab; touch-action:pan-y;
 }
@@ -217,10 +217,10 @@
   display:flex; align-items:center; justify-content:center; gap:12px;
   min-height:42px; padding:0 16px; border-radius:14px;
   font-size:11px; letter-spacing:.2em; text-transform:uppercase;
-  color:#F3EFE7; background:rgba(12,10,9,.56);
+  color:var(--mi-ink); background:var(--mi-glass-strong);
   /* las fotos de local traen pisos claros detras: sin esto el texto de la
      chapa queda al limite de contraste justo donde dice el talle */
-  text-shadow:0 1px 3px rgba(0,0,0,.65);
+  text-shadow:0 1px 3px var(--mi-glass-strong);
   -webkit-backdrop-filter:blur(20px) saturate(170%);
   backdrop-filter:blur(20px) saturate(170%);
   border:1px solid rgba(21,22,26,.16);
@@ -247,7 +247,7 @@
 }
 .mi-vt__desc{
   margin:0 0 26px; max-width:44ch; line-height:1.7;
-  font-size:clamp(14px,1.1vw,16px); color:rgba(21,22,26,.6);
+  font-size:clamp(14px,1.1vw,16px); color:var(--mi-ink-soft);
 }
 .mi-vt__cta{
   display:inline-flex; align-items:center; gap:10px; min-height:46px;
@@ -256,7 +256,7 @@
   color:var(--carbon); background:var(--champ);
   transition:transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease;
 }
-.mi-vt__cta:hover{ transform:translateY(-2px); box-shadow:0 14px 28px -12px rgba(21,22,26,.6); }
+.mi-vt__cta:hover{ transform:translateY(-2px); box-shadow:0 14px 28px -12px var(--mi-glass-strong); }
 .mi-vt__cta span{ transition:transform .3s cubic-bezier(.22,1,.36,1); }
 .mi-vt__cta:hover span{ transform:translateX(4px); }
 

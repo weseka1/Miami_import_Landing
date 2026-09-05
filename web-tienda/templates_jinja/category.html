@@ -11,18 +11,18 @@
     {% else %}{{ catalog_title|default('Catálogo') }}{% endif %}
   </h1>
   {% if categoria and categoria.description %}
-    <p style="text-align:center;color:rgba(245,243,238,.55);max-width:640px;margin:-20px auto 40px;font-size:14px;line-height:1.7">
+    <p style="text-align:center;color:rgba(21,22,26,.55);max-width:640px;margin:-20px auto 40px;font-size:14px;line-height:1.7">
       {{ categoria.description }}</p>
   {% endif %}
 
   {% if productos %}
-    <p style="color:rgba(245,243,238,.4);font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:24px">
+    <p style="color:rgba(21,22,26,.4);font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:24px">
       {{ productos|length }} producto{{ 's' if productos|length != 1 else '' }}</p>
     <div class="mi-grid">
       {% for p in productos %}{{ product_card(p, usd_rate) }}{% endfor %}
     </div>
   {% else %}
-    <p style="text-align:center;color:rgba(245,243,238,.5);padding:60px 0">
+    <p style="text-align:center;color:rgba(21,22,26,.5);padding:60px 0">
       No encontramos productos{% if search_query %} para “{{ search_query }}”{% endif %}.</p>
   {% endif %}
 </div>

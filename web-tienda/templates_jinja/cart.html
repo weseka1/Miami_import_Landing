@@ -10,9 +10,9 @@
       {# Antes era una línea de texto flotando en medio de una pantalla negra
          vacía. Ahora el carrito vacío también empuja a seguir comprando. #}
       <div style="text-align:center;padding:36px 0 8px">
-        <p style="color:rgba(245,243,238,.6);font-size:16px;margin:0 0 22px">Todavía no agregaste nada.</p>
+        <p style="color:rgba(21,22,26,.6);font-size:16px;margin:0 0 22px">Todavía no agregaste nada.</p>
         <a href="/productos" style="display:inline-block;padding:15px 34px;border-radius:999px;
-           background:var(--mi-accent,#15161A);color:#0a0a0a;letter-spacing:.16em;
+           background:var(--mi-accent,#15161A);color:var(--mi-bg);letter-spacing:.16em;
            text-transform:uppercase;font-size:12px;font-weight:700">Ver catálogo</a>
       </div>
       {% if nav_tipos %}
@@ -22,7 +22,7 @@
         <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
           {% for t in nav_tipos[:8] %}
           <a href="/tipo/{{ t.slug }}" style="display:inline-block;padding:10px 18px;border-radius:999px;
-             font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:rgba(21,22,26,.8);
+             font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mi-ink-soft);
              border:1px solid rgba(245,243,238,.14);background:var(--mi-glass)">{{ t.nombre }}</a>
           {% endfor %}
         </div>
@@ -35,36 +35,36 @@
         <div class="mi-cart-row" data-vid="{{ it.variant_id }}"
           style="display:grid;grid-template-columns:90px 1fr auto;gap:18px;padding:20px 0;border-bottom:1px solid var(--mi-line)">
           <a href="/productos/{{ it.handle }}/"><img src="{{ it.image | thumb(240) }}" alt="{{ it.product_name }}"
-            style="width:90px;height:115px;object-fit:cover;border-radius:8px;background:#111"/></a>
+            style="width:90px;height:115px;object-fit:cover;border-radius:8px;background:var(--mi-bg-2)"/></a>
           <div>
             <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--mi-accent,#15161A)">{{ it.brand }}</div>
             <div style="margin:6px 0;font-size:15px">{{ it.product_name }}</div>
-            {% if it.value %}<div style="font-size:12px;color:rgba(245,243,238,.5)">Talle: {{ it.value }}</div>{% endif %}
+            {% if it.value %}<div style="font-size:12px;color:rgba(21,22,26,.5)">Talle: {{ it.value }}</div>{% endif %}
             <div style="display:inline-flex;align-items:center;gap:12px;margin-top:12px;border:1px solid rgba(245,243,238,.2);border-radius:999px;padding:4px 6px">
-              <button class="mi-qty" data-vid="{{ it.variant_id }}" data-delta="-1" style="background:none;border:0;color:#fff;cursor:pointer;font-size:18px;width:24px">−</button>
+              <button class="mi-qty" data-vid="{{ it.variant_id }}" data-delta="-1" style="background:none;border:0;color:var(--mi-ink);cursor:pointer;font-size:18px;width:24px">−</button>
               <span data-qty>{{ it.quantity }}</span>
-              <button class="mi-qty" data-vid="{{ it.variant_id }}" data-delta="1" style="background:none;border:0;color:#fff;cursor:pointer;font-size:18px;width:24px">+</button>
+              <button class="mi-qty" data-vid="{{ it.variant_id }}" data-delta="1" style="background:none;border:0;color:var(--mi-ink);cursor:pointer;font-size:18px;width:24px">+</button>
             </div>
             <button class="mi-remove" data-vid="{{ it.variant_id }}"
-              style="display:block;margin-top:12px;background:none;border:0;color:rgba(245,243,238,.4);cursor:pointer;font-size:12px;letter-spacing:.05em">Quitar</button>
+              style="display:block;margin-top:12px;background:none;border:0;color:rgba(21,22,26,.4);cursor:pointer;font-size:12px;letter-spacing:.05em">Quitar</button>
           </div>
           <div style="text-align:right;font-weight:600" data-line>{{ it.line_total | money(it.currency) }}</div>
         </div>
         {% endfor %}
       </div>
 
-      <aside style="background:#0c0c0c;border:1px solid var(--mi-line);border-radius:12px;padding:28px;position:sticky;top:100px;color:var(--mi-ink)">
+      <aside style="background:var(--mi-bg-2);border:1px solid var(--mi-line);border-radius:12px;padding:28px;position:sticky;top:100px;color:var(--mi-ink)">
         <h3 style="margin:0 0 20px;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--mi-accent,#15161A)">Resumen</h3>
-        <div style="display:flex;justify-content:space-between;margin-bottom:10px;color:rgba(245,243,238,.7)">
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px;color:rgba(21,22,26,.7)">
           <span>Subtotal</span><span data-subtotal>{{ cart['subtotal'] | money(cart['currency']) }}</span>
         </div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:20px;font-size:12px;color:rgba(245,243,238,.4)">
+        <div style="display:flex;justify-content:space-between;margin-bottom:20px;font-size:12px;color:rgba(21,22,26,.4)">
           <span>Envío</span><span>Se calcula al finalizar</span>
         </div>
         <a href="/checkout" class="miami-btn miami-btn--primary" style="display:block;text-align:center;width:100%;padding:16px;
-          background:var(--mi-accent,#15161A);color:#0a0a0a;border-radius:999px;letter-spacing:.2em;text-transform:uppercase;font-size:13px;font-weight:700">
+          background:var(--mi-accent,#15161A);color:var(--mi-bg);border-radius:999px;letter-spacing:.2em;text-transform:uppercase;font-size:13px;font-weight:700">
           Finalizar compra →</a>
-        <a href="/productos" style="display:block;text-align:center;margin-top:14px;color:rgba(245,243,238,.5);font-size:12px;letter-spacing:.1em">Seguir comprando</a>
+        <a href="/productos" style="display:block;text-align:center;margin-top:14px;color:rgba(21,22,26,.5);font-size:12px;letter-spacing:.1em">Seguir comprando</a>
       </aside>
     </div>
     {% endif %}

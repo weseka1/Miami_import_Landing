@@ -20,21 +20,21 @@
   </form>
 
   {% if productos %}
-    <p style="color:rgba(245,243,238,.4);font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin:26px 0 24px">
+    <p style="color:rgba(21,22,26,.4);font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin:26px 0 24px">
       {{ productos|length }} producto{{ 's' if productos|length != 1 else '' }}</p>
     <div class="mi-grid">
       {% for p in productos %}{{ product_card(p, usd_rate) }}{% endfor %}
     </div>
   {% elif search_query %}
     <div style="text-align:center;padding:40px 0 10px">
-      <p style="color:rgba(245,243,238,.62);font-size:15px;line-height:1.7;margin:0 0 6px">
+      <p style="color:rgba(21,22,26,.62);font-size:15px;line-height:1.7;margin:0 0 6px">
         No tenemos nada cargado para “{{ search_query }}”.</p>
-      <p style="color:rgba(245,243,238,.45);font-size:14px;line-height:1.7;margin:0 0 26px">
+      <p style="color:rgba(21,22,26,.45);font-size:14px;line-height:1.7;margin:0 0 26px">
         Puede estar en camino o conseguirse a pedido: escribinos y te lo averiguamos.</p>
       <a href="https://wa.me/5491162321391?text={{ ('Hola Diego! Estoy buscando: ' ~ search_query) | urlencode }}"
          target="_blank" rel="noopener"
          style="display:inline-block;padding:15px 34px;border-radius:999px;background:var(--mi-accent,#15161A);
-                color:#0a0a0a;letter-spacing:.16em;text-transform:uppercase;font-size:12px;font-weight:700">
+                color:var(--mi-bg);letter-spacing:.16em;text-transform:uppercase;font-size:12px;font-weight:700">
         Preguntar por WhatsApp</a>
     </div>
   {% endif %}
@@ -57,18 +57,18 @@
 <style>
   .mi-searchbox{display:flex;gap:10px;max-width:640px;margin:26px 0 0}
   .mi-searchbox input{flex:1;min-width:0;height:52px;padding:0 20px;border-radius:999px;
-    border:1px solid rgba(245,243,238,.16);background:var(--mi-glass);color:#fff;font-size:15px;
+    border:1px solid rgba(245,243,238,.16);background:var(--mi-glass);color:var(--mi-ink);font-size:15px;
     -webkit-appearance:none;appearance:none;outline:none;transition:border-color .3s,background .3s}
-  .mi-searchbox input:focus{border-color:rgba(21,22,26,.6);background:var(--mi-glass)}
-  .mi-searchbox input::placeholder{color:rgba(245,243,238,.4)}
+  .mi-searchbox input:focus{border-color:var(--mi-ink-soft);background:var(--mi-glass)}
+  .mi-searchbox input::placeholder{color:rgba(21,22,26,.4)}
   .mi-searchbox input::-webkit-search-cancel-button{-webkit-appearance:none}
   .mi-searchbox button{flex:none;height:52px;padding:0 26px;border:0;border-radius:999px;cursor:pointer;
-    background:var(--mi-accent,#15161A);color:#0a0a0a;font-size:12px;font-weight:700;
+    background:var(--mi-accent,#15161A);color:var(--mi-bg);font-size:12px;font-weight:700;
     letter-spacing:.16em;text-transform:uppercase}
   .mi-chip{display:inline-block;padding:10px 18px;border-radius:999px;font-size:12px;letter-spacing:.1em;
-    text-transform:uppercase;color:rgba(21,22,26,.8);border:1px solid rgba(245,243,238,.14);
+    text-transform:uppercase;color:var(--mi-ink-soft);border:1px solid rgba(245,243,238,.14);
     background:var(--mi-glass);transition:border-color .3s,color .3s}
-  .mi-chip:hover{border-color:rgba(21,22,26,.55);color:var(--mi-accent,#15161A)}
+  .mi-chip:hover{border-color:var(--mi-ink-soft);color:var(--mi-accent,#15161A)}
   @media(max-width:640px){
     .mi-searchbox{gap:8px}
     .mi-searchbox input{height:48px;font-size:16px}  /* 16px: iOS no hace zoom al enfocar */

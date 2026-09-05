@@ -13,16 +13,16 @@
 {# OJO: display NO va inline — un display:flex inline le gana al atributo
    `hidden` y el modal no se puede cerrar. Lo pone la regla CSS de abajo. #}
 <div id="mi-tryon" hidden style="position:fixed;inset:0;z-index:220;align-items:flex-end;justify-content:center">
-  <div id="mi-tryon-bg" style="position:absolute;inset:0;background:rgba(5,4,3,.7);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)"></div>
+  <div id="mi-tryon-bg" style="position:absolute;inset:0;background:var(--mi-glass-strong);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)"></div>
   <div id="mi-tryon-card" style="position:relative;width:100%;max-width:440px;max-height:94svh;overflow-y:auto;overscroll-behavior:contain;
-    background:rgba(20,16,12,.92);-webkit-backdrop-filter:blur(24px) saturate(150%);backdrop-filter:blur(24px) saturate(150%);
+    background:var(--mi-glass-strong);-webkit-backdrop-filter:blur(24px) saturate(150%);backdrop-filter:blur(24px) saturate(150%);
     border:1px solid var(--mi-line);border-top:1px solid rgba(21,22,26,.4);border-radius:24px 24px 0 0;padding:22px 20px 28px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
       <div style="font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--mi-accent,#15161A);font-weight:600">Probador virtual</div>
       <button id="mi-tryon-close" type="button" aria-label="Cerrar"
         style="width:38px;height:38px;border-radius:50%;border:1px solid var(--mi-line);background:none;color:var(--mi-ink);cursor:pointer;font-size:16px">✕</button>
     </div>
-    <p style="margin:0 0 16px;font-size:13px;line-height:1.6;color:rgba(21,22,26,.6)">
+    <p style="margin:0 0 16px;font-size:13px;line-height:1.6;color:var(--mi-ink-soft)">
       Subí una foto tuya de frente (cuerpo visible, buena luz) y te mostramos
       <strong style="color:var(--mi-ink)">{{ product.name }}</strong> puesto.
     </p>
@@ -33,7 +33,7 @@
         <div id="mi-tryon-preview-wrap" style="display:none;margin-bottom:12px">
           <img id="mi-tryon-preview" alt="" style="max-height:220px;border-radius:12px;margin:0 auto"/>
         </div>
-        <span id="mi-tryon-file-label" style="font-size:13px;letter-spacing:.08em;color:rgba(21,22,26,.75)">Tocá para elegir o sacarte una foto</span>
+        <span id="mi-tryon-file-label" style="font-size:13px;letter-spacing:.08em;color:var(--mi-ink-soft)">Tocá para elegir o sacarte una foto</span>
       </label>
       <button id="mi-tryon-go" type="button" disabled
         style="width:100%;margin-top:14px;padding:16px;background:var(--mi-accent,#15161A);color:#0b0b0b;border:0;border-radius:999px;
@@ -43,7 +43,7 @@
 
     <div id="mi-tryon-paso2" hidden style="text-align:center;padding:34px 0">
       <div style="font-size:14px;color:var(--mi-ink);margin-bottom:8px">Generando tu look<span id="mi-tryon-dots">…</span></div>
-      <div style="font-size:12px;color:rgba(21,22,26,.5)">Tarda entre 30 y 90 segundos. No cierres esta ventana.</div>
+      <div style="font-size:12px;color:var(--mi-ink-soft)">Tarda entre 30 y 90 segundos. No cierres esta ventana.</div>
     </div>
 
     <div id="mi-tryon-paso3" hidden style="text-align:center">
@@ -54,7 +54,7 @@
         <a id="mi-tryon-dl" download="mi-look-miami-import.jpg"
           style="flex:1;padding:14px;border:1px solid var(--mi-line);color:var(--mi-ink);border-radius:999px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:600">Descargar</a>
       </div>
-      <button id="mi-tryon-again" type="button" style="margin-top:12px;background:none;border:0;color:rgba(21,22,26,.55);font-size:12px;letter-spacing:.08em;cursor:pointer;text-decoration:underline">Probar con otra foto</button>
+      <button id="mi-tryon-again" type="button" style="margin-top:12px;background:none;border:0;color:var(--mi-ink-soft);font-size:12px;letter-spacing:.08em;cursor:pointer;text-decoration:underline">Probar con otra foto</button>
     </div>
     <div id="mi-tryon-err" style="min-height:18px;margin-top:10px;font-size:12.5px;color:#ff9b7a;text-align:center"></div>
   </div>
