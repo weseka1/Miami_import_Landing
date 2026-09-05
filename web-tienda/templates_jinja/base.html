@@ -219,7 +219,11 @@
       text-transform:uppercase;font-weight:600;color:var(--mi-ink-soft);padding:0 2px}
     .mi-drawer__tipo:focus-visible,.mi-drawer__close:focus-visible,.mi-drawer__sub a:focus-visible,
     .mi-drawer__plain:focus-visible{outline:2px solid var(--mi-accent,#15161A);outline-offset:2px;border-radius:6px}
-    body.mi-lock{overflow:hidden}
+    /* 🔴 iOS Safari IGNORA overflow:hidden en el body: el fondo se sigue
+       moviendo con el dedo. La unica forma que funciona es sacarlo del flujo
+       con position:fixed, guardando y devolviendo la posicion del scroll —
+       si no, al cerrar el menu la pagina salta al principio. */
+    body.mi-lock{overflow:hidden;position:fixed;width:100%;left:0;right:0}
     @media(prefers-reduced-motion:reduce){
       .mi-drawer,.mi-drawer__backdrop,.mi-drawer__sheet,.mi-drawer__chev,
       .mi-nav__item>.mi-nav__panel{transition:none !important}
@@ -429,7 +433,16 @@
         drawer.classList.toggle('is-open', open);
         drawer.setAttribute('aria-hidden', open ? 'false' : 'true');
         burger.setAttribute('aria-expanded', open ? 'true' : 'false');
-        document.body.classList.toggle('mi-lock', open);   // scroll-lock del body
+        // scroll-lock que TAMBIEN funciona en iOS (ver el CSS de .mi-lock)
+        if (open) {
+          window.__miScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+          document.body.style.top = (-window.__miScrollY) + 'px';
+          document.body.classList.add('mi-lock');
+        } else if (document.body.classList.contains('mi-lock')) {
+          document.body.classList.remove('mi-lock');
+          document.body.style.top = '';
+          window.scrollTo(0, window.__miScrollY || 0);
+        }
         if (open) { var c = drawer.querySelector('.mi-drawer__close'); if (c) c.focus(); }
         else if (document.activeElement && drawer.contains(document.activeElement)) burger.focus();
       }

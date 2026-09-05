@@ -139,9 +139,12 @@
        color en movimiento, no como una foto tapada por una sabana. El mensaje
        no depende de este velo para leerse —vive en su propia placa de vidrio—
        asi que se puede bajar sin arriesgar el contraste. */
-    background:linear-gradient(180deg, rgba(251,251,250,.34) 0%, rgba(251,251,250,.20) 45%,
-                                       rgba(251,251,250,.46) 100%);
-    -webkit-backdrop-filter:blur(26px) saturate(145%); backdrop-filter:blur(26px) saturate(145%);
+    /* Velo al ~30%: el video se ve, el desenfoque hace de textura. Se
+       puede bajar tanto porque NADA depende de este velo para leerse —
+       el mensaje y la franja de datos tienen su propio vidrio. */
+    background:linear-gradient(180deg, rgba(251,251,250,.22) 0%, rgba(251,251,250,.10) 45%,
+                                       rgba(251,251,250,.34) 100%);
+    -webkit-backdrop-filter:blur(30px) saturate(150%); backdrop-filter:blur(30px) saturate(150%);
   }
   /* El video, un poco mas grande que su caja: al desenfocar, los bordes se
      lavan y se veria un halo claro en el perimetro. */

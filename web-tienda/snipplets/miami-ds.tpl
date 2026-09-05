@@ -206,7 +206,12 @@ input[type="search"]:not(.mi-search input){
   box-shadow:0 40px 90px rgba(21,22,26,.20), 0 4px 14px rgba(21,22,26,.06) !important;
   margin:12px !important; height:calc(100% - 24px) !important;
   max-height:calc(100svh - 24px) !important;
-  overflow:hidden !important;
+  /* 🔴 Acá decía `overflow:hidden` (para que el radio recortara el contenido)
+     y eso MATABA el scroll interno del panel: con el menú abierto el dedo
+     movía la web de atrás en vez de la lista. El radio igual recorta con
+     overflow-y:auto. */
+  overflow-y:auto !important; overscroll-behavior:contain !important;
+  -webkit-overflow-scrolling:touch;
 }
 /* El canto de arriba, mas claro: es el reflejo. Sin esto el vidrio es plano. */
 .mi-drawer__sheet::before{
