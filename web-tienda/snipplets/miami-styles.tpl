@@ -394,7 +394,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   align-items: center; text-align: center;
   padding: 56px 48px;
   background:
-    linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 35%, rgba(0,0,0,0.15) 65%, rgba(0,0,0,0.65) 100%);
+    linear-gradient(180deg, rgba(21,22,26,.10) 0%, rgba(0,0,0,0.15) 35%, rgba(0,0,0,0.15) 65%, rgba(21,22,26,.10) 100%);
   color: #fff;
 }
 .miami-split__media-overlay .miami-split__media-tag,
@@ -472,7 +472,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   padding: 48px;
   color: #fff;
   background:
-    linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.7) 100%);
+    linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.15) 40%, rgba(21,22,26,.10) 100%);
 }
 @media (max-width: 768px) { .miami-lookbook__overlay { padding: 40px 28px; } }
 .miami-lookbook__no {
@@ -545,7 +545,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .miami-brand-tile__overlay {
   position: absolute; inset: 0; z-index: 1;
   background:
-    linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.65) 100%);
+    linear-gradient(180deg, rgba(21,22,26,.10) 0%, rgba(0,0,0,0.15) 40%, rgba(21,22,26,.10) 100%);
   pointer-events: none;
 }
 .miami-brand-tile--empty {
@@ -1856,7 +1856,7 @@ body.template-search .js-item-product:hover {
   box-shadow:
     0 0 0 1px rgba(21,22,26,0.2),
     0 0 24px rgba(21,22,26,0.22),
-    0 12px 28px rgba(0,0,0,0.5);
+    0 12px 28px rgba(21,22,26,.10);
   transform: translateY(-2px);
 }
 /* Nombres / precios */
@@ -2969,7 +2969,7 @@ body.template-cart [class*="continue"] {
 
 /* Backdrop del modal mas oscuro */
 .modal-backdrop {
-  background: rgba(0,0,0,0.85) !important;
+  background: rgba(21,22,26,.10) !important;
 }
 
 /* Imagenes de items en modal: contenedor transparente */
@@ -3099,7 +3099,7 @@ body.template-product .product-thumb-container.is-active {
 .miami-page-header::before {
   content: ""; position: absolute; inset: 0; z-index: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 50% 100%, rgba(0,0,0,0.55) 0%, transparent 70%);
+    radial-gradient(ellipse 80% 60% at 50% 100%, rgba(21,22,26,.10) 0%, transparent 70%);
   pointer-events: none;
 }
 .miami-page-header__logo {
@@ -3109,19 +3109,19 @@ body.template-product .product-thumb-container.is-active {
   max-width: 180px;
   height: auto;
   filter:
-    drop-shadow(0 6px 18px rgba(0,0,0,0.55))
+    drop-shadow(0 6px 18px rgba(21,22,26,.10))
     drop-shadow(0 0 28px rgba(21,22,26,0.28));
   animation: miami-page-logo-breathe 6s ease-in-out infinite;
 }
 @keyframes miami-page-logo-breathe {
   0%, 100% {
     filter:
-      drop-shadow(0 6px 18px rgba(0,0,0,0.55))
+      drop-shadow(0 6px 18px rgba(21,22,26,.10))
       drop-shadow(0 0 28px rgba(21,22,26,0.22));
   }
   50% {
     filter:
-      drop-shadow(0 8px 22px rgba(0,0,0,0.6))
+      drop-shadow(0 8px 22px rgba(21,22,26,.10))
       drop-shadow(0 0 38px rgba(21,22,26,0.4));
   }
 }
@@ -3255,8 +3255,8 @@ body.template-search a:focus {
   position: absolute; inset: 0; z-index: 3;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at center, transparent 38%, rgba(0,0,0,0.55) 100%),
-    linear-gradient(180deg, rgba(0,0,0,0.35) 0%, transparent 30%, transparent 65%, rgba(0,0,0,0.78) 100%);
+    radial-gradient(ellipse at center, transparent 38%, rgba(21,22,26,.10) 100%),
+    linear-gradient(180deg, rgba(0,0,0,0.35) 0%, transparent 30%, transparent 65%, rgba(21,22,26,.10) 100%);
 }
 
 /* Overlay del contenido (textos) — z-index sobre los efectos */
@@ -3285,20 +3285,20 @@ body.template-search a:focus {
 .miami-lookbook__tile--cinematic .miami-lookbook__no {
   letter-spacing: 0.6em;
   color: rgba(232,189,116,0.85);
-  text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+  text-shadow: 0 2px 12px rgba(21,22,26,.10);
   font-weight: 400;
 }
 .miami-lookbook__tile--cinematic .miami-lookbook__title {
   font-weight: 300;
   letter-spacing: 0.08em;
   text-shadow:
-    0 4px 24px rgba(0,0,0,0.75),
+    0 4px 24px rgba(21,22,26,.10),
     0 1px 0 rgba(0,0,0,0.4);
 }
 .miami-lookbook__tile--cinematic .miami-lookbook__sub {
   opacity: 0.78;
   letter-spacing: 0.42em;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.55);
+  text-shadow: 0 2px 10px rgba(21,22,26,.10);
 }
 
 /* Glassmorphism CTA — vidrio translúcido con borde dorado */
@@ -3416,7 +3416,7 @@ body.template-search a:focus {
   flex-shrink: 0;
   opacity: 0.95;
   filter:
-    drop-shadow(0 6px 16px rgba(0,0,0,0.5))
+    drop-shadow(0 6px 16px rgba(21,22,26,.10))
     drop-shadow(0 0 22px rgba(21,22,26,0.22));
 }
 .miami-section__head--seal {
@@ -3621,7 +3621,7 @@ body.template-search a:focus {
   position: absolute; inset: 0; z-index: 1;
   pointer-events: none;
   background:
-    linear-gradient(90deg, transparent 0%, transparent 45%, rgba(0,0,0,0.55) 75%, rgba(0,0,0,0.78) 100%);
+    linear-gradient(90deg, transparent 0%, transparent 45%, rgba(21,22,26,.10) 75%, rgba(21,22,26,.10) 100%);
 }
 .miami-hero-banner__content {
   position: absolute;
@@ -3677,7 +3677,7 @@ body.template-search a:focus {
   }
   .miami-hero-banner__overlay {
     background:
-      linear-gradient(180deg, transparent 0%, transparent 50%, rgba(0,0,0,0.6) 72%, rgba(0,0,0,0.94) 100%);
+      linear-gradient(180deg, transparent 0%, transparent 50%, rgba(21,22,26,.10) 72%, rgba(21,22,26,.10) 100%);
   }
   .miami-hero-banner__content {
     top: auto; bottom: 4%;
@@ -3735,19 +3735,19 @@ body.template-search a:focus {
   height: auto;
   display: block;
   filter:
-    drop-shadow(0 12px 28px rgba(0,0,0,0.55))
+    drop-shadow(0 12px 28px rgba(21,22,26,.10))
     drop-shadow(0 0 24px rgba(21,22,26,0.18));
   animation: miami-logo-breathe 6s ease-in-out infinite;
 }
 @keyframes miami-logo-breathe {
   0%, 100% {
     filter:
-      drop-shadow(0 12px 28px rgba(0,0,0,0.55))
+      drop-shadow(0 12px 28px rgba(21,22,26,.10))
       drop-shadow(0 0 24px rgba(21,22,26,0.18));
   }
   50% {
     filter:
-      drop-shadow(0 14px 32px rgba(0,0,0,0.6))
+      drop-shadow(0 14px 32px rgba(21,22,26,.10))
       drop-shadow(0 0 38px rgba(21,22,26,0.32));
   }
 }
@@ -3815,7 +3815,7 @@ body.template-search a:focus {
   object-fit: contain;
   margin: 0;
   z-index: 1;
-  filter: drop-shadow(0 18px 28px rgba(0,0,0,0.55));
+  filter: drop-shadow(0 18px 28px rgba(21,22,26,.10));
   transition:
     transform 0.7s var(--miami-ease),
     filter 0.7s var(--miami-ease);
@@ -3825,7 +3825,7 @@ body.template-search a:focus {
   filter:
     drop-shadow(0 0 22px rgba(21,22,26,0.55))
     drop-shadow(0 0 48px rgba(21,22,26,0.35))
-    drop-shadow(0 22px 32px rgba(0,0,0,0.6));
+    drop-shadow(0 22px 32px rgba(21,22,26,.10));
 }
 .miami-brand-tile--float:hover {
   background:
@@ -3839,7 +3839,7 @@ body.template-search a:focus {
   position: relative; z-index: 3;
 }
 .miami-brand-tile--float .miami-brand-tile__name {
-  text-shadow: 0 2px 12px rgba(0,0,0,0.85);
+  text-shadow: 0 2px 12px rgba(21,22,26,.10);
 }
 @media (max-width: 640px) {
   .miami-brand-tile--float .miami-brand-tile__img {

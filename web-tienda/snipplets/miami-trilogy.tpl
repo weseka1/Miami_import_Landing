@@ -100,7 +100,7 @@
 }
 .miami-trilogy__atmosphere::after {
   content: ""; position: absolute; inset: 0;
-  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%);
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(251,251,250,.92) 100%);
 }
 
 /* ========== SWITCH HOMBRE / MUJER ========== */
@@ -110,7 +110,7 @@
   left: 50%; transform: translateX(-50%);
   z-index: 13;
   display: inline-flex; align-items: center; gap: 14px;
-  background: rgba(10,10,10,0.5);
+  background: var(--mi-glass);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   border: 1px solid var(--mi-line);
@@ -187,7 +187,7 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
 @keyframes miami-trilogy-rim {
   0%, 100% {
     filter:
-      drop-shadow(0 36px 60px rgba(0,0,0,0.75))
+      drop-shadow(0 36px 60px rgba(21,22,26,.10))
       drop-shadow(0 0 3px rgba(255,215,150,0.95))
       drop-shadow(0 0 8px rgba(212,187,136,0.85))
       drop-shadow(0 0 16px rgba(21,22,26,0.7))
@@ -196,7 +196,7 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   }
   50% {
     filter:
-      drop-shadow(0 36px 60px rgba(0,0,0,0.75))
+      drop-shadow(0 36px 60px rgba(21,22,26,.10))
       drop-shadow(0 0 5px rgba(255,230,176,1))
       drop-shadow(0 0 14px rgba(212,187,136,1))
       drop-shadow(0 0 26px rgba(21,22,26,0.95))
@@ -225,7 +225,7 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   transform: translate(-160%, -50%) scale(0.55);
 }
 .miami-trilogy__jacket.is-prev .miami-trilogy__img {
-  filter: drop-shadow(0 18px 40px rgba(0,0,0,0.6))
+  filter: drop-shadow(0 18px 40px rgba(21,22,26,.10))
           blur(1.5px) grayscale(0.5) brightness(0.7);
 }
 
@@ -235,7 +235,7 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   transform: translate(60%, -50%) scale(0.55);
 }
 .miami-trilogy__jacket.is-next .miami-trilogy__img {
-  filter: drop-shadow(0 18px 40px rgba(0,0,0,0.6))
+  filter: drop-shadow(0 18px 40px rgba(21,22,26,.10))
           blur(1.5px) grayscale(0.5) brightness(0.7);
 }
 
@@ -285,7 +285,7 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   /* Reserva SIEMPRE la zona de la ficha glass (su ancho + su margen derecho) */
   max-width: calc(100% - clamp(280px, 28vw, 380px) - clamp(48px, 10vw, 128px) - clamp(24px, 5vw, 64px));
   overflow-wrap: break-word;
-  text-shadow: 0 4px 24px rgba(0,0,0,0.7);
+  text-shadow: 0 4px 24px rgba(21,22,26,.10);
   mix-blend-mode: difference;
   margin: 0;
 }
@@ -312,13 +312,13 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   bottom: clamp(40px, 8vh, 80px);
   right: clamp(24px, 5vw, 64px);
   width: clamp(280px, 28vw, 380px);
-  background: rgba(10,10,10,0.5);
+  background: var(--mi-glass);
   backdrop-filter: blur(22px) saturate(160%);
   -webkit-backdrop-filter: blur(22px) saturate(160%);
   border: 1px solid var(--mi-line);
   border-top: 1px solid rgba(21,22,26,0.45);
   padding: 24px 26px;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+  box-shadow: 0 24px 80px rgba(21,22,26,.10);
   pointer-events: auto;
 }
 .miami-trilogy__glass-label {
@@ -345,7 +345,7 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   left: 50%; transform: translateX(-50%);
   z-index: 12;
   display: flex; align-items: center; gap: 14px;
-  background: rgba(10,10,10,0.55);
+  background: var(--mi-glass);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   border: 1px solid var(--mi-line);
@@ -366,7 +366,7 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   color: #15161A; border-color: #15161A;
 }
 .miami-trilogy__nav button.is-active {
-  color: #0f0f0f; background: #15161A; border-color: #15161A;
+  color: var(--mi-bg); background: var(--mi-accent); border-color: var(--mi-accent);
   box-shadow: 0 6px 20px rgba(21,22,26,0.35);
 }
 .miami-trilogy__nav-arrow {
@@ -415,12 +415,12 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   @keyframes miami-trilogy-rim-mobile {
     0%, 100% {
       filter:
-        drop-shadow(0 18px 28px rgba(0,0,0,0.65))
+        drop-shadow(0 18px 28px rgba(21,22,26,.10))
         drop-shadow(0 0 20px rgba(21,22,26,0.55));
     }
     50% {
       filter:
-        drop-shadow(0 18px 28px rgba(0,0,0,0.65))
+        drop-shadow(0 18px 28px rgba(21,22,26,.10))
         drop-shadow(0 0 32px rgba(21,22,26,0.75));
     }
   }
@@ -441,7 +441,7 @@ a.miami-trilogy__jacket.is-center:hover .miami-trilogy__img {
   .miami-trilogy__gender {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    background: rgba(0,0,0,0.65) !important;
+    background: rgba(21,22,26,.10) !important;
   }
   /* Atmosphere grid: simplificamos para no pintar grid completo en mobile */
   .miami-trilogy__atmosphere::before {

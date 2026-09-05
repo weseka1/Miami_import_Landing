@@ -112,10 +112,10 @@
 <style>
 /* ===== VITRINA ============================================================ */
 .mi-vt{
-  --tinta:#F3EFE7;
-  --champ:#C6A970;                 /* el único acento */
-  --carbon:#0B0908;                /* nunca #000: near-black cálido */
-  --hair:rgba(243,239,231,.13);
+  --tinta:#15161A;                 /* al sistema: era la tinta clara */
+  --champ:#15161A;                 /* el acento ES la tinta (monocromo) */
+  --carbon:#FBFBFA;                /* papel: la vitrina va clara como el resto */
+  --hair:rgba(21,22,26,.10);
   position:relative; isolation:isolate; overflow:clip;
   background:var(--carbon); color:var(--tinta);
   padding:clamp(52px,7vw,92px) 0 clamp(46px,6vw,78px);
@@ -125,7 +125,7 @@
   position:absolute; inset:-25% -10% auto -20%; height:130%; z-index:0;
   pointer-events:none;
   background:radial-gradient(56% 50% at 28% 24%,
-             rgba(198,169,112,.15) 0%, rgba(198,169,112,.045) 44%, transparent 72%);
+             rgba(21,22,26,.15) 0%, rgba(21,22,26,.045) 44%, transparent 72%);
 }
 /* grano: materia, es lo que separa "oscuro" de "barato" */
 .mi-vt__grano{
@@ -154,13 +154,13 @@
 /* ------------------------------------------------ segmented control (iOS) */
 .mi-vt__seg{
   position:relative; display:inline-flex; padding:4px; border-radius:999px;
-  border:1px solid var(--hair); background:rgba(243,239,231,.045);
+  border:1px solid var(--hair); background:rgba(21,22,26,.045);
   -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
 }
 .mi-vt__seg-ind{
   position:absolute; top:4px; bottom:4px; left:4px; width:calc(50% - 4px);
-  border-radius:999px; background:rgba(243,239,231,.10);
-  border:1px solid rgba(243,239,231,.16);
+  border-radius:999px; background:rgba(21,22,26,.10);
+  border:1px solid rgba(21,22,26,.16);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.20);
   transition:transform .42s cubic-bezier(.22,1,.36,1), width .3s ease;
 }
@@ -168,7 +168,7 @@
   position:relative; z-index:1; min-height:44px; padding:0 clamp(20px,3.4vw,34px);
   border:0; background:none; cursor:pointer; font:inherit; font-size:12px;
   letter-spacing:.2em; text-transform:uppercase;
-  color:rgba(243,239,231,.5); transition:color .3s ease;
+  color:rgba(21,22,26,.5); transition:color .3s ease;
 }
 .mi-vt__seg-btn.is-on{ color:var(--tinta); }
 .mi-vt__seg-btn[hidden]{ display:none; }
@@ -223,7 +223,7 @@
   text-shadow:0 1px 3px rgba(0,0,0,.65);
   -webkit-backdrop-filter:blur(20px) saturate(170%);
   backdrop-filter:blur(20px) saturate(170%);
-  border:1px solid rgba(243,239,231,.16);
+  border:1px solid rgba(21,22,26,.16);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.22),
              inset 0 -1px 0 rgba(0,0,0,.32);
 }
@@ -247,7 +247,7 @@
 }
 .mi-vt__desc{
   margin:0 0 26px; max-width:44ch; line-height:1.7;
-  font-size:clamp(14px,1.1vw,16px); color:rgba(243,239,231,.6);
+  font-size:clamp(14px,1.1vw,16px); color:rgba(21,22,26,.6);
 }
 .mi-vt__cta{
   display:inline-flex; align-items:center; gap:10px; min-height:46px;
@@ -256,7 +256,7 @@
   color:var(--carbon); background:var(--champ);
   transition:transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease;
 }
-.mi-vt__cta:hover{ transform:translateY(-2px); box-shadow:0 14px 28px -12px rgba(198,169,112,.6); }
+.mi-vt__cta:hover{ transform:translateY(-2px); box-shadow:0 14px 28px -12px rgba(21,22,26,.6); }
 .mi-vt__cta span{ transition:transform .3s cubic-bezier(.22,1,.36,1); }
 .mi-vt__cta:hover span{ transform:translateX(4px); }
 
@@ -265,17 +265,17 @@
 .mi-vt__nav[hidden]{ display:none; }
 .mi-vt__flecha{
   width:46px; height:46px; border-radius:50%; cursor:pointer; flex:none;
-  border:1px solid var(--hair); background:rgba(243,239,231,.04);
+  border:1px solid var(--hair); background:rgba(21,22,26,.04);
   -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
   color:var(--tinta); display:grid; place-items:center;
   transition:background .3s ease, border-color .3s ease, transform .2s ease;
 }
 .mi-vt__flecha svg{ width:18px; height:18px; fill:none; stroke:currentColor;
   stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round; }
-.mi-vt__flecha:hover{ background:rgba(243,239,231,.10); border-color:rgba(243,239,231,.28); }
+.mi-vt__flecha:hover{ background:rgba(21,22,26,.10); border-color:rgba(21,22,26,.28); }
 .mi-vt__flecha:active{ transform:scale(.94); }
 .mi-vt__cuenta{
-  font-size:11px; letter-spacing:.24em; color:rgba(243,239,231,.45);
+  font-size:11px; letter-spacing:.24em; color:rgba(21,22,26,.45);
   font-variant-numeric:tabular-nums;
 }
 .mi-vt__cuenta b{ color:var(--tinta); font-weight:400; }

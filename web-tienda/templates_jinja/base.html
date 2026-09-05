@@ -56,8 +56,8 @@
        columna con sus MARCAS debajo | MÁS TIPOS. Liquid glass iPhone. */
     .mi-nav{display:flex;gap:2px;flex:1;min-width:0;align-self:stretch}
     .mi-nav__link{display:flex;align-items:center;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
-      color:rgba(245,243,238,.78);padding:0 10px;transition:color .25s;white-space:nowrap}
-    .mi-nav:hover .mi-nav__link,.mi-nav:focus-within .mi-nav__link{color:rgba(245,243,238,.55)}
+      color:rgba(21,22,26,.78);padding:0 10px;transition:color .25s;white-space:nowrap}
+    .mi-nav:hover .mi-nav__link,.mi-nav:focus-within .mi-nav__link{color:rgba(21,22,26,.55)}
     .mi-nav .mi-nav__link:hover,.mi-nav .mi-nav__link:focus-visible{color:var(--mi-accent,#15161A)}
     /* ===== MEGA-MENÚ glass (vara Richard Lens) ===== */
     /* el .mi-nav viejo tenía overflow:hidden y clipeaba los paneles */
@@ -108,7 +108,7 @@
       border-bottom:1px solid rgba(21,22,26,.18);white-space:nowrap}
     a.mi-mega__label:hover{color:var(--mi-accent-2,#3A3C44)}
     .mi-mega__col a:not(.mi-mega__label){display:block;font-size:12px;line-height:2.3;
-      color:rgba(245,243,238,.72);letter-spacing:.04em;white-space:nowrap;transition:color .25s}
+      color:rgba(21,22,26,.72);letter-spacing:.04em;white-space:nowrap;transition:color .25s}
     .mi-mega__col a:not(.mi-mega__label):hover{color:var(--mi-accent,#15161A)}
     .mi-mega__col .mi-mega__all{color:var(--mi-accent,#15161A);font-size:11px;letter-spacing:.12em;
       text-transform:uppercase;margin-top:6px}
@@ -117,22 +117,22 @@
     /* ---- Hamburguesa (solo mobile, a la izquierda del logo) ---- */
     .mi-burger{display:none;align-items:center;justify-content:center;width:42px;height:42px;flex:none;
       background:var(--mi-glass);border:1px solid rgba(245,243,238,.16);border-radius:999px;
-      color:rgba(245,243,238,.85);cursor:pointer;padding:0}
+      color:rgba(21,22,26,.85);cursor:pointer;padding:0}
     .mi-burger:focus-visible{outline:2px solid var(--mi-accent,#15161A);outline-offset:2px}
     .mi-utils{display:flex;align-items:center;gap:18px;margin-left:auto}
-    .mi-utils a,.mi-utils button{color:rgba(245,243,238,.85);background:none;border:0;cursor:pointer;
+    .mi-utils a,.mi-utils button{color:rgba(21,22,26,.85);background:none;border:0;cursor:pointer;
       font-size:13px;letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
     .mi-utils a:hover{color:var(--mi-accent,#15161A)}
-    .mi-search{display:flex;align-items:center;gap:8px;border:1px solid rgba(245,243,238,.14);border-radius:999px;
+    .mi-search{display:flex;align-items:center;gap:8px;border:1px solid var(--mi-line-2);border-radius:999px;
       padding:9px 16px;background:var(--mi-glass);
       -webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%);
       transition:border-color .3s ease, background .3s ease}
     .mi-search::before{content:"";width:14px;height:14px;flex:none;border-radius:50%;
-      border:1.5px solid rgba(245,243,238,.5);box-shadow:6px 6px 0 -5px rgba(245,243,238,.5)}
+      border:1.5px solid var(--mi-ink-mute);box-shadow:6px 6px 0 -5px var(--mi-ink-mute)}
     .mi-search:focus-within{border-color:rgba(21,22,26,.55);background:var(--mi-glass)}
-    .mi-search input{-webkit-appearance:none;appearance:none;background:transparent;border:0;color:#fff;
+    .mi-search input{-webkit-appearance:none;appearance:none;background:transparent;border:0;color:var(--mi-ink);
       outline:none;font-size:13px;width:150px;letter-spacing:.02em}
-    .mi-search input::placeholder{color:rgba(245,243,238,.5)}
+    .mi-search input::placeholder{color:var(--mi-ink-mute)}
     .mi-search input::-webkit-search-cancel-button{-webkit-appearance:none}
     /* Footer */
     /* El padding de abajo reserva el lugar del botón flotante de Mia: sin esto
@@ -141,9 +141,9 @@
     @media(max-width:900px){.mi-footer{padding-bottom:108px}}
     .mi-footer__grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px}
     .mi-footer h4{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--mi-accent,#15161A);margin:0 0 16px}
-    .mi-footer a,.mi-footer p{color:rgba(245,243,238,.6);font-size:14px;line-height:2}
+    .mi-footer a,.mi-footer p{color:rgba(21,22,26,.6);font-size:14px;line-height:2}
     .mi-footer__legal{margin-top:40px;padding-top:24px;border-top:1px solid var(--mi-line);
-      font-size:12px;color:rgba(245,243,238,.4);text-align:center;letter-spacing:.05em}
+      font-size:12px;color:rgba(21,22,26,.4);text-align:center;letter-spacing:.05em}
     /* Grid de productos */
     .mi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
     .mi-card{position:relative;display:block;background:#0c0c0c;border:1px solid var(--mi-line);
@@ -152,10 +152,11 @@
     /* Prenda ENTERA siempre (pedido de Diego), amoldada a cualquier proporción:
        la MISMA foto difuminada de fondo llena el cuadro + la nítida completa
        encima. Grilla 3/4 pareja, sin recortes salvajes ni tiras flacas. */
-    .mi-card__img{aspect-ratio:3/4;overflow:hidden;position:relative;background:#0c0c0c}
-    .mi-card__blur{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-      filter:blur(22px) brightness(.5) saturate(1.1);transform:scale(1.2)}
-    .mi-card__pic{position:relative;width:100%;height:100%;object-fit:contain;padding:3%;transition:.6s}
+    .mi-card__img{aspect-ratio:3/4;overflow:hidden;position:relative;background:var(--mi-bg-3)}
+    /* El relleno difuminado se saco: la foto se ve ENTERA sobre fondo liso.
+       Rellenar con la misma foto borrosa ensuciaba el encuadre y hacia ver
+       dos veces la misma prenda. */
+    .mi-card__pic{position:relative;width:100%;height:100%;object-fit:contain;padding:6%;transition:transform .6s var(--mi-ease)}
     .mi-card:hover .mi-card__pic{transform:scale(1.05)}
     .mi-card:hover .mi-card__img img{transform:scale(1.05)}
     .mi-card__body{padding:16px 16px 20px}
@@ -187,20 +188,20 @@
     .mi-drawer__brand{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--mi-accent,#15161A);font-weight:600}
     .mi-drawer__close{display:flex;align-items:center;justify-content:center;width:44px;height:44px;flex:none;
       background:var(--mi-glass);border:1px solid rgba(245,243,238,.16);border-radius:999px;
-      color:rgba(245,243,238,.85);cursor:pointer;padding:0}
+      color:rgba(21,22,26,.85);cursor:pointer;padding:0}
     .mi-drawer__group{border-bottom:1px solid var(--mi-line)}
     .mi-drawer__tipo{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
       min-height:52px;background:none;border:0;color:var(--mi-ink);cursor:pointer;padding:0 2px;font-family:inherit;
       font-size:13px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;text-align:left}
-    .mi-drawer__chev{flex:none;transition:transform .3s ease;color:rgba(245,243,238,.5)}
+    .mi-drawer__chev{flex:none;transition:transform .3s ease;color:rgba(21,22,26,.5)}
     .mi-drawer__group.is-open .mi-drawer__chev{transform:rotate(180deg);color:var(--mi-accent,#15161A)}
     .mi-drawer__sub{display:none;padding:0 2px 12px}
     .mi-drawer__group.is-open .mi-drawer__sub{display:block}
     .mi-drawer__sub a{display:flex;align-items:center;min-height:44px;font-size:14px;
-      color:rgba(245,243,238,.72);letter-spacing:.05em;padding:0 8px}
+      color:rgba(21,22,26,.72);letter-spacing:.05em;padding:0 8px}
     .mi-drawer__sub a:first-child{color:var(--mi-accent,#15161A);font-size:11px;letter-spacing:.16em;text-transform:uppercase}
     .mi-drawer__plain{display:flex;align-items:center;min-height:52px;font-size:13px;letter-spacing:.18em;
-      text-transform:uppercase;font-weight:600;color:rgba(245,243,238,.85);padding:0 2px}
+      text-transform:uppercase;font-weight:600;color:rgba(21,22,26,.85);padding:0 2px}
     .mi-drawer__tipo:focus-visible,.mi-drawer__close:focus-visible,.mi-drawer__sub a:focus-visible,
     .mi-drawer__plain:focus-visible{outline:2px solid var(--mi-accent,#15161A);outline-offset:2px;border-radius:6px}
     body.mi-lock{overflow:hidden}

@@ -164,12 +164,25 @@ html, body{ overflow-x:clip; }
 }
 
 /* ---- Buscador: vidrio, no una caja gris ---- */
-.mi-search input, .mi-search__input, input[type="search"]{
-  background:var(--mi-glass) !important; color:var(--mi-ink) !important;
-  border:1px solid var(--mi-line) !important;
-  -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+/* 🔴 El input va TRANSPARENTE: el vidrio y el borde los pone el contenedor
+   (.mi-search). Darle fondo y borde propios dibujaba una caja adentro de otra
+   caja — el "recuadro tipo Win98" que reporto Juani. */
+.mi-search input, .mi-search__input{
+  background:transparent !important; border:0 !important; color:var(--mi-ink) !important;
+}
+input[type="search"]:not(.mi-search input){
+  background:var(--mi-glass); color:var(--mi-ink); border:1px solid var(--mi-line);
 }
 .mi-search input::placeholder, input[type="search"]::placeholder{ color:var(--mi-ink-mute) !important; }
 /* iOS zoomea el viewport si el input mide menos de 16px (Estándar WESEKA) */
 @media(max-width:640px){ .mi-search input, input[type="search"]{ font-size:16px !important; } }
+
+/* ---- Footer: los titulos venian en blanco desde el CSS compilado ----------
+   La regla viva esta minificada dentro de style-critical.css y no se puede
+   editar ahi (es build). El DS se carga ultimo justamente para esto. */
+.mi-footer h1, .mi-footer h2, .mi-footer h3, .mi-footer h4{
+  color:var(--mi-ink) !important; -webkit-text-fill-color:var(--mi-ink) !important;
+}
+.mi-footer a, .mi-footer p, .mi-footer li{ color:var(--mi-ink-soft) !important; }
+.mi-footer a:hover{ color:var(--mi-ink) !important; }
 </style>

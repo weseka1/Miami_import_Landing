@@ -9,10 +9,10 @@
               else (ars | float / usd_rate if ars and usd_rate else None)) %}
 <a class="mi-card" href="/productos/{{ p.handle }}/">
   {% if p.total_stock == 0 %}<span class="mi-soldout">Agotado</span>{% endif %}
-  {# Fondo = la misma foto difuminada (llena el cuadro en cualquier proporción)
-     + la prenda ENTERA nítida encima. Mismo archivo → cero requests extra. #}
+  {# La prenda ENTERA sobre fondo liso. Antes el cuadro se rellenaba con la
+     misma foto difuminada: ensuciaba el encuadre y se veia la prenda dos
+     veces. Juani: "debe verse completa la imagen sin rellenar con desenfoque". #}
   <div class="mi-card__img">
-    <img class="mi-card__blur" src="{{ img | thumb(640) }}" alt="" aria-hidden="true" loading="lazy"/>
     <img class="mi-card__pic" src="{{ img | thumb(640) }}" alt="{{ p.name }}" loading="lazy"/>
   </div>
   <div class="mi-card__body">
