@@ -175,7 +175,7 @@
        full-screen (este drawer y el panel mobile de Mia — nunca abiertos a la vez). */
     .mi-drawer{position:fixed;inset:0;z-index:220;visibility:hidden;pointer-events:none;transition:visibility 0s .45s}
     .mi-drawer.is-open{visibility:visible;pointer-events:auto;transition:visibility 0s}
-    .mi-drawer__backdrop{position:absolute;inset:0;background:var(--mi-glass-strong);opacity:0;transition:opacity .35s ease}
+    .mi-drawer__backdrop{position:absolute;inset:0;background:rgba(21,22,26,.28);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .35s ease}
     .mi-drawer.is-open .mi-drawer__backdrop{opacity:1}
     .mi-drawer__sheet{position:absolute;top:0;bottom:0;left:0;width:min(86vw,360px);overflow-y:auto;
       -webkit-overflow-scrolling:touch;overscroll-behavior:contain;

@@ -191,14 +191,30 @@ input[type="search"]:not(.mi-search input){
    blanco plano por el body de atrás. Un panel que se superpone al contenido
    es EL lugar donde el vidrio de iOS tiene sentido: dejás ver que hay algo
    debajo sin que compita con lo que estás leyendo. */
-.mi-drawer{
-  background:var(--mi-glass-strong) !important;
-  -webkit-backdrop-filter:blur(var(--mi-blur)) saturate(180%); backdrop-filter:blur(var(--mi-blur)) saturate(180%);
-  border-right:1px solid var(--mi-line) !important;
-  box-shadow:var(--mi-shadow-lift) !important;
+/* 🔴 `.mi-drawer` es un contenedor `position:fixed; inset:0` que ocupa TODA
+   la pantalla: darle vidrio a él pintaba la web entera de blanco. El vidrio
+   va en `.mi-drawer__sheet`, que es el panel que se desliza. */
+.mi-drawer{ background:none !important; }
+.mi-drawer__sheet{
+  /* Tarjeta FLOTANTE, no un panel pegado al borde: separada de los bordes y
+     con el radio grande de iOS. Es lo que hace que se lea como vidrio apoyado
+     encima y no como media pantalla partida. */
+  background:rgba(255,255,255,.52) !important;
+  -webkit-backdrop-filter:blur(40px) saturate(200%); backdrop-filter:blur(40px) saturate(200%);
+  border:1px solid rgba(255,255,255,.55) !important;
+  border-radius:var(--mi-r-lg) !important;
+  box-shadow:0 40px 90px rgba(21,22,26,.20), 0 4px 14px rgba(21,22,26,.06) !important;
+  margin:12px !important; height:calc(100% - 24px) !important;
+  max-height:calc(100svh - 24px) !important;
+  overflow:hidden !important;
+}
+/* El canto de arriba, mas claro: es el reflejo. Sin esto el vidrio es plano. */
+.mi-drawer__sheet::before{
+  content:""; position:absolute; inset:0 0 auto 0; height:1px; pointer-events:none;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.95), transparent);
 }
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
-  .mi-drawer{ background:var(--mi-bg-2) !important; }
+  .mi-drawer__sheet{ background:var(--mi-bg-2) !important; }
 }
 /* El velo de atrás: oscurece apenas el fondo para que el panel se despegue */
 .mi-drawer-scrim, .mi-drawer__scrim, .mi-overlay{

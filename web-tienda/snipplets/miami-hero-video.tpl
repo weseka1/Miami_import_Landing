@@ -29,6 +29,19 @@
 
 <section class="mh" id="mi-hero" aria-label="Miami Import — comprado en Milán, traído a mano">
 
+  {# ---------- el video de la marca, de fondo ----------
+     Va DETRAS de todo y con un velo claro encima: da movimiento y contraste
+     para que las fotos del viaje floten en vidrio, sin pelearle la lectura al
+     mensaje. El poster tambien va como background del contenedor: en iOS con
+     Bajo Consumo el video no arranca y sin eso quedaba un bloque vacio. #}
+  <div class="mh__bg" aria-hidden="true">
+    <video class="mh__video" autoplay muted loop playsinline preload="metadata"
+           poster="{{ 'videos/hero-miami-poster.jpg' | static_url }}">
+      <source src="{{ home.hero.video | media_url if home.hero.video else ('videos/hero-miami.mp4' | static_url) }}" type="video/mp4"/>
+    </video>
+    <div class="mh__veil"></div>
+  </div>
+
   <div class="mh__wrap">
   {# ---------- la foto, entera, en marco vertical ---------- #}
   <div class="mh__rail" data-mh-rail>
@@ -111,7 +124,29 @@
 
 <style>
   /* ====== HERO — tira arrastrable + placa de vidrio ====== */
-  .mh{ background:var(--mi-bg); padding:0 0 clamp(28px,4vw,52px); }
+  .mh{
+    position:relative; isolation:isolate;
+    background:var(--mi-bg) url('{{ "videos/hero-miami-poster.jpg" | static_url }}') center/cover no-repeat;
+    padding:clamp(14px,2vw,30px) 0 clamp(24px,3vw,44px);
+  }
+  .mh__bg{ position:absolute; inset:0; z-index:-1; overflow:hidden; }
+  .mh__video{ width:100%; height:100%; object-fit:cover; display:block; }
+  /* El velo: sin esto el mensaje compite con el video y no se lee ninguno de
+     los dos. Con esto el video queda como atmosfera y el vidrio se despega. */
+  .mh__veil{
+    position:absolute; inset:0;
+    /* Menos blanco y MUCHO mas desenfoque: el video se nota como un flujo de
+       color en movimiento, no como una foto tapada por una sabana. El mensaje
+       no depende de este velo para leerse —vive en su propia placa de vidrio—
+       asi que se puede bajar sin arriesgar el contraste. */
+    background:linear-gradient(180deg, rgba(251,251,250,.52) 0%, rgba(251,251,250,.38) 45%,
+                                       rgba(251,251,250,.62) 100%);
+    -webkit-backdrop-filter:blur(22px) saturate(135%); backdrop-filter:blur(22px) saturate(135%);
+  }
+  /* El video, un poco mas grande que su caja: al desenfocar, los bordes se
+     lavan y se veria un halo claro en el perimetro. */
+  .mh__video{ transform:scale(1.06); }
+  @media (prefers-reduced-motion:reduce){ .mh__video{ display:none; } }
 
   /* ---- EL MARCO ES VERTICAL, COMO LA FOTO ------------------------------
      🔴 Las fotos de Milán son verticales (3:4). Metidas en una franja
@@ -128,7 +163,7 @@
     position:relative; overflow:hidden; border-radius:var(--mi-r-lg);
     /* La altura manda y el ancho sale de la proporción de la foto: así el
        marco nunca pide más foto de la que hay. */
-    height:clamp(460px, 82svh, 780px); aspect-ratio:3/4;
+    height:clamp(380px, 62svh, 700px); aspect-ratio:3/4;
     background:var(--mi-bg-3); box-shadow:var(--mi-shadow);
     cursor:grab; touch-action:pan-y;
     user-select:none; -webkit-user-select:none;
@@ -162,8 +197,16 @@
   .mh__pin{ width:7px; height:7px; border-radius:50%; background:var(--mi-ink); opacity:.5; flex:none; align-self:center; }
 
   /* ---- la placa del mensaje ---- */
-  .mh__panel{ min-width:0; }
-  .u-glass.mh__panel{ background:none; border:0; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; padding:0; }
+  .mh__panel{
+    min-width:0; padding:clamp(24px,2.6vw,34px); border-radius:var(--mi-r-lg);
+    background:var(--mi-glass); border:1px solid var(--mi-line);
+    border-top-color:var(--mi-glass-line);
+    -webkit-backdrop-filter:blur(var(--mi-blur)) saturate(180%); backdrop-filter:blur(var(--mi-blur)) saturate(180%);
+    box-shadow:var(--mi-shadow);
+  }
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+    .mh__panel{ background:var(--mi-glass-strong); }
+  }
 
   .mh__badge{
     display:inline-flex; align-items:center; gap:8px;
@@ -248,18 +291,33 @@
   @media (max-width:900px){ .mh__thumbs{ display:none; } }
 
   .mh__facts{
-    max-width:1280px; margin:clamp(22px,3vw,34px) auto 0; padding:0 clamp(20px,5vw,48px);
+    position:relative; max-width:1280px; margin:clamp(22px,3vw,34px) auto 0; padding:0 clamp(20px,5vw,48px);
     display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:clamp(14px,2vw,28px);
   }
   .mh__facts dt{ font-size:12.5px; font-weight:600; color:var(--mi-ink); line-height:1.3; }
   .mh__facts dd{ margin:5px 0 0; font-size:12px; line-height:1.5; color:var(--mi-ink-soft); }
 
   @media (max-width:900px){
-    .mh__wrap{ grid-template-columns:minmax(0,1fr); gap:22px; }
-    .mh__rail{ height:auto; width:100%; aspect-ratio:4/5; }
+    .mh__wrap{ grid-template-columns:minmax(0,1fr); gap:18px; }
+    /* En una columna la foto cede: 5/6 es mas bajo que 4/5 y deja el mensaje
+       y los botones dentro de la primera pantalla, que es lo que importa. */
+    .mh__rail{ height:auto; width:100%; aspect-ratio:5/6; max-height:52svh; }
+    .mh__panel{ padding:18px; }
+    .mh__title{ font-size:clamp(26px,7vw,38px); }
     .mh__place{ max-width:calc(100% - 32px); }
     .mh__btn{ flex:1 1 auto; }
     .mh__facts{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  }
+  /* Celular chico: la pantalla es la mitad de alta que en la compu y el
+     header ya se come 180px. La foto cede lo necesario para que el boton
+     de comprar entre SIN scrollear — que es todo el punto de un hero. */
+  @media (max-width:560px){
+    .mh__rail{ max-height:40svh; }
+    .mh__panel{ padding:16px; }
+    .mh__title{ font-size:clamp(24px,6.6vw,32px); }
+    .mh__lead{ font-size:14px; margin-top:10px; }
+    .mh__cta{ margin-top:16px; gap:8px; }
+    .mh__btn{ min-height:46px; font-size:11px; }
   }
   @media (max-width:420px){
     .mh__facts{ grid-template-columns:minmax(0,1fr); }
