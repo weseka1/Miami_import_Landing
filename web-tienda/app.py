@@ -1015,7 +1015,13 @@ def sitemap(request: Request, db: Session = Depends(get_db)):
         (f"{base}/nosotros", None, "0.7"),
     ]
 
+    # 🔴 selectinload OBLIGATORIO. El bucle de abajo recorre `p.categories` de
+    # cada producto: sin precargar, SQLAlchemy dispara una consulta por
+    # producto. Son 237 fichas × ~180 ms contra São Paulo = más de 40 segundos,
+    # y Google abandona el sitemap mucho antes. Precargado son dos consultas.
+    from sqlalchemy.orm import selectinload
     productos = (db.query(Product)
+                 .options(selectinload(Product.categories))
                  .filter(Product.published.is_(True))
                  .order_by(Product.id.desc()).all())
 
