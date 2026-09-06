@@ -2350,8 +2350,19 @@ body.template-product .miami-product-desc-inline {
 
 /* ==========================================================================
    HEADER — todo negro con dots, paleta unificada
+
+   🔴 Van contra `.mi-header`, NO contra el elemento `header`.
+   Escritas como `header a { color: … !important }` le pegaban a CUALQUIER
+   <header> de la pagina, que es HTML perfectamente valido para abrir una
+   seccion. Ya mordio tres veces: la vitrina de la home (por eso el comentario
+   de miami-vitrina-glass.tpl dice "aca NO va <header>"), el panel del chat de
+   Mia, y la portada de /nosotros, donde dejo el boton "Ver el catalogo" con
+   texto negro sobre fondo negro — invisible, y con !important no habia forma
+   de pisarlo desde la plantilla.
+   La solucion no es evitar <header> en el resto del sitio: es que estas reglas
+   digan a que header se refieren.
    ========================================================================== */
-header,
+.mi-header,
 .header,
 .header-wrapper,
 .header-main,
@@ -2368,7 +2379,7 @@ body header {
   border-bottom: 1px solid rgba(21,22,26,0.18) !important;
   color: var(--mi-ink) !important;
 }
-header > *,
+.mi-header > *,
 .header > *,
 .navbar > *,
 body header > div,
@@ -2376,105 +2387,105 @@ body header > nav {
   background: transparent !important;
 }
 /* Logo / Tiendanube branded title */
-header a.logo,
-header .logo,
-header .site-title,
-header .navbar-brand,
-header h1,
-header h2 {
+.mi-header a.logo,
+.mi-header .logo,
+.mi-header .site-title,
+.mi-header .navbar-brand,
+.mi-header h1,
+.mi-header h2 {
   color: var(--mi-ink) !important;
 }
 /* Search bar */
-header input[type="text"],
-header input[type="search"],
-header .form-control,
-header .search-input,
-header form input,
+.mi-header input[type="text"],
+.mi-header input[type="search"],
+.mi-header .form-control,
+.mi-header .search-input,
+.mi-header form input,
 .header input[type="text"],
 .header input[type="search"] {
   background: var(--mi-glass) !important;
   border: 1px solid rgba(21,22,26,0.22) !important;
   color: var(--mi-ink) !important;
 }
-header input::placeholder,
+.mi-header input::placeholder,
 .header input::placeholder {
   color: var(--mi-ink) !important;
 }
-header button.search-btn,
-header .search-btn,
-header [class*="search-submit"],
-header form button {
+.mi-header button.search-btn,
+.mi-header .search-btn,
+.mi-header [class*="search-submit"],
+.mi-header form button {
   background: rgba(21,22,26,0.18) !important;
   border-color: rgba(21,22,26,0.35) !important;
   color: var(--mi-accent) !important;
 }
-header button.search-btn:hover,
-header .search-btn:hover {
+.mi-header button.search-btn:hover,
+.mi-header .search-btn:hover {
   background: var(--mi-accent) !important;
   color: var(--mi-bg) !important;
 }
 /* Links de navegacion */
-header a,
+.mi-header a,
 .header a,
-header nav a,
+.mi-header nav a,
 .navbar a {
   color: var(--mi-ink) !important;
 }
-header a:hover,
+.mi-header a:hover,
 .header a:hover {
   color: var(--mi-accent) !important;
 }
 /* "Entra / Registrate", "Carrito" etc */
-header .account-link,
-header .cart-link,
-header [class*="cart"],
-header [class*="account"],
-header [class*="login"] {
+.mi-header .account-link,
+.mi-header .cart-link,
+.mi-header [class*="cart"],
+.mi-header [class*="account"],
+.mi-header [class*="login"] {
   color: var(--mi-ink) !important;
 }
-header [class*="cart"] svg,
-header [class*="account"] svg {
+.mi-header [class*="cart"] svg,
+.mi-header [class*="account"] svg {
   fill: rgba(255,255,255,0.85) !important;
   color: var(--mi-ink) !important;
 }
 /* Iconos circular bg que aparecen en "Entra" y "Carrito" */
-header .rounded-circle,
-header .icon-circle,
-header [class*="icon-bg"] {
+.mi-header .rounded-circle,
+.mi-header .icon-circle,
+.mi-header [class*="icon-bg"] {
   background: var(--mi-glass) !important;
   border: 1px solid rgba(21,22,26,0.2) !important;
   color: var(--mi-accent) !important;
 }
-header .rounded-circle svg,
-header .icon-circle svg {
+.mi-header .rounded-circle svg,
+.mi-header .icon-circle svg {
   fill: var(--mi-accent) !important;
   color: var(--mi-accent) !important;
 }
 /* Cantidad/precio del carrito */
-header .cart-count,
-header .cart-total,
-header [class*="cart-quantity"] {
+.mi-header .cart-count,
+.mi-header .cart-total,
+.mi-header [class*="cart-quantity"] {
   color: var(--mi-ink) !important;
 }
 /* Navigation menu items: CATEGORIAS, INICIO, PRODUCTOS, CONTACTO */
-header nav,
-header .navigation,
+.mi-header nav,
+.mi-header .navigation,
 .navbar-nav,
 .nav-menu,
 [class*="navigation-list"],
 [class*="navigation-categories"] {
   background: transparent !important;
 }
-header nav a,
-header .nav-link,
-header .navigation a,
+.mi-header nav a,
+.mi-header .nav-link,
+.mi-header .navigation a,
 .navbar-nav a,
-header [class*="navigation"] a {
+.mi-header [class*="navigation"] a {
   color: var(--mi-ink) !important;
 }
-header nav a:hover,
-header .nav-link:hover,
-header .navigation a:hover {
+.mi-header nav a:hover,
+.mi-header .nav-link:hover,
+.mi-header .navigation a:hover {
   color: var(--mi-accent) !important;
 }
 /* Dropdown de categorias (cuando se abre) */

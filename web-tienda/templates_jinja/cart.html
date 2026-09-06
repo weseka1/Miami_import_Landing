@@ -2,8 +2,8 @@
 {% block title %}Tu carrito — {{ STORE_NAME }}{% endblock %}
 
 {% block content %}
-<div class="mi-container" style="padding-top:48px">
-  <h1 class="mi-section-title" style="margin-top:24px">Tu carrito</h1>
+<div class="mi-container mi-cart-page">
+  <h1 class="mi-section-title">Tu carrito</h1>
 
   <div id="mi-cart-root" data-empty="{{ 'true' if not cart['items'] else 'false' }}">
     {% if not cart['items'] %}
@@ -29,47 +29,188 @@
       </div>
       {% endif %}
     {% else %}
-    <div style="display:grid;grid-template-columns:1fr 340px;gap:48px;align-items:start" class="mi-cart-layout">
+    <div class="mi-cart-layout">
       <div id="mi-cart-items">
         {% for it in cart['items'] %}
-        <div class="mi-cart-row" data-vid="{{ it.variant_id }}"
-          style="display:grid;grid-template-columns:90px 1fr auto;gap:18px;padding:20px 0;border-bottom:1px solid var(--mi-line)">
-          <a href="/productos/{{ it.handle }}/"><img src="{{ it.image | thumb(240) }}" alt="{{ it.product_name }}"
-            style="width:90px;height:115px;object-fit:cover;border-radius:8px;background:var(--mi-bg-2)"/></a>
-          <div>
-            <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--mi-accent,#15161A)">{{ it.brand }}</div>
-            <div style="margin:6px 0;font-size:15px">{{ it.product_name }}</div>
-            {% if it.value %}<div style="font-size:12px;color:rgba(21,22,26,.5)">Talle: {{ it.value }}</div>{% endif %}
-            <div style="display:inline-flex;align-items:center;gap:12px;margin-top:12px;border:1px solid rgba(245,243,238,.2);border-radius:999px;padding:4px 6px">
-              <button class="mi-qty" data-vid="{{ it.variant_id }}" data-delta="-1" style="background:none;border:0;color:var(--mi-ink);cursor:pointer;font-size:18px;width:24px">−</button>
-              <span data-qty>{{ it.quantity }}</span>
-              <button class="mi-qty" data-vid="{{ it.variant_id }}" data-delta="1" style="background:none;border:0;color:var(--mi-ink);cursor:pointer;font-size:18px;width:24px">+</button>
+        <div class="mi-cart-row" data-vid="{{ it.variant_id }}">
+          <a class="mi-cart-row__foto" href="/productos/{{ it.handle }}/">
+            <img src="{{ it.image | thumb(240) }}" alt="{{ it.product_name }}" width="90" height="115"/></a>
+          <div class="mi-cart-row__info">
+            <div class="mi-cart-row__marca">{{ it.brand }}</div>
+            <div class="mi-cart-row__nombre">{{ it.product_name }}</div>
+            {% if it.value %}<div class="mi-cart-row__talle">Talle: {{ it.value }}</div>{% endif %}
+            {# El "+" se apaga cuando ya se lleva todo el stock.
+               No es un detalle: el modelo de la casa es UNA unidad por talle,
+               así que casi todas las piezas están en el tope desde el primer
+               clic. Antes el botón aceptaba el clic, el servidor topeaba la
+               cantidad en silencio y en pantalla no cambiaba nada — igualito a
+               una web rota. Ahora el botón dice la verdad. #}
+            {% set tope = it.stock or 0 %}
+            {# Cantidad, aviso de stock y "Quitar" en UN renglón. Apilados, cada
+               pieza del carrito se comía media pantalla del celular y con tres
+               prendas había que scrollear tres veces para llegar a pagar. #}
+            <div class="mi-cart-row__ctrl">
+              <div class="mi-qty-box">
+                <button class="mi-qty" data-vid="{{ it.variant_id }}" data-delta="-1" aria-label="Quitar una unidad">−</button>
+                <span data-qty>{{ it.quantity }}</span>
+                <button class="mi-qty" data-vid="{{ it.variant_id }}" data-delta="1" aria-label="Agregar una unidad"
+                        data-mas {% if it.quantity >= tope %}disabled{% endif %}>+</button>
+              </div>
+              <span class="mi-cart-row__tope" data-tope {% if it.quantity < tope %}hidden{% endif %}>
+                {% if tope == 1 %}Última unidad{% else %}Sin más stock{% endif %}
+              </span>
+              <button class="mi-remove" data-vid="{{ it.variant_id }}">Quitar</button>
             </div>
-            <button class="mi-remove" data-vid="{{ it.variant_id }}"
-              style="display:block;margin-top:12px;background:none;border:0;color:rgba(21,22,26,.4);cursor:pointer;font-size:12px;letter-spacing:.05em">Quitar</button>
           </div>
-          <div style="text-align:right;font-weight:600" data-line>{{ it.line_total | money(it.currency) }}</div>
+          {# El precio de la línea. En el celular se sube al renglón del nombre
+             (ver el @media): abajo a la derecha, en una columna propia, era lo
+             que empujaba la fila fuera de la pantalla. #}
+          <div class="mi-cart-row__precio" data-line>{{ it.line_total | money(it.currency) }}</div>
         </div>
         {% endfor %}
       </div>
 
-      <aside style="background:var(--mi-bg-2);border:1px solid var(--mi-line);border-radius:12px;padding:28px;position:sticky;top:100px;color:var(--mi-ink)">
-        <h3 style="margin:0 0 20px;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--mi-accent,#15161A)">Resumen</h3>
-        <div style="display:flex;justify-content:space-between;margin-bottom:10px;color:rgba(21,22,26,.7)">
+      <aside class="mi-cart-sum">
+        <h2 class="mi-cart-sum__t">Resumen</h2>
+        <div class="mi-cart-sum__fila">
           <span>Subtotal</span><span data-subtotal>{{ cart['subtotal'] | money(cart['currency']) }}</span>
         </div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:20px;font-size:12px;color:rgba(21,22,26,.4)">
+        <div class="mi-cart-sum__fila mi-cart-sum__fila--soft">
           <span>Envío</span><span>Se calcula al finalizar</span>
         </div>
-        <a href="/checkout" class="miami-btn miami-btn--primary" style="display:block;text-align:center;width:100%;padding:16px;
-          background:var(--mi-accent,#15161A);color:var(--mi-bg);border-radius:999px;letter-spacing:.2em;text-transform:uppercase;font-size:13px;font-weight:700">
-          Finalizar compra →</a>
-        <a href="/productos" style="display:block;text-align:center;margin-top:14px;color:rgba(21,22,26,.5);font-size:12px;letter-spacing:.1em">Seguir comprando</a>
+        <a href="/checkout" class="mi-cart-sum__cta">Finalizar compra →</a>
+        <p class="mi-cart-sum__pago">Tarjeta de crédito, débito o transferencia.</p>
+        <a href="/productos" class="mi-cart-sum__seguir">Seguir comprando</a>
       </aside>
+    </div>
+
+    {# Barra fija de compra — SOLO en el celular.
+       En el video que mandó Diego el resumen quedaba fuera de la pantalla y el
+       botón de pagar no existía para quien entra desde Instagram, que es de
+       donde viene casi todo el tráfico. El resumen de abajo ya se arregló, pero
+       igual obliga a scrollear hasta el final: esta barra deja el total y el
+       botón siempre a la vista, como cualquier tienda seria en mobile. #}
+    <div class="mi-cart-bar" role="region" aria-label="Total y finalizar compra">
+      <div>
+        <span>Subtotal</span>
+        <strong data-subtotal>{{ cart['subtotal'] | money(cart['currency']) }}</strong>
+      </div>
+      <a href="/checkout">Finalizar compra →</a>
     </div>
     {% endif %}
   </div>
 </div>
+
+<style>
+  /* ── Por qué esto está en un <style> y no en style="" ────────────────────
+     Toda la maqueta del carrito estaba escrita con atributos `style` inline,
+     incluida la grilla `1fr 340px`. Un inline gana SIEMPRE contra una hoja de
+     estilos, así que ninguna media query podía colapsarla: en el celular la
+     columna del resumen —con el botón de pagar adentro— quedaba corrida fuera
+     de la pantalla. Se veía como si la web se cortara al medio.
+     Con clases, la media query hace su trabajo y no hace falta un solo
+     !important. ────────────────────────────────────────────────────────── */
+  /* El título de sección trae margin:64px 0 40px pensado para el medio de la
+     home. Arriba de todo, en una pantalla de 390, son casi cien píxeles de
+     nada antes de ver la primera prenda. */
+  .mi-cart-page{padding-top:26px}
+  .mi-cart-page>.mi-section-title{margin:10px 0 28px}
+
+  .mi-cart-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;
+    gap:clamp(24px,4vw,48px);align-items:start}
+
+  /* --- Una línea del carrito --- */
+  .mi-cart-row{display:grid;grid-template-columns:90px minmax(0,1fr) auto;
+    gap:18px;padding:20px 0;border-bottom:1px solid var(--mi-line)}
+  .mi-cart-row__foto img{width:90px;height:115px;object-fit:cover;border-radius:10px;
+    background:var(--mi-bg-3)}
+  .mi-cart-row__marca{font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--mi-accent)}
+  /* El nombre puede ser larguísimo ("Remera Off White Over…"). Sin
+     overflow-wrap, una palabra sola estira la columna y desborda la página. */
+  .mi-cart-row__nombre{margin:6px 0;font-size:15px;line-height:1.35;color:var(--mi-ink);
+    overflow-wrap:anywhere}
+  .mi-cart-row__talle{font-size:12px;color:var(--mi-ink-mute)}
+  .mi-cart-row__precio{text-align:right;font-weight:600;color:var(--mi-ink);
+    white-space:nowrap;font-variant-numeric:tabular-nums}
+
+  .mi-cart-row__ctrl{display:flex;align-items:center;flex-wrap:wrap;gap:10px 14px;
+    margin-top:12px}
+  .mi-qty-box{display:inline-flex;align-items:center;gap:10px;
+    border:1px solid var(--mi-line-2);border-radius:999px;padding:3px 5px}
+  .mi-qty{background:none;border:0;color:var(--mi-ink);cursor:pointer;font-size:17px;
+    width:28px;height:28px;line-height:1;border-radius:999px}
+  .mi-qty:hover:not(:disabled){background:var(--mi-bg-3)}
+  .mi-qty:disabled{opacity:.3;cursor:default}
+  /* El aviso de stock se manda solo al renglón de abajo (flex-basis:100%).
+     Peleando el ancho con la cajita y con "Quitar" en 390px, era "Quitar" el
+     que se caía a la línea siguiente y quedaba flotando solo contra el borde
+     derecho, como si fuera otra cosa. */
+  .mi-cart-row__tope{order:3;flex-basis:100%;font-size:10.5px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--mi-ink-mute)}
+  .mi-remove{background:none;border:0;color:var(--mi-ink-mute);cursor:pointer;
+    font-size:12px;letter-spacing:.05em;padding:4px 2px}
+  .mi-remove:hover{color:var(--mi-ink)}
+
+  /* --- Resumen --- */
+  .mi-cart-sum{position:sticky;top:100px;padding:26px;border-radius:22px;
+    color:var(--mi-ink);background:var(--mi-glass-strong);
+    border:1px solid var(--mi-line);border-top-color:var(--mi-glass-line);
+    -webkit-backdrop-filter:blur(var(--mi-blur)) saturate(160%);
+    backdrop-filter:blur(var(--mi-blur)) saturate(160%);
+    box-shadow:var(--mi-shadow)}
+  .mi-cart-sum__t{margin:0 0 20px;font-size:12px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--mi-ink-mute);font-weight:500}
+  .mi-cart-sum__fila{display:flex;justify-content:space-between;gap:14px;
+    margin-bottom:10px;color:var(--mi-ink);font-variant-numeric:tabular-nums}
+  .mi-cart-sum__fila--soft{margin-bottom:22px;font-size:12px;color:var(--mi-ink-mute)}
+  .mi-cart-sum__cta{display:block;width:100%;padding:16px;border-radius:999px;
+    text-align:center;background:var(--mi-accent);color:var(--mi-bg-2);
+    letter-spacing:.16em;text-transform:uppercase;font-size:12.5px;font-weight:700;
+    transition:transform .4s var(--mi-ease),box-shadow .4s var(--mi-ease)}
+  .mi-cart-sum__cta:hover{transform:translateY(-2px);box-shadow:var(--mi-shadow-lift)}
+  .mi-cart-sum__pago{margin:12px 0 0;text-align:center;font-size:11.5px;
+    color:var(--mi-ink-mute)}
+  .mi-cart-sum__seguir{display:block;text-align:center;margin-top:12px;
+    color:var(--mi-ink-mute);font-size:12px;letter-spacing:.1em}
+
+  /* --- Barra fija de compra (sólo celular) --- */
+  .mi-cart-bar{display:none}
+
+  @media (max-width:860px){
+    .mi-cart-layout{grid-template-columns:1fr}
+    .mi-cart-sum{position:static}
+
+    /* Dos columnas: foto y todo lo demás. El precio deja de ser una tercera
+       columna —que es lo que empujaba la fila fuera de la pantalla— y pasa a
+       ubicarse debajo del bloque de texto, alineado a la izquierda con él. */
+    .mi-cart-row{grid-template-columns:74px minmax(0,1fr);gap:6px 14px;padding:16px 0}
+    .mi-cart-row__foto img{width:74px;height:96px}
+    .mi-cart-row__precio{grid-column:2;text-align:left;margin-top:0;font-size:16px}
+    .mi-cart-row__ctrl{margin-top:10px}
+
+    .mi-cart-bar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:180;
+      align-items:center;justify-content:space-between;gap:14px;
+      padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+      background:var(--mi-glass-strong);border-top:1px solid var(--mi-line);
+      -webkit-backdrop-filter:blur(24px) saturate(170%);
+      backdrop-filter:blur(24px) saturate(170%)}
+    .mi-cart-bar span{display:block;font-size:10.5px;letter-spacing:.14em;
+      text-transform:uppercase;color:var(--mi-ink-mute)}
+    .mi-cart-bar strong{display:block;font-size:17px;color:var(--mi-ink);
+      font-variant-numeric:tabular-nums}
+    .mi-cart-bar a{flex:0 0 auto;padding:14px 20px;border-radius:999px;
+      background:var(--mi-accent);color:var(--mi-bg-2);font-size:12.5px;
+      letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+    /* Aire para que la barra no tape ni el último "Seguir comprando" ni el
+       botón flotante de Mia. */
+    #mi-cart-root{padding-bottom:88px}
+  }
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+    .mi-cart-sum,.mi-cart-bar{background:var(--mi-bg-2)}
+  }
+  @media (prefers-reduced-motion:reduce){ .mi-cart-sum__cta{transition:none} }
+</style>
 {% endblock %}
 
 {% block scripts %}
@@ -95,8 +236,23 @@
       if(!it){ row.remove(); return; }
       row.querySelector('[data-qty]').textContent = it.quantity;
       row.querySelector('[data-line]').textContent = money(parseFloat(it.line_total), it.currency);
+      // El servidor topea la cantidad al stock. Si topeó, se apaga el "+" y se
+      // dice por qué, en vez de dejar un botón que no hace nada.
+      const tope = it.quantity >= (it.stock || 0);
+      const mas = row.querySelector('[data-mas]');
+      if(mas) mas.disabled = tope;
+      const aviso = row.querySelector('[data-tope]');
+      if(aviso){
+        aviso.hidden = !tope;
+        aviso.textContent = (it.stock === 1) ? 'Última unidad' : 'No queda más stock de este talle';
+      }
     });
-    const st = document.querySelector('[data-subtotal]'); if(st) st.textContent = money(summary.subtotal_raw, summary.currency);
+    // querySelectorAll, no querySelector: el subtotal se muestra en DOS lugares
+    // (el resumen y la barra fija del celular). Con querySelector se actualizaba
+    // solo el primero y la barra le quedaba mostrando el total viejo al cliente
+    // justo antes de que apriete pagar.
+    const total = money(summary.subtotal_raw, summary.currency);
+    document.querySelectorAll('[data-subtotal]').forEach(function(el){ el.textContent = total; });
     const badge = document.querySelector('[data-cart-count]'); if(badge) badge.textContent = summary.count;
   }
   document.querySelectorAll('.mi-qty').forEach(function(b){

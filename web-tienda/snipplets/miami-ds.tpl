@@ -17,7 +17,14 @@
   /* ---- TINTA ---------------------------------------------------------- */
   --mi-ink:#15161A;                       /* gris muy oscuro, nunca #000 */
   --mi-ink-soft:rgba(21,22,26,.64);
-  --mi-ink-mute:rgba(21,22,26,.44);
+  {# .44 daba 2,85:1 contra el fondo de la casa. Es el token de TODAS las
+     etiquetas chicas —"Talle", "Última unidad", "Casa fundada", los 01/02/03,
+     los placeholders—, casi todas de 10 u 11px en mayúsculas, que es el
+     tamaño donde menos se perdona. .60 las lleva a 4,5:1 (el mínimo legible
+     de la norma) en los tres fondos de la paleta, sin sacarlas del gris:
+     siguen siendo secundarias, ahora se leen. Una línea: si se ve pesado, se
+     vuelve a .44 y listo. #}
+  --mi-ink-mute:rgba(21,22,26,.60);
 
   /* ---- ACENTO ---------------------------------------------------------
      🔴 El acento ES la tinta. Monocromo real: la jerarquía la hacen el peso,

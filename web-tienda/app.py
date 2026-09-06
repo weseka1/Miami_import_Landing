@@ -35,6 +35,7 @@ from core.config import settings
 from core.db import get_db, init_db
 from core.home_config import get_home_config
 from core.models import Category, Order, Product, User
+from core import seo
 from core.web_security import install_security
 from deps import current_user
 from mia import mia_router
@@ -135,6 +136,7 @@ templates.env.filters["media_url"] = media_url
 templates.env.filters["has_custom_image"] = lambda p: False
 # {{ url | thumb(640) }} -> foto redimensionada al vuelo (ver core/storage.py)
 templates.env.filters["thumb"] = storage.thumb_url
+templates.env.filters["jsonld_txt"] = seo.serializar
 templates.env.globals["store"] = {"products_url": "/productos"}
 
 
@@ -223,6 +225,16 @@ def _slug_tipo(nombre: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", s).strip("-")
 
 
+def _sin_numeral(nombre: str) -> str:
+    """'Remeras11' -> 'Remeras'.
+
+    Al migrar de Tienda Nube, cada marca trajo su propia categoria "Remeras" y,
+    como el handle es unico, quedaron numeradas. El numero es basura de la
+    migracion: no significa nada y en pantalla se lee como un error.
+    """
+    return re.sub(r"\d+$", "", (nombre or "").strip()).strip()
+
+
 def nav_tipos(db: Session) -> list[dict]:
     """Menú de tienda profesional: TIPO de prenda arriba, marcas debajo.
 
@@ -279,8 +291,18 @@ def base_context(request: Request, db: Session, **extra) -> dict:
         # de las plantillas no se ejecutan (script-src ya no lleva
         # 'unsafe-inline', que es lo que hacía inútil a la CSP frente a XSS).
         "csp_nonce": getattr(request.state, "csp_nonce", ""),
+        # SEO: la base publica y el grafo del sitio (tienda + Diego Radio +
+        # buscador). Va en TODAS las paginas a proposito: es lo que hace que
+        # Google y los asistentes de IA consoliden una sola entidad "Miami
+        # Import" en vez de una por URL. Cada pagina le suma su propio bloque
+        # en `jsonld` (producto, listado, FAQ...).
+        "seo_base": _base_publica(request),
+        "seo": seo,
     }
+    ctx.setdefault("jsonld", [])
     ctx.update(extra)
+    # El grafo del sitio va SIEMPRE primero y las paginas agregan atras.
+    ctx["jsonld"] = seo.grafo_sitio(ctx["seo_base"]) + list(ctx.get("jsonld") or [])
     return ctx
 
 
@@ -510,6 +532,9 @@ def home(request: Request, db: Session = Depends(get_db)):
                      # panel). Sin nada guardado devuelve los valores de
                      # fábrica, que son los que estaban escritos a mano.
                      home=home_cfg,
+                     # Las preguntas que un comprador escribe en Google y que
+                     # un asistente de IA lee para contestar por la tienda.
+                     jsonld=[seo.jsonld_faq(seo.FAQ)],
                      template_class="home"),
     )
 
@@ -552,10 +577,24 @@ def _ficha(prod: Product, request: Request, db: Session, vendida: bool = False):
     tryon_enabled = (not vendida) and _se_prueba(prod) and (
         bool(_tryon_status().get("available"))
         or (settings.DEV_MODE and request.query_params.get("tryon_preview") == "1"))
+    # Las fotos del JSON-LD van en tres relaciones de aspecto: Google elige
+    # la que le sirve segun donde muestre el resultado (buscador, Shopping,
+    # Discover). Mandar una sola le deja el recorte a el.
+    base = _base_publica(request)
+    fotos = [storage.thumb_url(i.url, 1200, 85) for i in prod.images[:3]]
+    marca = seo.marca_de((prod.categories[0].handle if prod.categories else None))
+    tramos = [("Inicio", "/")]
+    if prod.brand:
+        cat_marca = next((c for c in prod.categories if c.parent_id is None), None)
+        tramos.append((prod.brand, f"/categorias/{cat_marca.handle}" if cat_marca else None))
+    tramos.append((prod.name, None))
     return templates.TemplateResponse(
         request, "product.html",
         base_context(request, db, product=prod, relacionados=relacionados,
                      tryon_enabled=tryon_enabled, vendida=vendida,
+                     marca_seo=marca,
+                     jsonld=[seo.jsonld_producto(prod, base, fotos),
+                             seo.migas(base, tramos)],
                      template_class="product"),
     )
 
@@ -580,7 +619,13 @@ def product_list(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse(
         request, "category.html",
         base_context(request, db, categoria=None, productos=productos,
-                     catalog_title="Catálogo completo", template_class="category"),
+                     catalog_title="Catálogo completo",
+                     jsonld=[seo.jsonld_listado(_base_publica(request),
+                                                "Catálogo completo", "/productos",
+                                                productos, seo.DESCRIPCION_CORTA),
+                             seo.migas(_base_publica(request),
+                                       [("Inicio", "/"), ("Catálogo", None)])],
+                     template_class="category"),
     )
 
 
@@ -599,9 +644,31 @@ def category_page(handle: str, request: Request, db: Session = Depends(get_db)):
         .order_by(Product.id.desc())
         .all()
     )
+    # Titulo real de la pagina. Las categorias HIJAS se llaman "Buzos",
+    # "Remeras11", "Gorras5" — el nombre solo no le dice nada a nadie, ni al
+    # visitante ni a Google, y las 75 paginas hijas compiten entre si por la
+    # misma palabra. Con la marca del padre adelante ("Buzos Diesel") cada una
+    # pasa a responder una busqueda distinta y concreta.
+    padre = cat.parent if cat.parent_id else None
+    marca = seo.marca_de(padre.handle if padre else cat.handle)
+    nombre_limpio = _sin_numeral(cat.name)
+    titulo = f"{nombre_limpio} {padre.name}".strip() if padre else cat.name
+
+    base = _base_publica(request)
+    tramos = [("Inicio", "/")]
+    if padre:
+        tramos += [(padre.name, f"/categorias/{padre.handle}"), (nombre_limpio, None)]
+    else:
+        tramos.append((cat.name, None))
+
     return templates.TemplateResponse(
         request, "category.html",
         base_context(request, db, categoria=cat, productos=productos,
+                     catalog_title=titulo, marca_seo=marca, categoria_padre=padre,
+                     jsonld=[seo.jsonld_listado(base, titulo,
+                                                f"/categorias/{cat.handle}", productos,
+                                                (marca or {}).get("meta", "")),
+                             seo.migas(base, tramos)],
                      template_class="category"),
     )
 
@@ -628,11 +695,21 @@ def tipo_page(nombre: str, request: Request, db: Session = Depends(get_db)):
         .order_by(Product.id.desc())
         .all()
     )
-    titulo = (hijas[0].name or nombre).strip().title()
+    # Las hijas se llaman "Buzos", "Buzos1", "Buzos11"… El titulo del cruce
+    # sale sin el numeral: es UNA pagina de buzos de todas las marcas.
+    titulo = _sin_numeral(hijas[0].name or nombre).title()
+    base = _base_publica(request)
     return templates.TemplateResponse(
         request, "category.html",
         base_context(request, db, categoria=None, productos=productos,
-                     catalog_title=titulo, template_class="category"),
+                     catalog_title=titulo,
+                     tipo_slug=objetivo,
+                     jsonld=[seo.jsonld_listado(base, f"{titulo} importados",
+                                                f"/tipo/{objetivo}", productos),
+                             seo.migas(base, [("Inicio", "/"),
+                                              ("Catálogo", "/productos"),
+                                              (titulo, None)])],
+                     template_class="category"),
     )
 
 
@@ -840,16 +917,69 @@ def account_page(request: Request, db: Session = Depends(get_db),
     )
 
 
+# Rastreadores de IA que se dejan pasar A PROPÓSITO.
+#
+# Ninguno estaba bloqueado antes, pero varios buscan una línea con su nombre
+# propio antes de leer y, sin ella, algunos se van igual. Nombrarlos uno por
+# uno es lo que hace que ChatGPT, Claude o Perplexity puedan contestar "Miami
+# Import es de Diego Radio, trae ropa original de Italia" en vez de improvisar
+# a partir del HTML.
+#
+# Es una decisión comercial, no técnica: se le abre la puerta a que la IA hable
+# del negocio. Si algún día Diego no lo quiere, se cambia Allow por Disallow
+# acá y se termina.
+BOTS_IA = ("GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-User",
+           "anthropic-ai", "PerplexityBot", "Perplexity-User", "Google-Extended",
+           "Applebot-Extended", "Amazonbot", "CCBot", "meta-externalagent")
+
+# Lo que no se rastrea nunca. `/buscar` entra acá porque genera una URL
+# distinta por consulta: son infinitas páginas de contenido flaco que se comen
+# el presupuesto de rastreo que tiene que ir a las fichas.
+NO_RASTREAR = ("/cuenta", "/carrito", "/checkout", "/pagar/", "/pedido/",
+               "/api/", "/panel", "/buscar")
+
+
 @app.get("/robots.txt", response_class=PlainTextResponse)
 def robots(request: Request):
-    return (
-        "User-agent: *\n"
-        "Allow: /\n"
-        "Disallow: /cuenta\n"
-        "Disallow: /carrito\n"
-        "Disallow: /checkout\n"
-        "Disallow: /api/\n"
-        f"Sitemap: {_base_publica(request)}/sitemap.xml\n"
+    lineas: list[str] = []
+    for agente in ("*", *BOTS_IA):
+        lineas.append(f"User-agent: {agente}")
+        lineas.append("Allow: /")
+        lineas.extend(f"Disallow: {ruta}" for ruta in NO_RASTREAR)
+        lineas.append("")
+    lineas.append(f"Sitemap: {_base_publica(request)}/sitemap.xml")
+    lineas.append("")
+    return "\n".join(lineas)
+
+
+@app.get("/llms.txt", response_class=PlainTextResponse)
+def llms(request: Request):
+    """Ficha del negocio en texto plano para asistentes de IA.
+
+    Sin esto, una IA que quiere contestar por Miami Import tiene que deducirlo
+    del HTML de la home — y deducir es exactamente donde aparecen los datos
+    inventados (una dirección que no existe, un horario, un precio viejo).
+    """
+    return seo.llms_txt(_base_publica(request))
+
+
+@app.get("/nosotros", response_class=HTMLResponse)
+@app.get("/nosotros/", response_class=HTMLResponse)
+def nosotros(request: Request, db: Session = Depends(get_db)):
+    """Quién es Diego Radio y cómo llega la ropa.
+
+    Contesta la pregunta que hoy no contesta ninguna página: por qué creerle a
+    esta tienda. Sirve para el comprador que duda, para Google —que necesita
+    una entidad "Diego Radio" ligada a "Miami Import" para asociarlas— y para
+    los asistentes de IA, que leen de acá antes que del catálogo.
+    """
+    base = _base_publica(request)
+    return templates.TemplateResponse(
+        request, "nosotros.html",
+        base_context(request, db,
+                     jsonld=[seo.jsonld_faq(seo.FAQ),
+                             seo.migas(base, [("Inicio", "/"), ("Nosotros", None)])],
+                     template_class="page"),
     )
 
 
@@ -866,13 +996,55 @@ def _base_publica(request: Request) -> str:
 
 @app.get("/sitemap.xml")
 def sitemap(request: Request, db: Session = Depends(get_db)):
+    """Sitemap con fecha real y prioridad.
+
+    Dos cosas que no estaban y cuestan cero:
+
+    - **`lastmod`** sale del `updated_at` del producto. Es la señal que hace
+      que Google vuelva a mirar una ficha cuando cambia el precio, en vez de
+      quedarse meses con la versión que indexó.
+    - **Se publicaban las categorías vacías igual que las llenas.** Una marca
+      sin stock devuelve una página sin productos, y una tanda de páginas
+      flacas le baja la nota al sitio entero. Ahora entran sólo las que tienen
+      algo adentro.
+    """
     base = _base_publica(request)
-    urls = [f"{base}/", f"{base}/productos"]
+    filas: list[tuple[str, str | None, str]] = [
+        (f"{base}/", None, "1.0"),
+        (f"{base}/productos", None, "0.9"),
+        (f"{base}/nosotros", None, "0.7"),
+    ]
+
+    productos = (db.query(Product)
+                 .filter(Product.published.is_(True))
+                 .order_by(Product.id.desc()).all())
+
+    # Una categoría "tiene stock" si algún producto publicado la lleva. La
+    # marca (el padre) hereda el stock de sus hijas: si Diesel > Buzos tiene
+    # piezas, la página de Diesel también.
+    con_stock: set[int] = set()
+    for p in productos:
+        for c in p.categories:
+            con_stock.add(c.id)
+            if c.parent_id:
+                con_stock.add(c.parent_id)
+
     for c in db.query(Category).all():
-        urls.append(f"{base}/categorias/{c.handle}")
-    for p in db.query(Product).filter(Product.published.is_(True)).all():
-        urls.append(f"{base}/productos/{p.handle}/")
-    body = "".join(f"<url><loc>{u}</loc></url>" for u in urls)
+        if c.id in con_stock:
+            # Las páginas de MARCA (sin padre) valen más que las hijas: son las
+            # que responden "balenciaga argentina" y las únicas con texto propio.
+            filas.append((f"{base}/categorias/{c.handle}", None,
+                          "0.8" if c.parent_id is None else "0.5"))
+
+    for p in productos:
+        lastmod = p.updated_at.date().isoformat() if p.updated_at else None
+        filas.append((f"{base}/productos/{p.handle}/", lastmod, "0.7"))
+
+    def _url(loc: str, lastmod: str | None, prio: str) -> str:
+        fecha = f"<lastmod>{lastmod}</lastmod>" if lastmod else ""
+        return f"<url><loc>{loc}</loc>{fecha}<priority>{prio}</priority></url>"
+
+    body = "".join(_url(*f) for f in filas)
     xml = ('<?xml version="1.0" encoding="UTF-8"?>'
            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
            f"{body}</urlset>")

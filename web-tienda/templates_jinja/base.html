@@ -11,6 +11,23 @@
   <meta property="og:site_name" content="{{ STORE_NAME }}"/>
   <meta property="og:locale" content="es_AR"/>
   <meta name="twitter:card" content="summary_large_image"/>
+  {# La ficha de producto pisa estos tres con los suyos en head_extra. Acá van
+     los de respaldo, para que una página sin OG propio (la home, un listado,
+     Nosotros) igual comparta bien en WhatsApp en vez de mandar un rectángulo
+     gris con la URL. #}
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="{{ self.title() }}"/>
+  <meta property="og:image" content="{{ seo_base }}/static/images/miami-logo-v4.webp"/>
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1"/>
+
+  {# ── Datos estructurados ────────────────────────────────────────────────
+     Un solo bloque por página con todo adentro (tienda + Diego Radio + lo que
+     la página agregue). Se arma en core/seo.py con json.dumps: escribirlo a
+     mano acá con {{ }} es lo que rompe el JSON en silencio cuando el nombre de
+     un producto trae una comilla — y roto no da error, simplemente deja de
+     leerse. #}
+  {% set ld = jsonld | jsonld_txt %}
+  {% if ld %}<script type="application/ld+json">{{ ld | safe }}</script>{% endif %}
   {# Sin esto el navegador pedía /favicon.ico, comía un 404 y mostraba el
      ícono gris genérico en la pestaña y en el acceso directo del celular. #}
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml"/>
@@ -367,6 +384,10 @@
         <div>
           <h4>{{ STORE_NAME }}</h4>
           <p>Indumentaria original importada. Piezas con licencia, seleccionadas pieza por pieza.</p>
+          {# El link a /nosotros va acá y arriba en el menú a propósito: una
+             página sin ningún enlace interno es una hoja suelta que el buscador
+             visita una vez y no vuelve a mirar. #}
+          <a href="/nosotros">Quiénes somos</a>
         </div>
         <div>
           <h4>Marcas</h4>
@@ -374,6 +395,7 @@
         </div>
         <div>
           <h4>Ayuda</h4>
+          <a href="/nosotros">Cómo compramos</a><br>
           <a href="/cuenta">Mi cuenta</a><br>
           <a href="/carrito">Carrito</a><br>
           <a href="/buscar">Buscar</a>

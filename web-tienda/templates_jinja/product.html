@@ -40,10 +40,12 @@
       Podemos conseguirla a pedido — escribinos y la buscamos.</p>
   </div>
   {% endif %}
-  <nav style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:rgba(21,22,26,.4);margin-bottom:28px">
+  {# Las migas son LINKS: a 2,5:1 no se distinguian del fondo. Van por el
+     token, que ya esta calibrado a 4,5:1. #}
+  <nav aria-label="Migas" style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mi-ink-mute);margin-bottom:28px">
     <a href="/">Inicio</a>
     {% if product.categories %} / <a href="/categoria/{{ product.categories[0].handle }}">{{ product.categories[0].name }}</a>{% endif %}
-    / <span style="color:rgba(21,22,26,.7)">{{ product.name }}</span>
+    / <span style="color:var(--mi-ink-soft)" aria-current="page">{{ product.name }}</span>
   </nav>
 
   <div style="display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:start" class="mi-product-layout">

@@ -275,7 +275,7 @@
 .mi-vt__flecha:hover{ background:rgba(21,22,26,.10); border-color:rgba(21,22,26,.28); }
 .mi-vt__flecha:active{ transform:scale(.94); }
 .mi-vt__cuenta{
-  font-size:11px; letter-spacing:.24em; color:rgba(21,22,26,.45);
+  font-size:11px; letter-spacing:.24em; color:var(--mi-ink-mute);
   font-variant-numeric:tabular-nums;
 }
 .mi-vt__cuenta b{ color:var(--tinta); font-weight:400; }

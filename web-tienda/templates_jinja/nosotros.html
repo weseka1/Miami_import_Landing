@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% block title %}Diego Radio y Miami Import — quiénes somos{% endblock %}
+{% block meta_description %}Diego Radio viaja a Italia todos los meses, compra en tienda y trae la ropa a la Argentina. Cómo llega cada pieza, cómo se paga y cómo se cambia un talle.{% endblock %}
+{% block head_extra %}
+  <meta property="og:type" content="profile"/>
+  <meta property="og:title" content="Diego Radio — Miami Import"/>
+  <meta property="og:description" content="Viaja a Italia todos los meses, compra en tienda y trae la ropa a Buenos Aires."/>
+  <meta property="og:image" content="{{ seo_base }}/static/images/milano/montenapoleone.webp"/>
+{% endblock %}
+
+{% block content %}
+<div class="mi-container mi-ns">
+
+  {# ── Quién ─────────────────────────────────────────────────────────────
+     El H1 nombra a la persona, no al negocio. Es la página que tiene que
+     contestar "quién es Diego Radio" cuando alguien —o una IA— lo pregunta,
+     y para eso el nombre tiene que estar en el título, en el H1 y en el
+     JSON-LD, apuntando los tres a la misma entidad. #}
+  <header class="mi-ns__hero">
+    <div>
+      <p class="mi-ns__eyebrow">Quiénes somos</p>
+      <h1 class="mi-ns__h1">Diego Radio compra en Milán.<br/>Lo que ve acá lo trajo él.</h1>
+      <p class="mi-ns__lead">
+        Miami Import no es un depósito ni una reventa de catálogo ajeno. Diego
+        viaja a Italia todos los meses, entra a las tiendas, elige pieza por
+        pieza y se vuelve con lo que entra en la valija. Por eso el catálogo es
+        chico, por eso rota rápido y por eso, cuando una prenda se va, no vuelve
+        salvo que alguien la encargue.
+      </p>
+      <div class="mi-ns__acciones">
+        <a class="mi-ns__btn" href="/productos">Ver el catálogo</a>
+        <a class="mi-ns__btn mi-ns__btn--ghost"
+           href="https://wa.me/{{ seo.NEGOCIO.whatsapp }}?text={{ 'Hola Diego, quiero consultar por una pieza.' | urlencode }}"
+           target="_blank" rel="noopener">Escribirle a Diego</a>
+      </div>
+    </div>
+    <figure class="mi-ns__foto">
+      <img src="{{ 'images/milano/montenapoleone.webp' | static_url }}"
+           alt="Via Montenapoleone, Milán — la cuadra de las boutiques donde compra Miami Import"
+           width="1200" height="1600" loading="eager" fetchpriority="high"/>
+      <figcaption>Via Montenapoleone, Milán</figcaption>
+    </figure>
+  </header>
+
+  {# ── La ruta ───────────────────────────────────────────────────────────
+     Cuatro pasos con las fotos reales del viaje. Son las que sacó Diego: no
+     hay banco de imágenes acá, y se nota — que se note es el punto. #}
+  <section class="mi-ns__ruta" aria-labelledby="ruta-t">
+    <h2 class="mi-ns__h2" id="ruta-t">Cómo llega una pieza</h2>
+    <ol class="mi-ns__pasos">
+      <li>
+        <img src="{{ 'images/milano/duomo@800.webp' | static_url }}" alt="Duomo di Milano" width="800" height="1066" loading="lazy"/>
+        <div><span>01</span><strong>El viaje</strong>
+          <p>Una vez por mes, a Milán. Sin intermediarios y sin catálogo mayorista de por medio.</p></div>
+      </li>
+      <li>
+        <img src="{{ 'images/milano/offwhite@800.webp' | static_url }}" alt="Adentro de la tienda oficial de Off-White en Milán" width="800" height="1066" loading="lazy"/>
+        <div><span>02</span><strong>La compra</strong>
+          <p>En tienda, sobre el mostrador. Cada pieza sale con su comprobante de origen.</p></div>
+      </li>
+      <li>
+        <img src="{{ 'images/milano/galleria@800.webp' | static_url }}" alt="Galleria Vittorio Emanuele II, Milán" width="800" height="1066" loading="lazy"/>
+        <div><span>03</span><strong>La vuelta</strong>
+          <p>{{ seo.NEGOCIO.ruta }}. Lo que se publica ya está físicamente en Buenos Aires.</p></div>
+      </li>
+      <li>
+        <img src="{{ 'images/milano/montenapoleone@800.webp' | static_url }}" alt="Vidriera en Via Montenapoleone, Milán" width="800" height="1066" loading="lazy"/>
+        <div><span>04</span><strong>La entrega</strong>
+          <p>Entrega personal en CABA y GBA, o correo al interior en 24 a 72 horas hábiles.</p></div>
+      </li>
+    </ol>
+  </section>
+
+  {# ── Los datos duros ───────────────────────────────────────────────────
+     Todo sale de core/seo.py, que es la misma fuente que usa el bot del chat.
+     Escribirlos otra vez acá a mano era garantizar que un día digan cosas
+     distintas en la misma web. #}
+  <section class="mi-ns__datos" aria-labelledby="datos-t">
+    <h2 class="mi-ns__h2" id="datos-t">Lo concreto</h2>
+    <dl class="mi-ns__dl">
+      <div><dt>Envíos</dt><dd>{{ seo.NEGOCIO.envios }}</dd></div>
+      <div><dt>Pagos</dt><dd>{{ seo.NEGOCIO.pagos }}</dd></div>
+      <div><dt>Cambios</dt><dd>{{ seo.NEGOCIO.cambios }}</dd></div>
+      <div><dt>Encargos</dt><dd>{{ seo.NEGOCIO.encargos }}</dd></div>
+      <div><dt>Atención</dt><dd>Diego, por WhatsApp. No hay call center ni formularios.</dd></div>
+      <div><dt>Local</dt><dd>No hay local a la calle: la venta es online y la entrega, coordinada.</dd></div>
+    </dl>
+  </section>
+
+  {# ── Marcas ────────────────────────────────────────────────────────────
+     Además de ser útil, es el enlace interno que le da entidad a cada página
+     de marca: sin un link desde una página con contenido, /categorias/prada
+     es una hoja suelta que Google visita una vez y no vuelve. #}
+  <section class="mi-ns__marcas" aria-labelledby="marcas-t">
+    <h2 class="mi-ns__h2" id="marcas-t">Las casas que traemos</h2>
+    <div class="mi-ns__chips">
+      {% for h, m in seo.MARCAS.items() %}
+        <a href="/categorias/{{ h }}">{{ m.nombre }}</a>
+      {% endfor %}
+    </div>
+    <p class="mi-ns__legal">
+      Miami Import es un importador independiente. Compra las piezas en tienda y
+      no es distribuidor oficial ni representante de ninguna de estas marcas.
+    </p>
+  </section>
+
+  {# ── Preguntas ─────────────────────────────────────────────────────────
+     <details> nativo: sin JavaScript, se abre con teclado, y el buscador lee
+     el contenido igual esté abierto o cerrado. #}
+  <section class="mi-ns__faq" aria-labelledby="faq-t">
+    <h2 class="mi-ns__h2" id="faq-t">Preguntas frecuentes</h2>
+    {% for pregunta, respuesta in seo.FAQ %}
+      <details{% if loop.first %} open{% endif %}>
+        <summary>{{ pregunta }}</summary>
+        <p>{{ respuesta }}</p>
+      </details>
+    {% endfor %}
+  </section>
+
+  <section class="mi-ns__cierre">
+    <h2>¿Busca una pieza puntual?</h2>
+    <p>Si no está publicada, se encarga: Diego la busca en el viaje siguiente y
+       le confirma el precio antes de comprarla.</p>
+    <a class="mi-ns__btn"
+       href="https://wa.me/{{ seo.NEGOCIO.whatsapp }}?text={{ 'Hola Diego, quiero encargar una pieza para el proximo viaje.' | urlencode }}"
+       target="_blank" rel="noopener">Encargar una pieza →</a>
+  </section>
+</div>
+
+<style>
+  .mi-ns{padding-bottom:clamp(60px,8vw,110px)}
+  .mi-ns__eyebrow{margin:0 0 14px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--mi-ink-mute)}
+  .mi-ns__h1{margin:0 0 20px;font-size:clamp(30px,4.6vw,56px);font-weight:500;
+    letter-spacing:-.035em;line-height:1.06;color:var(--mi-ink);text-wrap:balance}
+  .mi-ns__lead{margin:0;max-width:56ch;font-size:clamp(15px,1.5vw,17px);line-height:1.75;
+    color:var(--mi-ink-soft)}
+  .mi-ns__h2{margin:0 0 24px;font-size:clamp(19px,2.3vw,27px);font-weight:500;
+    letter-spacing:-.02em;color:var(--mi-ink)}
+
+  /* --- Portada --- */
+  /* La foto manda el alto de toda la fila. Con aspect-ratio 3/4 libre media
+     665px en escritorio y empujaba el titulo abajo del pliegue: se entraba a
+     "Quienes somos" y lo primero que se veia era medio edificio. Se le pone
+     techo por altura y la fila queda del tamano del texto, no de la imagen. */
+  .mi-ns__hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);
+    gap:clamp(30px,5vw,64px);align-items:center;
+    padding:clamp(32px,4vw,52px) 0 clamp(40px,5vw,68px)}
+  .mi-ns__foto{margin:0;border-radius:26px;overflow:hidden;position:relative;
+    box-shadow:var(--mi-shadow-lift)}
+  /* Alto acotado en vez de aspect-ratio libre. Sigue siendo un marco vertical
+     —la foto es 3/4 y NO se la mete en un rectangulo horizontal, que es el
+     recorte que ya rebotó— pero deja de estirar la fila entera. */
+  .mi-ns__foto img{width:100%;height:clamp(320px,52svh,520px);object-fit:cover;
+    object-position:center 62%;display:block}
+  .mi-ns__foto figcaption{position:absolute;left:14px;right:14px;bottom:14px;
+    padding:9px 14px;border-radius:14px;font-size:11.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--mi-ink);
+    background:var(--mi-glass-strong);border:1px solid var(--mi-glass-line);
+    -webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%)}
+
+  .mi-ns__acciones{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+  .mi-ns__btn{display:inline-block;padding:14px 26px;border-radius:16px;font-size:14px;
+    background:var(--mi-accent);color:var(--mi-bg-2);border:1px solid var(--mi-accent);
+    transition:transform .4s var(--mi-ease),box-shadow .4s var(--mi-ease)}
+  .mi-ns__btn:hover{transform:translateY(-2px);box-shadow:var(--mi-shadow-lift)}
+  .mi-ns__btn--ghost{background:var(--mi-glass);color:var(--mi-ink);
+    border-color:var(--mi-line-2);
+    -webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%)}
+
+  /* --- Los cuatro pasos --- */
+  .mi-ns__ruta{padding-top:clamp(34px,4vw,52px);border-top:1px solid var(--mi-line)}
+  .mi-ns__pasos{list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:clamp(14px,1.8vw,24px);margin:0;padding:0}
+  .mi-ns__pasos li{margin:0}
+  .mi-ns__pasos img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:20px;
+    box-shadow:var(--mi-shadow)}
+  .mi-ns__pasos>li>div{padding:16px 4px 0}
+  .mi-ns__pasos span{display:block;font-size:11px;letter-spacing:.18em;
+    color:var(--mi-ink-mute);margin-bottom:6px}
+  .mi-ns__pasos strong{display:block;font-size:15px;font-weight:500;color:var(--mi-ink);
+    margin-bottom:6px}
+  .mi-ns__pasos p{margin:0;font-size:13.5px;line-height:1.65;color:var(--mi-ink-soft)}
+
+  /* --- Datos --- */
+  .mi-ns__datos,.mi-ns__marcas,.mi-ns__faq{margin-top:clamp(52px,6.5vw,86px);
+    padding-top:clamp(34px,4vw,52px);border-top:1px solid var(--mi-line)}
+  /* TRES columnas fijas, no auto-fit: son seis datos, y con auto-fit en un
+     monitor ancho entraban cuatro arriba y dos abajo, dejando dos celdas
+     vacias que se ven como un hueco gris en el medio de la ficha. */
+  .mi-ns__dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:2px;margin:0;border-radius:24px;overflow:hidden;
+    background:var(--mi-line);border:1px solid var(--mi-line)}
+  .mi-ns__dl>div{padding:20px 22px;background:var(--mi-glass-strong);
+    -webkit-backdrop-filter:blur(var(--mi-blur)) saturate(160%);
+    backdrop-filter:blur(var(--mi-blur)) saturate(160%)}
+  .mi-ns__dl dt{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--mi-ink-mute);margin-bottom:8px}
+  .mi-ns__dl dd{margin:0;font-size:14px;line-height:1.65;color:var(--mi-ink)}
+
+  /* --- Marcas --- */
+  .mi-ns__chips{display:flex;flex-wrap:wrap;gap:9px}
+  .mi-ns__chips a{padding:10px 18px;border-radius:999px;font-size:13px;
+    color:var(--mi-ink);background:var(--mi-glass);border:1px solid var(--mi-line-2);
+    -webkit-backdrop-filter:blur(16px) saturate(160%);backdrop-filter:blur(16px) saturate(160%);
+    transition:background .35s var(--mi-ease),transform .35s var(--mi-ease)}
+  .mi-ns__chips a:hover{background:var(--mi-accent);color:var(--mi-bg-2);transform:translateY(-2px)}
+  .mi-ns__legal,.mi-ns__marcas .mi-ns__legal{margin:20px 0 0;max-width:70ch;
+    font-size:12.5px;line-height:1.7;color:var(--mi-ink-mute)}
+
+  /* --- FAQ --- */
+  .mi-ns__faq details{border-bottom:1px solid var(--mi-line)}
+  .mi-ns__faq summary{cursor:pointer;list-style:none;padding:18px 34px 18px 0;position:relative;
+    font-size:15.5px;color:var(--mi-ink)}
+  .mi-ns__faq summary::-webkit-details-marker{display:none}
+  .mi-ns__faq summary::after{content:"+";position:absolute;right:6px;top:16px;
+    font-size:19px;color:var(--mi-ink-mute);transition:transform .35s var(--mi-ease)}
+  .mi-ns__faq details[open] summary::after{transform:rotate(45deg)}
+  .mi-ns__faq details p{margin:0 0 20px;max-width:74ch;font-size:14.5px;line-height:1.75;
+    color:var(--mi-ink-soft)}
+
+  /* --- Cierre --- */
+  .mi-ns__cierre{margin-top:clamp(52px,6.5vw,86px);padding:clamp(34px,4.5vw,58px);
+    border-radius:28px;text-align:center;
+    background:var(--mi-glass);border:1px solid var(--mi-line);
+    border-top-color:var(--mi-glass-line);
+    -webkit-backdrop-filter:blur(var(--mi-blur)) saturate(160%);
+    backdrop-filter:blur(var(--mi-blur)) saturate(160%);
+    box-shadow:var(--mi-shadow)}
+  .mi-ns__cierre h2{margin:0 0 12px;font-size:clamp(21px,2.6vw,30px);font-weight:500;
+    letter-spacing:-.025em;color:var(--mi-ink)}
+  .mi-ns__cierre p{margin:0 auto 26px;max-width:52ch;font-size:15px;line-height:1.7;
+    color:var(--mi-ink-soft)}
+
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+    .mi-ns__dl>div,.mi-ns__cierre,.mi-ns__chips a,.mi-ns__btn--ghost,
+    .mi-ns__foto figcaption{background:var(--mi-bg-2)}
+  }
+  @media (max-width:1040px){ .mi-ns__dl{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  @media (max-width:900px){
+    .mi-ns__hero{grid-template-columns:1fr;gap:30px}
+    .mi-ns__foto{order:-1}
+    .mi-ns__pasos{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media (max-width:520px){
+    .mi-ns__dl{grid-template-columns:1fr}
+    .mi-ns__pasos{grid-template-columns:1fr;gap:22px}
+    .mi-ns__pasos li{display:grid;grid-template-columns:104px 1fr;gap:14px;align-items:center}
+    .mi-ns__pasos>li>div{padding:0}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .mi-ns__btn,.mi-ns__chips a{transition:none}
+  }
+</style>
+{% endblock %}

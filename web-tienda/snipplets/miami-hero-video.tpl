@@ -113,11 +113,18 @@
   </div>
 
   {# ---------- la línea de abajo: por qué comprar acá ---------- #}
+  {# Textos pedidos por Diego (4-sep). Dos cambios y una consecuencia:
+     - "Viaja" → "Viajamos": la casa habla en primera persona.
+     - "Fotos del viaje / las saca él" → la foto es del PRODUCTO, adentro de la
+       tienda oficial y en el momento. Es un argumento de venta, no una nota de
+       color: prueba dónde se compró la prenda.
+     Por eso también se corrigió el tercero: quedaba "viajamos" al lado de "las
+     saca él", mezclando nosotros y él en la misma línea. #}
   <dl class="mh__facts">
-    <div><dt>Viaja todos los meses</dt><dd>Compra en tienda oficial, en Milán.</dd></div>
+    <div><dt>Viajamos todos los meses</dt><dd>Compramos en tienda oficial, en Milán.</dd></div>
     <div><dt>Una unidad por talle</dt><dd>Cuando no está, no vuelve.</dd></div>
     <div><dt>Probador virtual</dt><dd>Subís tu foto y la ves puesta.</dd></div>
-    <div><dt>Fotos del viaje</dt><dd>Sin producción. Las saca él.</dd></div>
+    <div><dt>Fotos del producto</dt><dd>En la tienda oficial, en el momento.</dd></div>
   </dl>
 </section>
 <span id="mi-after-hero"></span>

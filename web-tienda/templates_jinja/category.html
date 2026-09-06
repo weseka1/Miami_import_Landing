@@ -1,18 +1,31 @@
 {% extends "base.html" %}
 {% from "_card.html" import product_card %}
-{% block title %}{% if categoria %}{{ categoria.name }}{% elif search_query %}Buscar: {{ search_query }}{% else %}Catálogo{% endif %} — {{ STORE_NAME }}{% endblock %}
-{% block meta_description %}{% if categoria and categoria.seo_description %}{{ categoria.seo_description }}{% else %}Catálogo {{ STORE_NAME }}.{% endif %}{% endblock %}
+{# `titulo` es el nombre que se muestra Y el que va al buscador. En las
+   categorías hijas app.py ya lo armó como "Buzos Diesel": el nombre crudo era
+   "Buzos11", que no le sirve a nadie. #}
+{% set titulo = catalog_title or (categoria.name if categoria else 'Catálogo') %}
+{% block title %}{% if search_query %}Buscar: {{ search_query }}{% elif marca_seo and marca_seo.titulo and categoria and not categoria_padre %}{{ marca_seo.titulo }}{% else %}{{ titulo }} importados{% endif %} — {{ STORE_NAME }}{% endblock %}
+{% block meta_description %}
+  {%- if categoria and categoria.seo_description -%}{{ categoria.seo_description }}
+  {%- elif marca_seo and marca_seo.meta and not categoria_padre -%}{{ marca_seo.meta }}
+  {%- elif marca_seo -%}{{ titulo }} originales, comprados en tienda en Italia y disponibles en la Argentina. Envío a todo el país, pago con tarjeta y cambio de talle.
+  {%- else -%}{{ titulo }} originales importados. {{ seo.DESCRIPCION_CORTA }}
+  {%- endif -%}
+{% endblock %}
 
 {% block content %}
 <div class="mi-container">
   <h1 class="mi-section-title" style="margin-top:48px">
-    {% if categoria %}{{ categoria.name }}
-    {% elif search_query %}Resultados para “{{ search_query }}”
-    {% else %}{{ catalog_title|default('Catálogo') }}{% endif %}
+    {% if search_query %}Resultados para “{{ search_query }}”
+    {% else %}{{ titulo }}{% endif %}
   </h1>
+  {# Un solo párrafo arriba. El resto del texto de la marca va DESPUÉS de la
+     grilla: quien entra buscando una campera quiere ver camperas, no leer
+     media pantalla de historia de la casa antes de llegar a la primera foto. #}
   {% if categoria and categoria.description %}
-    <p style="text-align:center;color:rgba(21,22,26,.55);max-width:640px;margin:-20px auto 40px;font-size:14px;line-height:1.7">
-      {{ categoria.description }}</p>
+    <p class="mi-cat__lead">{{ categoria.description }}</p>
+  {% elif marca_seo and marca_seo.parrafos %}
+    <p class="mi-cat__lead">{{ marca_seo.parrafos[0] }}</p>
   {% endif %}
 
   {% if productos %}
@@ -25,5 +38,85 @@
     <p style="text-align:center;color:rgba(21,22,26,.5);padding:60px 0">
       No encontramos productos{% if search_query %} para “{{ search_query }}”{% endif %}.</p>
   {% endif %}
+
+  {# ── La casa ──────────────────────────────────────────────────────────────
+     Debajo de la grilla, no arriba. Le contesta al que bajó hasta el final sin
+     encontrar su talle —que es exactamente el que está por irse— quién es la
+     marca, cómo llega la pieza y qué hacer si no está. #}
+  {% if marca_seo and marca_seo.parrafos %}
+  <section class="mi-casa" aria-labelledby="mi-casa-t">
+    <div class="mi-casa__txt">
+      <p class="mi-casa__eyebrow">La casa</p>
+      <h2 class="mi-casa__h" id="mi-casa-t">{{ marca_seo.nombre }} en Miami Import</h2>
+      {% for p in marca_seo.parrafos %}<p>{{ p }}</p>{% endfor %}
+      <p class="mi-casa__legal">
+        Miami Import es un importador independiente: compra cada pieza en tienda
+        y no es distribuidor oficial ni representante de {{ marca_seo.nombre }}.
+      </p>
+    </div>
+    <aside class="mi-casa__ficha">
+      {% if marca_seo.fundada %}
+      <div><span>Casa fundada</span><strong>{{ marca_seo.fundada }}</strong></div>{% endif %}
+      {% if marca_seo.origen %}
+      <div><span>Origen</span><strong>{{ marca_seo.origen }}</strong></div>{% endif %}
+      {% if marca_seo.conocida %}
+      <div><span>Se la reconoce por</span><strong>{{ marca_seo.conocida }}</strong></div>{% endif %}
+      <div><span>Cómo llega</span><strong>{{ seo.NEGOCIO.ruta }}</strong></div>
+      <div><span>Cambio de talle</span><strong>48 horas hábiles</strong></div>
+      <a class="mi-casa__cta"
+         href="https://wa.me/{{ seo.NEGOCIO.whatsapp }}?text={{ ('Hola Diego, busco una pieza de ' ~ marca_seo.nombre ~ ' que no veo en la web.') | urlencode }}"
+         target="_blank" rel="noopener">¿No está la suya? Encargarla →</a>
+    </aside>
+  </section>
+  {% endif %}
 </div>
+
+<style>
+  /* Lead de la categoría: una sola línea de aire, alineado con la grilla. */
+  .mi-cat__lead{max-width:660px;margin:-14px 0 34px;font-size:15px;line-height:1.75;
+    color:var(--mi-ink-soft)}
+
+  /* Bloque "La casa": dos columnas, texto y ficha. La ficha lleva el vidrio;
+     el texto no, para que no compitan dos superficies traslúcidas al lado. */
+  .mi-casa{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);
+    gap:clamp(28px,4vw,64px);align-items:start;
+    margin:clamp(56px,7vw,92px) 0 clamp(40px,5vw,64px);
+    padding-top:clamp(32px,4vw,48px);border-top:1px solid var(--mi-line)}
+  .mi-casa__eyebrow{margin:0 0 10px;font-size:11px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--mi-ink-mute)}
+  .mi-casa__h{margin:0 0 18px;font-size:clamp(21px,2.5vw,30px);font-weight:500;
+    letter-spacing:-.02em;line-height:1.2;color:var(--mi-ink)}
+  .mi-casa__txt p{margin:0 0 14px;font-size:15px;line-height:1.78;color:var(--mi-ink-soft);
+    max-width:62ch}
+  .mi-casa__legal{font-size:12.5px!important;line-height:1.7!important;
+    color:var(--mi-ink-mute)!important;padding-top:6px}
+
+  .mi-casa__ficha{position:sticky;top:98px;padding:22px 24px;border-radius:22px;
+    background:var(--mi-glass);border:1px solid var(--mi-line);
+    border-top-color:var(--mi-glass-line);
+    -webkit-backdrop-filter:blur(var(--mi-blur)) saturate(160%);
+    backdrop-filter:blur(var(--mi-blur)) saturate(160%);
+    box-shadow:var(--mi-shadow)}
+  .mi-casa__ficha>div{padding:11px 0;border-bottom:1px solid var(--mi-line)}
+  .mi-casa__ficha>div:first-child{padding-top:0}
+  .mi-casa__ficha span{display:block;font-size:10.5px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--mi-ink-mute);margin-bottom:5px}
+  .mi-casa__ficha strong{display:block;font-size:14px;font-weight:450;line-height:1.5;
+    color:var(--mi-ink)}
+  .mi-casa__cta{display:block;margin-top:18px;padding:13px 16px;border-radius:14px;
+    text-align:center;font-size:13px;letter-spacing:.02em;
+    background:var(--mi-accent);color:var(--mi-bg-2);
+    transition:transform .4s var(--mi-ease),box-shadow .4s var(--mi-ease)}
+  .mi-casa__cta:hover{transform:translateY(-2px);box-shadow:var(--mi-shadow-lift)}
+
+  /* Sin backdrop-filter (Firefox viejo, ahorro de batería en iOS) el vidrio
+     translúcido deja el texto sobre las fotos de la grilla. Se vuelve opaco. */
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+    .mi-casa__ficha{background:var(--mi-bg-2)}
+  }
+  @media (max-width:860px){
+    .mi-casa{grid-template-columns:1fr;gap:28px}
+    .mi-casa__ficha{position:static}
+  }
+</style>
 {% endblock %}
