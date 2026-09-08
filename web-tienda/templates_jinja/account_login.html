@@ -50,7 +50,7 @@
 <script nonce="{{ csp_nonce }}">
   const tabs=document.querySelectorAll('.mi-tab'), fl=document.getElementById('form-login'), fr=document.getElementById('form-register');
   tabs.forEach(t=>t.addEventListener('click',()=>{
-    tabs.forEach(x=>{x.style.color='rgba(245,243,238,.5)';x.style.borderBottomColor='transparent';});
+    tabs.forEach(x=>{x.style.color='var(--mi-ink-mute)';x.style.borderBottomColor='transparent';});
     t.style.color='var(--mi-accent,#15161A)';t.style.borderBottomColor='var(--mi-accent,#15161A)';
     const isLogin=t.dataset.tab==='login'; fl.style.display=isLogin?'block':'none'; fr.style.display=isLogin?'none':'block';
   }));

@@ -113,9 +113,7 @@
               {% set v = por_talle.get(t) %}
               {% if v and v.stock > 0 %}
                 <button type="button" class="mi-talle" data-vid="{{ v.id }}" data-stock="{{ v.stock }}"
-                  style="min-width:52px;padding:12px 14px;border:1px solid rgba(245,243,238,.22);background:none;color:var(--mi-ink);
-                  border-radius:8px;cursor:pointer;letter-spacing:.05em">
-                  {{ v.value }}</button>
+                        aria-pressed="false">{{ v.value }}</button>
               {% else %}
                 {# El mensaje lleva el #ID y el link corto: hay nombres repetidos
                    en el catálogo (cinco "Remera Karl Lagerfeld"), así que con el
@@ -125,17 +123,13 @@
                 <a href="https://wa.me/5491162321391?text={{ ('Hola Diego! Quiero la ' ~ product.name ~ ' #' ~ product.id ~ ', talle ' ~ t ~ '. ¿Me la conseguís?
 ' ~ tienda_url ~ '/p/' ~ product.id) | urlencode }}"
                    target="_blank" rel="noopener" title="Conseguilo a pedido"
-                   style="min-width:52px;padding:12px 14px;border:1px dashed var(--mi-line);color:var(--mi-ink-soft);
-                   border-radius:8px;letter-spacing:.05em;display:inline-flex;align-items:center;justify-content:center;text-decoration:none">
-                  {{ t }}</a>
+                   class="mi-talle mi-talle--pedido">{{ t }}</a>
               {% endif %}
             {% endfor %}
           {% else %}
             {% for v in product.variants %}
               <button type="button" class="mi-talle" data-vid="{{ v.id }}" data-stock="{{ v.stock }}"
-                {% if v.stock == 0 %}disabled{% endif %}
-                style="min-width:52px;padding:12px 14px;border:1px solid rgba(245,243,238,.22);background:none;color:var(--mi-ink);
-                border-radius:8px;cursor:pointer;letter-spacing:.05em;{% if v.stock == 0 %}opacity:.35;text-decoration:line-through;cursor:not-allowed{% endif %}">
+                      aria-pressed="false"{% if v.stock == 0 %} disabled{% endif %}>
                 {{ v.value or 'Único' }}</button>
             {% endfor %}
           {% endif %}
@@ -203,8 +197,12 @@
   talles.forEach(function(b){
     b.addEventListener('click', function(){
       if (b.disabled) return;
-      talles.forEach(x=>{x.style.borderColor='rgba(245,243,238,.22)';x.style.background='none';x.style.color='#f5f3ee';});
-      b.style.borderColor='var(--mi-accent,#15161A)';b.style.background='var(--mi-accent,#15161A)';b.style.color='#0a0a0a';
+      // Se cambia una CLASE, no estilos inline. Los inline eran el bug: pintaban
+      // el talle no elegido de #f5f3ee (casi blanco sobre blanco) y el elegido
+      // de #0a0a0a sobre fondo negro. Los dos invisibles, los dos heredados del
+      // tema oscuro que la web ya no usa.
+      talles.forEach(x=>{ x.classList.remove('is-sel'); x.setAttribute('aria-pressed','false'); });
+      b.classList.add('is-sel'); b.setAttribute('aria-pressed','true');
       selectedVid = b.dataset.vid;
     });
   });
@@ -233,4 +231,33 @@
     }catch(e){ addBtn.textContent=e.message; setTimeout(()=>{addBtn.textContent=original;addBtn.disabled=false;},1800); }
   });
 </script>
+
+<style>
+  /* ── Talles ──────────────────────────────────────────────────────────────
+     Estaba escrito con `style=""` y con colores del tema OSCURO que quedaron
+     de la migracion: el borde era rgba(245,243,238,.22) —blanco al 22% sobre
+     fondo blanco, o sea nada— y el JS pintaba el talle deseleccionado de
+     #f5f3ee y el seleccionado de #0a0a0a sobre negro.
+     Resultado: no se veia que talles habia, que es el dato por el que la
+     persona esta parada en esta pagina. ──────────────────────────────────── */
+  .mi-talle{min-width:54px;padding:12px 14px;border-radius:10px;
+    font-size:14px;letter-spacing:.05em;line-height:1;
+    display:inline-flex;align-items:center;justify-content:center;
+    border:1px solid var(--mi-line-2);background:var(--mi-bg-2);color:var(--mi-ink);
+    cursor:pointer;text-decoration:none;
+    transition:border-color .2s,background .2s,color .2s,transform .2s}
+  .mi-talle:hover:not(:disabled):not(.is-sel){border-color:var(--mi-ink);transform:translateY(-1px)}
+  .mi-talle:focus-visible{outline:2px solid var(--mi-accent);outline-offset:2px}
+  /* El elegido: fondo tinta, texto del color del papel. */
+  .mi-talle.is-sel{background:var(--mi-accent);border-color:var(--mi-accent);
+    color:var(--mi-bg-2);font-weight:600}
+  /* A pedido: punteado y tinta suave. Se distingue del que SI hay sin leer nada. */
+  .mi-talle--pedido{border-style:dashed;border-color:var(--mi-line-2);
+    background:transparent;color:var(--mi-ink-mute)}
+  .mi-talle--pedido:hover{border-color:var(--mi-ink-soft);color:var(--mi-ink)}
+  .mi-talle:disabled{opacity:.4;text-decoration:line-through;cursor:not-allowed;
+    background:var(--mi-bg-3)}
+  @media (prefers-reduced-motion:reduce){ .mi-talle{transition:none} }
+</style>
+
 {% endblock %}
