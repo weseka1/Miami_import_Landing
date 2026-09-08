@@ -8,7 +8,7 @@ Por qué un módulo de Python y no un `.tpl`:
    *en silencio*: la página se ve perfecta y Google no lee nada. Serializando
    desde Python el escapado lo hace la librería.
 2. **Un solo lugar donde vive lo que la casa afirma.** El texto de cada marca,
-   la ruta de compra, la política de cambio y quién es Diego Radio se escriben
+   la ruta de compra, la política de cambio y quién es Diego se escriben
    una vez acá y los usan la ficha, el listado, la página "Nosotros", el
    `llms.txt` y el sitemap. Antes de esto, cada plantilla afirmaba lo suyo.
 
@@ -31,7 +31,12 @@ from typing import Any, Iterable
 # --------------------------------------------------------------------------- #
 NEGOCIO: dict[str, Any] = {
     "nombre": "Miami Import",
-    "fundador": "Diego Radio",
+    # 🔴 En la web va "Diego" a secas. Lo pidio el 6-sep: "ahi pone Diego, sin
+    # el radio". Es su nombre y es su decision, asi que tampoco va el apellido
+    # en los datos estructurados: publicarlo ahi seria publicarlo igual, solo
+    # que donde no se ve. Debilita un poco la entidad para el buscador; si
+    # Diego cambia de idea, se toca aca y vuelve a las 5 partes de una.
+    "fundador": "Diego",
     "instagram": "https://www.instagram.com/miamimport_/",
     "instagram_handle": "@miamimport_",
     "whatsapp": "5491162321391",
@@ -56,7 +61,7 @@ DESCRIPCION_CORTA = (
 )
 
 DESCRIPCION_LARGA = (
-    "Miami Import es el proyecto de Diego Radio: viaja a Italia todos los meses, "
+    "Miami Import es el proyecto de Diego: viaja a Italia todos los meses, "
     "compra las piezas él mismo en tienda y las trae a Buenos Aires. No es una "
     "tienda de reventa mayorista ni un distribuidor oficial de las marcas que "
     "vende: es un importador independiente con un catálogo chico que rota rápido. "
@@ -432,7 +437,7 @@ FAQ: list[tuple[str, str]] = [
      "comprobante de origen. Miami Import es un importador independiente: "
      "no es distribuidor oficial ni representante de las marcas que vende."),
     ("¿De dónde traen la ropa?",
-     f"De Italia. Diego Radio viaja todos los meses, compra él mismo en tienda "
+     f"De Italia. Diego viaja todos los meses, compra él mismo en tienda "
      f"y la mercadería entra por la ruta {NEGOCIO['ruta']}."),
     ("¿Hacen envíos a todo el país?",
      NEGOCIO["envios"]),
@@ -500,7 +505,7 @@ def grafo_sitio(base: str) -> list[dict[str, Any]]:
         "name": NEGOCIO["fundador"],
         "jobTitle": "Fundador de Miami Import",
         "description": (
-            "Diego Radio es el fundador de Miami Import. Viaja a Italia todos "
+            "Diego es el fundador de Miami Import. Viaja a Italia todos "
             "los meses para comprar en tienda la indumentaria original que "
             "después vende en la Argentina, y atiende personalmente a cada "
             "cliente por WhatsApp."),
