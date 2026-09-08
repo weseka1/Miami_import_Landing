@@ -57,7 +57,7 @@ DEFAULTS: dict[str, Any] = {
         "bajada": "Selección curada pieza por pieza. Cada casa, sus códigos.",
         "items": [
             {"nombre": "DIESEL", "link": "/categoria/diesel",
-             "imagen": "/static/images/category-diesel-cut-v2.webp"},
+             "imagen": "/static/images/category-diesel-cut-v3.webp"},
             {"nombre": "BALENCIAGA", "link": "/categoria/balenciaga",
              "imagen": "/static/images/category-balenciaga-cut.webp"},
             {"nombre": "OFF-WHITE", "link": "/categoria/off-white",
@@ -70,8 +70,12 @@ DEFAULTS: dict[str, Any] = {
              "imagen": "/static/images/category-balmain-cut.webp"},
             {"nombre": "HUGO BOSS", "link": "/categoria/hugo-boss",
              "imagen": "/static/images/category-hugo-boss-cut.webp"},
-            {"nombre": "CALVIN KLEIN", "link": "/categoria/calvin-klein",
-             "imagen": "/static/images/category-calvin-klein-cut.webp"},
+            # Diego pidio el 6-sep sacar Calvin Klein y poner Prada. Ojo: hoy
+            # Prada tiene solo 2 piezas publicadas, asi que la tarjeta lleva a
+            # un listado muy corto. La imagen y el link son correctos; lo que
+            # falta es stock, y eso lo carga el.
+            {"nombre": "PRADA", "link": "/categoria/prada",
+             "imagen": "/static/images/category-prada-cut.webp"},
         ],
     },
     "secciones": {
