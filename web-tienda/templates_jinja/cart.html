@@ -88,11 +88,13 @@
         <div class="mi-cart-sum__fila mi-cart-sum__fila--soft">
           <span>Envío</span><span>Se calcula al finalizar</span>
         </div>
-        {% if cart['descuento_raw'] %}
+        {# El Total va SIEMPRE. Estuvo metido adentro del `if descuento` y eso
+           dejaba el resumen sin total el día que la promo se apague, que es
+           justo el día en que nadie va a estar mirando esta pantalla. #}
         <div class="mi-cart-sum__fila mi-cart-sum__fila--total">
-          <span>Total</span><span data-total>{{ cart['total'] | money(cart['currency']) }}</span>
+          <span>Total</span>
+          <span data-total>{{ (cart['total'] if cart['descuento_raw'] else cart['subtotal']) | money(cart['currency']) }}</span>
         </div>
-        {% endif %}
         <a href="/checkout" class="mi-cart-sum__cta">Finalizar compra →</a>
         <p class="mi-cart-sum__pago">Tarjeta de crédito, débito o transferencia.</p>
         <a href="/productos" class="mi-cart-sum__seguir">Seguir comprando</a>

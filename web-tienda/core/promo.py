@@ -21,9 +21,21 @@ contrato es explícito:
       ahorro, para que el comprobante pueda mostrar "antes / ahorro / ahora".
       `total = subtotal - discount`, y eso es lo que va a Stripe.
 
-Hay un test que lo verifica de punta a punta: `scripts/verificar_promo.py`
-compara lo que dice la ficha, lo que dice el carrito y lo que se le manda a
-Stripe. Si los tres no coinciden, falla.
+Hay un verificador que lo comprueba de punta a punta:
+
+    python scripts/verificar_promo.py --url https://miamiimport.com.ar
+
+Recorre una compra de verdad —ficha → carrito → checkout— y exige que las
+cuatro pantallas digan el mismo número. Sale con código 1 si no cierra.
+
+🔴 Corrélo DESPUÉS de tocar cualquier cosa que dibuje o cobre un precio, y
+contra PRODUCCIÓN, no contra local. Este docstring prometía ese archivo desde
+el 10-sep y el archivo no existía: en esos días `/checkout` estuvo rotulando
+"Total" al subtotal SIN descuento y disparando el aviso "el precio se
+actualizó, revisá antes de pagar" en el 100% de las compras. Se cobraba bien
+—el PaymentIntent siempre salió de `order.total`— pero la última pantalla
+antes de pagar decía otro número. Nadie lo vio porque un JS lo pisaba dos
+líneas después. Una promesa de test sin test es peor que no tener test.
 """
 from __future__ import annotations
 

@@ -87,9 +87,29 @@
         <div style="font-size:13px;font-weight:600;color:var(--mi-ink)">{{ it.line_total | money(it.currency) }}</div>
       </div>
       {% endfor %}
+      {# 🔴 El desglose NO es cosmético: hasta el 10-sep esta pantalla rotulaba
+         "Total" al subtotal SIN descuento. El cliente venía viendo −15% en la
+         home, el listado y la ficha, llegaba a pagar y le aparecía el precio
+         entero. Se cobraba bien —el PaymentIntent siempre salió de
+         `order.total`— pero la pantalla del último paso decía otra cosa, que
+         es donde se pierde la venta. Las tres cifras salen de `cart_summary`,
+         que le pregunta a core/promo.py: acá no se calcula nada. #}
+      {% if cart['descuento_raw'] %}
+      <div style="display:flex;justify-content:space-between;margin-top:18px;font-size:14px;color:var(--mi-ink)">
+        <span>Subtotal</span><span>{{ cart['subtotal'] | money(cart['currency']) }}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:14px;color:var(--mi-promo,#B3261E)">
+        <span>{{ cart['porcentaje_promo'] }}% OFF</span>
+        <span>&minus; {{ cart['descuento'] | money(cart['currency']) }}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--mi-line);font-size:16px;font-weight:700;color:var(--mi-ink)">
+        <span>Total</span><span id="total-final" style="color:var(--mi-accent,#15161A)">{{ cart['total'] | money(cart['currency']) }}</span>
+      </div>
+      {% else %}
       <div style="display:flex;justify-content:space-between;margin-top:18px;font-size:16px;font-weight:700;color:var(--mi-ink)">
         <span>Total</span><span id="total-final" style="color:var(--mi-accent,#15161A)">{{ cart['subtotal'] | money(cart['currency']) }}</span>
       </div>
+      {% endif %}
       {% if cart['price_changed'] %}
       <p style="color:#dca06a;font-size:12px;margin-top:10px">
         Algunos precios cambiaron desde que agregaste los productos. El total de arriba es el vigente.
@@ -148,7 +168,14 @@
       // El monto se recalcula server-side al crear el intent. Si cambió respecto
       // de lo que el cliente tiene en pantalla (el panel pudo repreciar), hay que
       // avisarlo ANTES de cobrar: si no, paga viendo un número y se le debita otro.
-      const esperado = {{ cart['subtotal_raw'] | default(0) }};
+      //
+      // 🔴 Se compara contra el TOTAL —lo que la pantalla dice que se va a
+      // cobrar—, no contra el subtotal de lista. Con `subtotal_raw` la
+      // diferencia era exactamente el 15% del carrito, o sea que el aviso
+      // "el precio se actualizó, revisá antes de pagar" saltaba en el 100%
+      // de las compras. Un guardián que salta siempre no protege: entrena a
+      // ignorarlo, y el día que el panel repricie de verdad nadie lo va a leer.
+      const esperado = {{ cart['total_raw'] | default(0) }};
       const aCobrar = parseFloat(data.amount);
       if (esperado && Math.abs(aCobrar - esperado) > 0.5) {
         const fmt = n => '$ ' + Math.round(n).toLocaleString('es-AR');
