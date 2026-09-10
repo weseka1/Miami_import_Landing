@@ -11,16 +11,14 @@
 {# ---------- HERO (video branded) ---------- #}
 {% include "miami-hero-video.tpl" %}
 
-{# ---------- TICKER ---------- #}
-<div class="h-ticker">
-  <div class="h-ticker__track" data-miami-marquee>
-    <span>MILANO → BUENOS AIRES</span><span>·</span>
-    <span>ORIGINALES CON LICENCIA</span><span>·</span>
-    <span>UNIDADES CONTADAS</span><span>·</span>
-    <span>DOC. DE ORIGEN POR PIEZA</span><span>·</span>
-    <span>ATENCIÓN 1:1 POR WHATSAPP</span><span>·</span>
-  </div>
-</div>
+{# La cinta va JUSTO despues del hero: es el corte entre "esto es la casa" y
+   "esto es lo que hay".
+   🔴 REEMPLAZA al ticker viejo (`h-ticker`), no se suma: ya habia una tira ahi
+   con casi el mismo texto. La vieja se duplicaba por JS
+   (`innerHTML + innerHTML` en miami-scripts), asi que hasta que corria el
+   script se veia media tira y despues saltaba; esta se duplica en la
+   plantilla y sale entera desde el primer cuadro. #}
+{% include "miami-cinta.tpl" %}
 
 {# ---------- CÁPSULA 3D (cinematic, camperas) — arriba, respeta la lógica original ---------- #}
 {% include "miami-vitrina-glass.tpl" %}

@@ -480,6 +480,10 @@
 
   {# Mia — chat de la casa (FAB + panel, todas las páginas) #}
   {% include "miami-mia.tpl" %}
+  {# El aviso de la promo. Va DESPUES de Mia y antes de los scripts: es lo
+     ultimo que se pinta, asi no compite con el hero por el primer cuadro.
+     El snipplet decide solo si se muestra (no aparece en carrito/checkout). #}
+  {% include "miami-promo-aviso.tpl" %}
 
   {# Scripts propios: carrusel trilogía, reveal, marquee, tilt 3D, hero parallax, vanta init #}
   {% include "miami-scripts.tpl" %}
