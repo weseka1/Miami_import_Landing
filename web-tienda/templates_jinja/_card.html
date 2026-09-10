@@ -8,7 +8,8 @@
 {% set usd = (p.variants[0].usd_price if p.variants and p.variants[0].usd_price
               else (ars | float / usd_rate if ars and usd_rate else None)) %}
 <a class="mi-card" href="/productos/{{ p.handle }}/">
-  {% if p.total_stock == 0 %}<span class="mi-soldout">Agotado</span>{% endif %}
+  {% if p.total_stock == 0 %}<span class="mi-soldout">Agotado</span>
+  {% elif promo().vigente %}<span class="mi-off">−{{ promo().porcentaje }}%</span>{% endif %}
   {# La prenda ENTERA sobre fondo liso. Antes el cuadro se rellenaba con la
      misma foto difuminada: ensuciaba el encuadre y se veia la prenda dos
      veces. Juani: "debe verse completa la imagen sin rellenar con desenfoque". #}
@@ -18,10 +19,21 @@
   <div class="mi-card__body">
     <div class="mi-card__brand">{{ p.brand or '' }}</div>
     <div class="mi-card__name">{{ p.name }}</div>
-    <div class="miami-price-dual">
-      <span class="miami-price-usd">{{ usd | usd }}</span>
-      <span class="miami-price-ars-label">Precio en pesos</span>
-      <span class="miami-price-ars">{{ ars | ars }}</span>
+    {# El precio con promo NO se calcula acá: sale del mismo `con_promo` que
+       usa el checkout para cobrar. Si un día se apaga la promo, esto vuelve
+       solo a mostrar un precio único, sin tocar la plantilla. #}
+    {% set pr = promo() %}
+    <div class="miami-price-dual{% if pr.vigente %} tiene-promo{% endif %}">
+      {% if pr.vigente %}
+        <span class="mi-precio-antes">{{ usd | usd }}</span>
+        <span class="miami-price-usd">{{ usd | con_promo | usd }}</span>
+        <span class="miami-price-ars-label">Precio en pesos</span>
+        <span class="miami-price-ars">{{ ars | con_promo | ars }}</span>
+      {% else %}
+        <span class="miami-price-usd">{{ usd | usd }}</span>
+        <span class="miami-price-ars-label">Precio en pesos</span>
+        <span class="miami-price-ars">{{ ars | ars }}</span>
+      {% endif %}
     </div>
   </div>
 </a>

@@ -56,6 +56,14 @@
   --mi-shadow-lift:0 30px 64px rgba(21,22,26,.13), 0 3px 10px rgba(21,22,26,.05);
 
   --mi-ease:cubic-bezier(.16,1,.3,1);
+
+  {# El ÚNICO color de toda la paleta. La casa es monocroma a propósito, pero
+     un descuento pintado del mismo gris que el resto no se lee como descuento:
+     la gente busca el rojo. Se usa SOLO en el sello y en la línea del ahorro —
+     nunca en fondos ni en decoración, que es lo que da "groncho".
+     Medido: 5,9:1 sobre el fondo de la casa, y blanco encima da 4,6:1.
+     Para matar la promo entera: `activa: False` en core/promo.py. #}
+  --mi-promo:#B3261E;
 }
 
 /* Utilidad glass reusable (para cualquier superficie nueva) */

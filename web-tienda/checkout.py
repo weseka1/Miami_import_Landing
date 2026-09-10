@@ -42,6 +42,7 @@ from auth_store import current_user
 from cart import get_or_create_cart, resolve_cart
 from core import mailer
 from core.config import settings
+from core import promo
 from core.db import get_db
 from core.models import (
     AuditLog, Cart, CartItem, Order, OrderItem, Payment, User, Variant, WebhookEvent,
@@ -387,6 +388,7 @@ def _create_intent_once(body: dict, request: Request, db: Session,
     # variante. En SQLite local es no-op (no hay lock de fila); el deploy real
     # es Postgres, donde sí aplica.
     subtotal = Decimal("0")
+    descuento = Decimal("0")
     snapshot = []
     monedas: set[str] = set()
     for it in sorted(cart.items, key=lambda x: x.variant_id or 0):  # orden fijo: evita deadlocks
@@ -411,6 +413,12 @@ def _create_intent_once(body: dict, request: Request, db: Session,
         monedas.add((v.currency or settings.CHECKOUT_CURRENCY).strip().lower())
         line = price * it.quantity
         subtotal += line
+        # 🔴 El descuento se acumula APARTE y se resta UNA sola vez, al final.
+        # El item guarda el precio de LISTA: asi el comprobante puede mostrar
+        # "antes / ahorro / ahora" y `sum(item.subtotal) == order.subtotal`
+        # sigue valiendo. Restarselo tambien al precio unitario seria cobrarlo
+        # dos veces. Quien sabe restar es core/promo.py, nadie mas.
+        descuento += promo.ahorro(price) * it.quantity
         snapshot.append((v, it.quantity, price, line))
 
     # Un PaymentIntent cobra en UNA sola moneda. Si el carrito mezcla, no se
@@ -421,7 +429,8 @@ def _create_intent_once(body: dict, request: Request, db: Session,
             409, "No se pueden comprar juntos productos en distintas monedas. "
                  "Dejá uno solo en el carrito y hacé la compra por separado.")
 
-    total = subtotal  # MVP: sin costo de envío (se suma al confirmar logística)
+    # MVP: sin costo de envío (se suma al confirmar logística).
+    total = subtotal - descuento
     if total <= 0:
         db.rollback()
         raise HTTPException(400, "El total del pedido es inválido")
@@ -435,7 +444,7 @@ def _create_intent_once(body: dict, request: Request, db: Session,
         cart_id=cart.id, email=email,
         contact_name=shipping.get("full_name"), contact_phone=shipping.get("phone"),
         status="pending", payment_status="pending", currency=currency.upper()[:3],
-        subtotal=subtotal, shipping_cost=Decimal("0"), discount=Decimal("0"), total=total,
+        subtotal=subtotal, shipping_cost=Decimal("0"), discount=descuento, total=total,
         shipping_address=shipping, stock_reserved=True,
     )
     # Se usa la relación (no order_id=...) porque el id todavía no existe: lo

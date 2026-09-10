@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from core.config import settings
 from core.db import get_db
 from core.models import Cart, CartItem, User, Variant
+from core import promo
 from deps import current_user
 
 COOKIE_NAME = "mi_cart"
@@ -89,6 +90,8 @@ def cart_summary(cart: Cart | None) -> dict:
     """
     if not cart:
         return {"items": [], "count": 0, "subtotal": "0.00", "subtotal_raw": 0.0,
+                "descuento": "0.00", "descuento_raw": 0.0, "porcentaje_promo": 0,
+                "total": "0.00", "total_raw": 0.0,
                 "price_changed": False}
     items = []
     subtotal = Decimal("0")
@@ -127,6 +130,12 @@ def cart_summary(cart: Cart | None) -> dict:
     # Moneda del carrito. Si hay mezcla, el checkout la rechaza (un cobro no
     # puede tener dos monedas); acá se informa para poder avisarlo antes.
     monedas = {i["currency"] for i in items}
+    # 🔴 El descuento se calcula ACA y en checkout.py, y los dos preguntan a
+    # core/promo.py. Nunca se resta un porcentaje "a mano" sobre el subtotal:
+    # ese es el camino a cobrar dos veces el descuento.
+    descuento = sum((promo.ahorro(i["unit_price"]) * i["quantity"] for i in items),
+                    Decimal("0"))
+    total = subtotal - descuento
     return {
         "items": items,
         "count": count,
@@ -134,6 +143,11 @@ def cart_summary(cart: Cart | None) -> dict:
         "mixed_currency": len(monedas) > 1,
         "subtotal": f"{subtotal:.2f}",
         "subtotal_raw": float(subtotal),
+        "descuento": f"{descuento:.2f}",
+        "descuento_raw": float(descuento),
+        "porcentaje_promo": promo.porcentaje(),
+        "total": f"{total:.2f}",
+        "total_raw": float(total),
         "price_changed": any_changed,
     }
 

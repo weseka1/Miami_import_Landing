@@ -79,10 +79,22 @@
       <div style="font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:var(--mi-accent,#15161A);margin-bottom:10px">{{ product.brand }}</div>
       <h1 style="font-size:clamp(24px,3.5vw,38px);line-height:1.15;margin:0 0 24px;font-weight:700">{{ product.name }}</h1>
 
-      <div class="miami-price-dual" style="margin-bottom:30px">
-        <span class="miami-price-usd">{{ usd | usd }}</span>
-        <span class="miami-price-ars-label">Precio en pesos</span>
-        <span class="miami-price-ars">{{ ars | ars }}</span>
+      {% set pr = promo() %}
+      <div class="miami-price-dual{% if pr.vigente %} tiene-promo{% endif %}" style="margin-bottom:30px">
+        {% if pr.vigente %}
+          <div class="mi-promo-fila">
+            <span class="mi-precio-antes">{{ usd | usd }}</span>
+            <span class="mi-off mi-off--linea">−{{ pr.porcentaje }}%</span>
+          </div>
+          <span class="miami-price-usd">{{ usd | con_promo | usd }}</span>
+          <span class="miami-price-ars-label">Precio en pesos</span>
+          <span class="miami-price-ars">{{ ars | con_promo | ars }}</span>
+          <p class="mi-promo-ahorro">Te ahorrás {{ ars | ahorro | ars }} con el {{ pr.porcentaje }}% de toda la tienda.</p>
+        {% else %}
+          <span class="miami-price-usd">{{ usd | usd }}</span>
+          <span class="miami-price-ars-label">Precio en pesos</span>
+          <span class="miami-price-ars">{{ ars | ars }}</span>
+        {% endif %}
       </div>
 
       {% set disponibles = product.variants | selectattr('stock', 'gt', 0) | list %}

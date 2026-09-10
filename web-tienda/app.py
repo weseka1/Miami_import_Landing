@@ -35,7 +35,7 @@ from core.config import settings
 from core.db import get_db, init_db
 from core.home_config import get_home_config
 from core.models import Category, Order, Product, User
-from core import seo
+from core import seo, promo
 from core.web_security import install_security
 from deps import current_user
 from mia import mia_router
@@ -137,6 +137,11 @@ templates.env.filters["has_custom_image"] = lambda p: False
 # {{ url | thumb(640) }} -> foto redimensionada al vuelo (ver core/storage.py)
 templates.env.filters["thumb"] = storage.thumb_url
 templates.env.filters["jsonld_txt"] = seo.serializar
+# La promo: las plantillas NUNCA restan un porcentaje. Preguntan acá, que es la
+# misma función que usa el checkout para cobrar. Ver core/promo.py.
+templates.env.globals["promo"] = promo.datos
+templates.env.filters["con_promo"] = promo.aplicar
+templates.env.filters["ahorro"] = promo.ahorro
 templates.env.globals["store"] = {"products_url": "/productos"}
 
 

@@ -62,6 +62,41 @@
     a{color:inherit;text-decoration:none}
     img{max-width:100%;display:block}
     .mi-container{max-width:1280px;margin:0 auto;padding:0 24px}
+
+    /* ── Barra de anuncios / promo ─────────────────────────────────────────
+       Antes era un div con estilos inline. Pasa a clase porque la promo la
+       cambia y un inline no se puede pisar desde una media query — la misma
+       trampa que dejó el carrito sin botón de pagar en el celular. */
+    .mi-adbar{background:var(--mi-accent);color:var(--mi-bg-2);text-align:center;
+      font-size:11px;letter-spacing:.18em;text-transform:uppercase;padding:8px 16px;font-weight:600}
+    .mi-adbar--promo{display:flex;align-items:center;justify-content:center;
+      gap:10px 22px;flex-wrap:wrap;padding:11px 16px;letter-spacing:.14em}
+    .mi-adbar__promo{display:inline-flex;align-items:center;gap:12px;color:inherit}
+    .mi-adbar__promo strong{font-size:clamp(15px,2.1vw,20px);letter-spacing:.04em;
+      font-weight:800;line-height:1}
+    .mi-adbar__promo em{font-style:normal;opacity:.92}
+    .mi-adbar__sep{opacity:.45}
+    .mi-adbar__cta{border:1px solid rgba(255,255,255,.45);border-radius:999px;
+      padding:5px 12px;font-size:10px;letter-spacing:.14em;white-space:nowrap;
+      transition:background .3s var(--mi-ease)}
+    .mi-adbar__promo:hover .mi-adbar__cta{background:rgba(255,255,255,.16)}
+    /* El aviso de siempre no se tira: se achica y queda de contexto. En el
+       celular no entra en el mismo renglón y sólo estorba, así que se oculta. */
+    .mi-adbar__resto{font-size:9.5px;letter-spacing:.1em;opacity:.62}
+    @media (max-width:900px){ .mi-adbar__resto{display:none} }
+
+    /* ── Precio con promo ──────────────────────────────────────────────── */
+    .mi-precio-antes{display:inline-block;text-decoration:line-through;
+      text-decoration-thickness:1.5px;color:var(--mi-ink-mute);
+      font-size:.82em;margin-right:8px;font-variant-numeric:tabular-nums}
+    .mi-off{position:absolute;top:12px;left:12px;z-index:3;
+      background:var(--mi-promo);color:#fff;border-radius:999px;
+      padding:5px 11px;font-size:11px;font-weight:800;letter-spacing:.06em;
+      font-variant-numeric:tabular-nums}
+    .mi-off--linea{position:static;padding:3px 9px;font-size:10.5px}
+    .mi-promo-fila{display:flex;align-items:center;gap:10px;margin-bottom:2px}
+    .mi-promo-ahorro{margin:8px 0 0;font-size:12.5px;line-height:1.5;
+      color:var(--mi-promo);font-weight:600}
     /* Header */
     .mi-header{position:sticky;top:0;z-index:200;background:rgba(251,251,250,.92);
       backdrop-filter:blur(8px);border-bottom:1px solid rgba(21,22,26,.18)}
@@ -292,9 +327,24 @@
      El snippet de precios contempla que la clase `is-preloading` no esté: en
      ese caso muestra el aviso directamente. #}
 
-  <div class="mi-adbar" style="background:var(--mi-accent);color:var(--mi-bg);text-align:center;
-    font-size:11px;letter-spacing:.18em;text-transform:uppercase;padding:8px 16px;font-weight:600">
-    Envíos a todo el país · Importación con licencia de origen · Atención por WhatsApp
+  {# La barra de arriba PASA A SER la promo cuando hay una.
+     Llamativo acá no se consigue con un color chillón —la casa es monocroma y
+     un neón la rompe—: se consigue con CONTRASTE. En una web toda gris clara,
+     una franja negra de lado a lado con el número grande es lo más fuerte que
+     hay. Los avisos de siempre no se pierden: pasan atrás, en el mismo renglón. #}
+  {% set pr = promo() %}
+  <div class="mi-adbar{% if pr.vigente %} mi-adbar--promo{% endif %}">
+    {% if pr.vigente %}
+      <a href="/productos" class="mi-adbar__promo">
+        <strong>{{ pr.titulo }}</strong>
+        <span class="mi-adbar__sep">·</span>
+        <em>{{ pr.bajada }}</em>
+        <span class="mi-adbar__cta">Ver catálogo →</span>
+      </a>
+      <span class="mi-adbar__resto">Envíos a todo el país · Importación con licencia de origen · Atención por WhatsApp</span>
+    {% else %}
+      Envíos a todo el país · Importación con licencia de origen · Atención por WhatsApp
+    {% endif %}
   </div>
   <header class="mi-header">
     <div class="mi-container mi-header__bar">

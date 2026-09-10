@@ -75,9 +75,24 @@
         <div class="mi-cart-sum__fila">
           <span>Subtotal</span><span data-subtotal>{{ cart['subtotal'] | money(cart['currency']) }}</span>
         </div>
+        {# El descuento se muestra como LINEA aparte, con el subtotal sin tocar
+           arriba. Es lo que se le cobra y es lo que va a quedar en el
+           comprobante: si el resumen dijera sólo el total ya rebajado, el
+           cliente no ve el beneficio y encima no cuadra con el mail. #}
+        {% if cart['descuento_raw'] %}
+        <div class="mi-cart-sum__fila mi-cart-sum__fila--off">
+          <span>{{ cart['porcentaje_promo'] }}% OFF de toda la tienda</span>
+          <span data-descuento>− {{ cart['descuento'] | money(cart['currency']) }}</span>
+        </div>
+        {% endif %}
         <div class="mi-cart-sum__fila mi-cart-sum__fila--soft">
           <span>Envío</span><span>Se calcula al finalizar</span>
         </div>
+        {% if cart['descuento_raw'] %}
+        <div class="mi-cart-sum__fila mi-cart-sum__fila--total">
+          <span>Total</span><span data-total>{{ cart['total'] | money(cart['currency']) }}</span>
+        </div>
+        {% endif %}
         <a href="/checkout" class="mi-cart-sum__cta">Finalizar compra →</a>
         <p class="mi-cart-sum__pago">Tarjeta de crédito, débito o transferencia.</p>
         <a href="/productos" class="mi-cart-sum__seguir">Seguir comprando</a>
@@ -92,8 +107,8 @@
        botón siempre a la vista, como cualquier tienda seria en mobile. #}
     <div class="mi-cart-bar" role="region" aria-label="Total y finalizar compra">
       <div>
-        <span>Subtotal</span>
-        <strong data-subtotal>{{ cart['subtotal'] | money(cart['currency']) }}</strong>
+        <span>{% if cart['descuento_raw'] %}Total con {{ cart['porcentaje_promo'] }}% OFF{% else %}Subtotal{% endif %}</span>
+        <strong data-total-barra>{{ cart['total'] | money(cart['currency']) }}</strong>
       </div>
       <a href="/checkout">Finalizar compra →</a>
     </div>
@@ -209,6 +224,14 @@
   @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
     .mi-cart-sum,.mi-cart-bar{background:var(--mi-bg-2)}
   }
+  /* --- Promo en el resumen --- */
+  /* El importe no se parte: "− $ / 124.286" en dos renglones se lee como dos
+     numeros distintos justo en la linea del beneficio. */
+  .mi-cart-sum__fila--off{color:var(--mi-promo);font-weight:600}
+  .mi-cart-sum__fila--off span:last-child{white-space:nowrap}
+  .mi-cart-sum__fila--off span:first-child{line-height:1.35}
+  .mi-cart-sum__fila--total{margin-top:14px;padding-top:14px;
+    border-top:1px solid var(--mi-line);font-size:17px;font-weight:600}
   @media (prefers-reduced-motion:reduce){ .mi-cart-sum__cta{transition:none} }
 </style>
 {% endblock %}
@@ -247,12 +270,18 @@
         aviso.textContent = (it.stock === 1) ? 'Última unidad' : 'No queda más stock de este talle';
       }
     });
-    // querySelectorAll, no querySelector: el subtotal se muestra en DOS lugares
-    // (el resumen y la barra fija del celular). Con querySelector se actualizaba
-    // solo el primero y la barra le quedaba mostrando el total viejo al cliente
-    // justo antes de que apriete pagar.
-    const total = money(summary.subtotal_raw, summary.currency);
-    document.querySelectorAll('[data-subtotal]').forEach(function(el){ el.textContent = total; });
+    // querySelectorAll, no querySelector: los importes se muestran en varios
+    // lugares (el resumen y la barra fija del celular). Con querySelector se
+    // actualizaba solo el primero y la barra le quedaba mostrando el total
+    // viejo al cliente justo antes de que apriete pagar.
+    //
+    // 🔴 Los tres numeros salen del SERVIDOR (summary), no se calculan acá. El
+    // navegador no resta el 15%: si lo hiciera, tendriamos dos formulas para el
+    // mismo precio y el dia que cambie el porcentaje una de las dos queda vieja.
+    const fmt = (n) => money(n, summary.currency);
+    document.querySelectorAll('[data-subtotal]').forEach(e => e.textContent = fmt(summary.subtotal_raw));
+    document.querySelectorAll('[data-descuento]').forEach(e => e.textContent = '− ' + fmt(summary.descuento_raw));
+    document.querySelectorAll('[data-total],[data-total-barra]').forEach(e => e.textContent = fmt(summary.total_raw));
     const badge = document.querySelector('[data-cart-count]'); if(badge) badge.textContent = summary.count;
   }
   document.querySelectorAll('.mi-qty').forEach(function(b){
