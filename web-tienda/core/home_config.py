@@ -49,6 +49,25 @@ DEFAULTS: dict[str, Any] = {
         # extra). Asi no puede volver a quedar desactualizada.
         # Si Diego carga piezas a mano desde el panel, esas ganan.
         "piezas": [],
+
+        # --- Piezas FIJADAS: curaduria sin volver a la trampa de arriba -------
+        # Aca no va la pieza escrita a mano: va el HANDLE del producto real.
+        # app.py la busca en la base cada vez, y **la ignora sola** si dejo de
+        # estar publicada o se quedo sin stock. Es la diferencia con el bloque
+        # de arriba: una pieza fijada no puede quedar mostrandose meses despues
+        # de que Diego dejo de venderla, porque no es texto — es una consulta.
+        #
+        # `genero` es opcional y sirve para decidir en que pestana aparece
+        # (Hombre / Mujer). Sin el, se deduce del nombre, que es lo que hace
+        # que un "Buzo Over" siempre caiga en Hombre. Ponerlo es una decision
+        # de vidriera, no una afirmacion sobre la prenda.
+        "fijadas": [
+            # Pedido de Juani (8-sep): sacar el vestido Diesel de la pestana
+            # Mujer y poner algo de Supreme. De las 3 piezas Supreme del
+            # catalogo, esta es la UNICA con stock (M y L): el buzo negro
+            # —el que mejor se ve— esta agotado en todos los talles.
+            {"handle": "supreme-buzo-supreme-camuflado-over", "genero": "mujer"},
+        ],
     },
     "marcas": {
         "activo": True,

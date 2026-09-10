@@ -412,13 +412,20 @@ def diag():
 
 
 
-def _vitrina_desde_catalogo(productos, limite: int = 6) -> list[dict]:
+def _vitrina_desde_catalogo(productos, limite: int = 6,
+                            genero_fijado: dict[str, str] | None = None) -> list[dict]:
     """Convierte productos reales en las piezas de la vitrina de la home.
 
     El genero decide el switch Hombre/Mujer y no existe como campo, asi que se
     lee del nombre y de las categorias. Ante la duda queda en hombre, que es
     donde esta el grueso del catalogo.
+
+    `genero_fijado` (handle -> "hombre"|"mujer") pisa esa deduccion para las
+    piezas fijadas desde la config. Hace falta porque el nombre manda: un
+    "Buzo Supreme camuflado Over" cae SIEMPRE en hombre, y entonces no hay
+    forma de ponerlo en la pestana Mujer aunque se quiera.
     """
+    genero_fijado = genero_fijado or {}
     MUJER = ("dama", "mujer", "femenin", "top ", "vestido", "pollera", "corpi")
     piezas, n_h, n_m = [], 0, 0
     for p in productos or []:
@@ -426,7 +433,8 @@ def _vitrina_desde_catalogo(productos, limite: int = 6) -> list[dict]:
             continue
         txt = (p.name or "").lower() + " " + " ".join(
             (c.name or "").lower() for c in (getattr(p, "categories", None) or []))
-        es_mujer = any(w in txt for w in MUJER)
+        forzado = genero_fijado.get(getattr(p, "handle", "") or "")
+        es_mujer = (forzado == "mujer") if forzado else any(w in txt for w in MUJER)
         if es_mujer:
             n_m += 1
         else:
@@ -521,8 +529,29 @@ def home(request: Request, db: Session = Depends(get_db)):
     # escritas a mano que quedaron meses despues de dejar de venderse.
     home_cfg = home_config_cacheada(db)
     if not (home_cfg.get("vitrina") or {}).get("piezas"):
+        # Piezas FIJADAS: van adelante, pero se buscan en la base cada vez. Si
+        # una dejo de estar publicada o se quedo sin stock, no entra y la
+        # vitrina se completa sola. Por eso no puede repetirse lo de las
+        # camperas "trilogy", que eran texto fijo y siguieron meses en pantalla
+        # despues de que Diego dejo de venderlas.
+        fijadas = (home_cfg.get("vitrina") or {}).get("fijadas") or []
+        handles = [f.get("handle") for f in fijadas if f.get("handle")]
+        genero_fijado = {f["handle"]: f["genero"] for f in fijadas
+                         if f.get("handle") and f.get("genero")}
+        adelante = []
+        if handles:
+            encontrados = {p.handle: p for p in
+                           _con_relaciones(db)
+                           .filter(Product.published.is_(True),
+                                   Product.handle.in_(handles)).all()}
+            # Se respeta el ORDEN de la config, no el de la base.
+            adelante = [encontrados[h] for h in handles
+                        if h in encontrados and encontrados[h].total_stock > 0]
+        ya = {p.id for p in adelante}
+        lista = adelante + [p for p in destacados if p.id not in ya]
         home_cfg = {**home_cfg, "vitrina": {**home_cfg.get("vitrina", {}),
-                                            "piezas": _vitrina_desde_catalogo(destacados)}}
+                                            "piezas": _vitrina_desde_catalogo(
+                                                lista, genero_fijado=genero_fijado)}}
 
     return templates.TemplateResponse(
         request, "home.html",
