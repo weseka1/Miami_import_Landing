@@ -38,11 +38,22 @@ PROMO: dict = {
     # Entero, en por ciento. 15 = quince por ciento de descuento.
     "porcentaje": 15,
     "titulo": "15% OFF",
-    "bajada": "En toda la tienda",
-    # Fecha de fin (AAAA-MM-DD) o None. Cuando pasa, la promo se apaga SOLA:
-    # una promo que quedó prendida tres meses deja de ser una promo y pasa a
-    # ser el precio — y encima el "antes" tachado se vuelve mentira, que es
-    # exactamente lo que mira Defensa del Consumidor.
+    # La bajada dice POR QUÉ hay descuento, y eso no es adorno: un "15% OFF"
+    # pelado y permanente se lee como que el precio de antes estaba inflado.
+    # Con el motivo —Diego está de viaje comprando— el descuento tiene una
+    # causa verdadera, se entiende que es una ventana, y encima refuerza lo
+    # único que esta tienda tiene y las demás no: que él viaja y compra.
+    "bajada": "En toda la tienda, mientras Diego está de viaje",
+    # Fecha de fin (AAAA-MM-DD) o None → la promo se apaga sola al pasar.
+    #
+    # 🔴 HOY VA SIN FECHA, por decisión de Juani (10-sep): "descuento en TODO,
+    # hasta que Diego vuelve de viaje… indefinido". Se le advirtió el riesgo y
+    # lo confirmó, así que queda así.
+    # El riesgo, escrito para el que lo lea en dos meses: una promo prendida
+    # demasiado tiempo deja de ser promo y pasa a ser el precio — y ahí el
+    # "antes" tachado se vuelve un precio que ya nadie paga, que es
+    # exactamente lo que se mira en un reclamo de Defensa del Consumidor.
+    # Cuando Diego vuelva: `activa: False`, o poner acá la fecha.
     "hasta": None,
 }
 

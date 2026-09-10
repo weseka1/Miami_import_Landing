@@ -17,8 +17,18 @@
   <meta property="og:image:alt" content="{{ product.name }}"/>
   {# `usd` se calcula en el bloque content y NO llega hasta acá (cada bloque de
      Jinja tiene su propio alcance), así que se recalcula al vuelo. #}
-  {% set og_usd = product.variants[0].usd_price if product.variants and product.variants[0].usd_price else None %}
-  <meta property="og:description" content="{% if og_usd %}{{ og_usd | usd }} · {% endif %}{{ product.brand or STORE_NAME }} · Pieza #{{ product.id }}"/>
+  {# Mismo calculo que el cuerpo de la ficha: si la variante no tiene usd_price
+     cargado, se saca del precio en pesos. Sin este respaldo la preview de
+     WhatsApp salia SIN precio —le pasaba a todo producto al que Diego no le
+     cargo el dolar a mano—, y un link compartido sin precio es medio link. #}
+  {% set og_usd = (product.variants[0].usd_price if product.variants and product.variants[0].usd_price
+                   else (product.min_price | float / usd_rate if product.min_price and usd_rate else None)) %}
+  {# El precio de la preview va CON descuento. Si acá fuera el de lista, el
+     cliente comparte la pieza por WhatsApp, del otro lado leen un precio y al
+     entrar a la web ven otro: parece que el descuento no existe o que le
+     cambiaron el precio. Va también el sello, que es lo que hace que alguien
+     abra el link. #}
+  <meta property="og:description" content="{% if promo().vigente %}{{ promo().titulo }} · {% endif %}{% if og_usd %}{{ og_usd | con_promo | usd }}{% if promo().vigente %} (antes {{ og_usd | usd }}){% endif %} · {% endif %}{{ product.brand or STORE_NAME }} · Pieza #{{ product.id }}"/>
   {% if product.images %}<meta property="og:image" content="{{ product.images[0].url | thumb(1200, 80) }}"/>{% endif %}
 {% endblock %}
 

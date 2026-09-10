@@ -172,6 +172,32 @@ def _total(order) -> str:
     return _pesos(order.total)
 
 
+def _bloque_total(order) -> str:
+    """El total del mail, con la linea del descuento si la orden lo tiene.
+
+    Sin esto el mail queda incoherente: las filas de arriba muestran el precio
+    de LISTA de cada pieza (que es lo que guarda `OrderItem.unit_price`) y abajo
+    aparece un total mas bajo, sin explicar por que. El cliente hace la cuenta,
+    no le da, y escribe preguntando si le cobraron mal.
+    """
+    desc = getattr(order, "discount", None) or 0
+    if not desc:
+        return ('<p style="font-size:16px;margin:14px 0 4px">'
+                f'<strong>Total: {_pesos(order.total)}</strong></p>')
+    return (
+        '<table style="width:100%;border-collapse:collapse;font-size:14px;'
+        'color:#1a1a1a;margin:14px 0 4px">'
+        f'<tr><td style="padding:3px 0">Subtotal</td>'
+        f'<td style="padding:3px 0;text-align:right">{_pesos(order.subtotal)}</td></tr>'
+        f'<tr><td style="padding:3px 0;color:#B3261E">Descuento</td>'
+        f'<td style="padding:3px 0;text-align:right;color:#B3261E">'
+        f'&minus; {_pesos(desc)}</td></tr>'
+        f'<tr><td style="padding:8px 0 0;border-top:1px solid #ddd;font-size:16px">'
+        f'<strong>Total</strong></td>'
+        f'<td style="padding:8px 0 0;border-top:1px solid #ddd;text-align:right;'
+        f'font-size:16px"><strong>{_pesos(order.total)}</strong></td></tr></table>')
+
+
 # --------------------------------------------------------------------------- #
 # Los tres avisos
 # --------------------------------------------------------------------------- #
@@ -234,7 +260,7 @@ def avisar_pedido_nuevo(order) -> None:
       <p style="color:#444;line-height:1.6">Entró un pedido en la web y el pago está
       <strong>pendiente</strong>. Este es el momento de escribirle al cliente y cerrarlo.</p>
       <table style="width:100%;border-collapse:collapse;font-size:14px;color:#1a1a1a">{_filas_items(order)}</table>
-      <p style="font-size:16px;margin:14px 0 4px"><strong>Total: {_total(order)}</strong></p>
+      {_bloque_total(order)}
       <p style="color:#444;font-size:14px;line-height:1.7;margin:14px 0 0">
         <strong>{order.contact_name or 'Sin nombre'}</strong><br/>
         {order.email or 'sin email'} · {tel}<br/>{_direccion(order)}</p>
@@ -262,7 +288,7 @@ def avisar_pago_acreditado(order) -> None:
       <p style="color:#444;line-height:1.6">💰 <strong>Pago acreditado.</strong> El pedido queda listo para despachar.</p>
       {_bloque_stripe(order)}
       <table style="width:100%;border-collapse:collapse;font-size:14px;color:#1a1a1a">{_filas_items(order)}</table>
-      <p style="font-size:16px;margin:14px 0 4px"><strong>Total: {_total(order)}</strong></p>
+      {_bloque_total(order)}
       <p style="color:#444;font-size:14px;line-height:1.7;margin:14px 0 0">
         <strong>{order.contact_name or 'Sin nombre'}</strong><br/>
         {order.email or 'sin email'} · {tel}<br/>{_direccion(order)}</p>
@@ -282,7 +308,7 @@ def confirmar_al_cliente(order) -> None:
       <p style="color:#444;line-height:1.7">¡{nombre}, gracias por tu compra!
       Tu pago quedó acreditado y ya estamos preparando tu pedido.</p>
       <table style="width:100%;border-collapse:collapse;font-size:14px;color:#1a1a1a">{_filas_items(order)}</table>
-      <p style="font-size:16px;margin:14px 0 4px"><strong>Total: {_total(order)}</strong></p>
+      {_bloque_total(order)}
       {_bloque_stripe(order, para_cliente=True)}
       <p style="color:#444;font-size:14px;line-height:1.7;margin:14px 0 0">
         <strong>Envío a:</strong><br/>{_direccion(order)}</p>

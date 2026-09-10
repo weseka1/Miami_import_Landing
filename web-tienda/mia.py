@@ -26,6 +26,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from core.db import get_db
 from core.models import Product
+from core import promo
 
 HERE = Path(__file__).resolve().parent
 
@@ -75,6 +76,26 @@ def _rate_limited(ip: str) -> bool:
 # ---------------------------------------------------------------------------
 # Helpers de formato
 # ---------------------------------------------------------------------------
+def _linea_promo() -> str:
+    """Lo que Mia tiene que saber de la promo, o nada si no hay.
+
+    Los precios del catálogo que recibe YA vienen con el descuento aplicado, así
+    que hay que decírselo: si no, suma el descuento otra vez y cotiza de menos.
+    """
+    if not promo.vigente():
+        return ""
+    pct = promo.porcentaje()
+    return (
+        f"\nPROMO VIGENTE: {pct}% de descuento en TODA la tienda, "
+        f"mientras Diego está de viaje comprando.\n"
+        f"🔴 Los precios del catálogo de abajo YA TIENEN el descuento aplicado: "
+        f"son los que se pagan. NO les vuelvas a restar nada ni calcules el "
+        f"porcentaje vos — si lo hacés, cotizás de menos y Diego cobra menos de "
+        f"lo que corresponde. Decí el número tal cual figura y mencioná que ya "
+        f"está con el {pct}% aplicado.\n"
+    )
+
+
 def _ars(value) -> str:
     """$ 714.286 — entero con separador de miles (estilo de la web)."""
     try:
@@ -147,7 +168,12 @@ def _build_context(db: Session) -> dict:
     productos: list[dict] = []
     for p in prods:
         brand = (p.brand or "Otras").strip()
-        price = p.min_price
+        # 🔴 Mia cotiza el precio QUE SE COBRA, no el de lista. Si le pasara el
+        # de lista, un cliente le pregunta "cuanto sale" por el chat, Mia le
+        # dice un numero y la web le muestra otro 15% mas abajo: queda como que
+        # el descuento no existe, o peor, como que le cambiaron el precio.
+        # Es la misma funcion que usa el checkout para cobrar.
+        price = promo.aplicar(p.min_price)
         talles = [v.value for v in p.variants
                   if (v.stock or 0) > 0 and v.visible and v.value]
         stock = p.total_stock
@@ -222,10 +248,11 @@ Pagos: {cfg['payment']}
 Cambios: {cfg['exchange']}
 Atención 1:1: Diego, WhatsApp +54 9 11 6232-1391.
 
+{_linea_promo()}
 MARCAS PUBLICADAS HOY:
 {chr(10).join(lineas_marcas)}
 
-CATÁLOGO DISPONIBLE HOY (nombre | marca | precio ARS | talles con stock | link):
+CATÁLOGO DISPONIBLE HOY (nombre | marca | precio ARS YA CON EL DESCUENTO | talles con stock | link):
 {chr(10).join(lineas_prods)}"""
 
 
