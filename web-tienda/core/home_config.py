@@ -74,9 +74,48 @@ DEFAULTS: dict[str, Any] = {
         "eyebrow": "La casa",
         "titulo": "Marcas con licencia",
         "bajada": "Selección curada pieza por pieza. Cada casa, sus códigos.",
+        # ------------------------------------------------------------------ #
+        # 🖼️ Estas 8 imagenes son IMAGINERIA DE MARCA, no stock.
+        #
+        # Es importante tenerlo claro antes de tocarlas: ninguna de las 8 esta
+        # en el catalogo de Diego (el bolso Balenciaga y la varsity Amiri
+        # tampoco). La tarjeta dice "esta casa" y el link lleva al listado
+        # real. Confundir las dos cosas lleva a elegir la pieza mas comun que
+        # haya en stock, que es exactamente el error de las dos rondas
+        # anteriores.
+        #
+        # Historial de rechazos, para no repetirlos:
+        #   1er intento — DOS REMERAS NEGRAS LISAS (Diesel y Prada). Rebotadas
+        #     las dos. Con razon: en una fila donde Palm Angels ya es un buzo
+        #     negro y Amiri una campera negra, una remera lisa no se distingue
+        #     de la de al lado.
+        #   2do intento — campera de jean (Diesel) y bolso acolchado (Prada).
+        #     Rechazadas por Diego: "estan quemadas por la pirateria". Son las
+        #     dos graficas que mas se falsifican, o sea la estetica del puesto
+        #     de feria — lo contrario de lo que esta tienda afirma.
+        #   3ro (este, 10-sep) — pedido de Juani: "prendas mas exclusivas, mas
+        #     caras" en Prada y Diesel, y sacar la gorra de Hugo Boss por algo
+        #     "mas exotico de la marca". El criterio pasa a ser: la pieza
+        #     ICONICA y cara de cada casa, la que nadie falsifica bien porque
+        #     el valor esta en la herreria y el cuero, no en un estampado.
+        #       · DIESEL    → bolso 1DR. Es LA pieza que volvio cara a Diesel.
+        #       · PRADA     → Saffiano Brique. 🔴 Este modelo exacto lo eligio
+        #         Diego: mando una foto del bolso en la oficina y pidio
+        #         "conseguilo sin fondo, full pro". Esto es el packshot oficial
+        #         del mismo modelo, que es la version limpia de esa foto.
+        #       · HUGO BOSS → campera de cuero. La gorra que estaba era gris de
+        #         lana con el logo bordado: la pieza mas barata de la casa en
+        #         una fila donde todo lo demas es prenda.
+        #
+        # Las 3 salen de packshot oficial de la marca, recortadas con rembg
+        # (isnet-general-use) sobre el original en resolucion completa. El
+        # recorte se mira SIEMPRE compuesto sobre gris medio antes de subirlo:
+        # sobre blanco no se ve ni la orla clara ni un hueco que quedo relleno
+        # —al 1DR le habia quedado blanco el ojo del asa—.
+        # ------------------------------------------------------------------ #
         "items": [
             {"nombre": "DIESEL", "link": "/categoria/diesel",
-             "imagen": "/static/images/category-diesel-cut-v4.webp"},
+             "imagen": "/static/images/category-diesel-cut-v5.webp"},
             {"nombre": "BALENCIAGA", "link": "/categoria/balenciaga",
              "imagen": "/static/images/category-balenciaga-cut.webp"},
             {"nombre": "OFF-WHITE", "link": "/categoria/off-white",
@@ -88,22 +127,9 @@ DEFAULTS: dict[str, Any] = {
             {"nombre": "BALMAIN", "link": "/categoria/balmain",
              "imagen": "/static/images/category-balmain-cut.webp"},
             {"nombre": "HUGO BOSS", "link": "/categoria/hugo-boss",
-             "imagen": "/static/images/category-hugo-boss-cut.webp"},
-            # 🔴 2do intento (10-sep). El 1ro fueron DOS REMERAS NEGRAS LISAS y
-            # a Diego no le gustaron ninguna de las dos — con razon: en una fila
-            # donde Palm Angels ya es un buzo negro y Amiri una campera negra,
-            # una remera lisa no dice nada y no se distingue de la de al lado.
-            # La tarjeta que mejor lee de todas es la de Balenciaga, que es un
-            # BOLSO: tiene volumen, textura y el logo grande.
-            # Ahora: Diesel = campera de jean (el denim ES la marca, y tiene
-            # textura); Prada = bolso acolchado (ademas es una de las 2 unicas
-            # piezas Prada del catalogo, y la otra es la remera que rebotó).
-            # Diego pidio el 6-sep sacar Calvin Klein y poner Prada. Ojo: hoy
-            # Prada tiene solo 2 piezas publicadas, asi que la tarjeta lleva a
-            # un listado muy corto. La imagen y el link son correctos; lo que
-            # falta es stock, y eso lo carga el.
+             "imagen": "/static/images/category-hugo-boss-cut-v2.webp"},
             {"nombre": "PRADA", "link": "/categoria/prada",
-             "imagen": "/static/images/category-prada-cut-v2.webp"},
+             "imagen": "/static/images/category-prada-cut-v3.webp"},
         ],
     },
     "secciones": {
