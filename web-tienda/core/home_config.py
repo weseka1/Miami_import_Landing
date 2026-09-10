@@ -76,7 +76,7 @@ DEFAULTS: dict[str, Any] = {
         "bajada": "Selección curada pieza por pieza. Cada casa, sus códigos.",
         "items": [
             {"nombre": "DIESEL", "link": "/categoria/diesel",
-             "imagen": "/static/images/category-diesel-cut-v3.webp"},
+             "imagen": "/static/images/category-diesel-cut-v4.webp"},
             {"nombre": "BALENCIAGA", "link": "/categoria/balenciaga",
              "imagen": "/static/images/category-balenciaga-cut.webp"},
             {"nombre": "OFF-WHITE", "link": "/categoria/off-white",
@@ -89,12 +89,21 @@ DEFAULTS: dict[str, Any] = {
              "imagen": "/static/images/category-balmain-cut.webp"},
             {"nombre": "HUGO BOSS", "link": "/categoria/hugo-boss",
              "imagen": "/static/images/category-hugo-boss-cut.webp"},
+            # 🔴 2do intento (10-sep). El 1ro fueron DOS REMERAS NEGRAS LISAS y
+            # a Diego no le gustaron ninguna de las dos — con razon: en una fila
+            # donde Palm Angels ya es un buzo negro y Amiri una campera negra,
+            # una remera lisa no dice nada y no se distingue de la de al lado.
+            # La tarjeta que mejor lee de todas es la de Balenciaga, que es un
+            # BOLSO: tiene volumen, textura y el logo grande.
+            # Ahora: Diesel = campera de jean (el denim ES la marca, y tiene
+            # textura); Prada = bolso acolchado (ademas es una de las 2 unicas
+            # piezas Prada del catalogo, y la otra es la remera que rebotó).
             # Diego pidio el 6-sep sacar Calvin Klein y poner Prada. Ojo: hoy
             # Prada tiene solo 2 piezas publicadas, asi que la tarjeta lleva a
             # un listado muy corto. La imagen y el link son correctos; lo que
             # falta es stock, y eso lo carga el.
             {"nombre": "PRADA", "link": "/categoria/prada",
-             "imagen": "/static/images/category-prada-cut.webp"},
+             "imagen": "/static/images/category-prada-cut-v2.webp"},
         ],
     },
     "secciones": {
