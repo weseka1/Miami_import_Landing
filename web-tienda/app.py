@@ -444,7 +444,14 @@ def _vitrina_desde_catalogo(productos, limite: int = 6,
             "nombre": (p.name or "").upper(),
             "genero": "mujer" if es_mujer else "hombre",
             "imagen": p.images[0].url,
-            "ref": f"REF / {(n_m if es_mujer else n_h):02d} · {'MUJER' if es_mujer else 'HOMBRE'}",
+            # Mismo formato que usa Diego cuando cura la vitrina desde el panel
+            # ("REF 01 · DIESEL"). Con el formato viejo —"REF / 01 · MUJER"— una
+            # pieza fijada al lado de una suya se leia como dos sistemas
+            # distintos pegados.
+            "ref": (f"REF {(n_m if es_mujer else n_h):02d} · {p.brand.upper()}"
+                    if getattr(p, "brand", None)
+                    else f"REF {(n_m if es_mujer else n_h):02d} · "
+                         f"{'MUJER' if es_mujer else 'HOMBRE'}"),
             "colorway": (p.brand or "").upper(),
             "talles": f"{talles[0]} — {talles[-1]}" if len(talles) > 1 else (talles[0] if talles else ""),
             "peso": "",
@@ -528,30 +535,50 @@ def home(request: Request, db: Session = Depends(get_db)):
     # (cada una cuesta ~180 ms contra Sao Paulo). Antes eran cinco camperas
     # escritas a mano que quedaron meses despues de dejar de venderse.
     home_cfg = home_config_cacheada(db)
-    if not (home_cfg.get("vitrina") or {}).get("piezas"):
-        # Piezas FIJADAS: van adelante, pero se buscan en la base cada vez. Si
-        # una dejo de estar publicada o se quedo sin stock, no entra y la
-        # vitrina se completa sola. Por eso no puede repetirse lo de las
-        # camperas "trilogy", que eran texto fijo y siguieron meses en pantalla
-        # despues de que Diego dejo de venderlas.
-        fijadas = (home_cfg.get("vitrina") or {}).get("fijadas") or []
-        handles = [f.get("handle") for f in fijadas if f.get("handle")]
-        genero_fijado = {f["handle"]: f["genero"] for f in fijadas
-                         if f.get("handle") and f.get("genero")}
-        adelante = []
-        if handles:
-            encontrados = {p.handle: p for p in
-                           _con_relaciones(db)
-                           .filter(Product.published.is_(True),
-                                   Product.handle.in_(handles)).all()}
-            # Se respeta el ORDEN de la config, no el de la base.
-            adelante = [encontrados[h] for h in handles
-                        if h in encontrados and encontrados[h].total_stock > 0]
+    vit = home_cfg.get("vitrina") or {}
+
+    # --- Piezas FIJADAS -----------------------------------------------------
+    # Se buscan en la base EN CADA VISITA, y si una dejo de estar publicada o
+    # se quedo sin stock no entra. Por eso no puede repetirse lo de las cinco
+    # camperas "trilogy", que eran texto fijo y siguieron meses en pantalla
+    # despues de que Diego dejo de venderlas.
+    #
+    # 🔴 Van ADELANTE tambien cuando Diego curo la vitrina desde el panel. Eso
+    # se decidio despues de que el cambio no se viera en produccion: la lista
+    # del panel NO estaba vacia, asi que todo este bloque se salteaba. Pero no
+    # PISAN lo de Diego: se anteponen. Su curaduria sigue ahi, una posicion mas
+    # atras — combinar, no reemplazar.
+    fijadas = vit.get("fijadas") or []
+    handles = [f.get("handle") for f in fijadas if f.get("handle")]
+    genero_fijado = {f["handle"]: f["genero"] for f in fijadas
+                     if f.get("handle") and f.get("genero")}
+    adelante = []
+    if handles:
+        encontrados = {p.handle: p for p in
+                       _con_relaciones(db)
+                       .filter(Product.published.is_(True),
+                               Product.handle.in_(handles)).all()}
+        # Se respeta el ORDEN de la config, no el de la base.
+        adelante = [encontrados[h] for h in handles
+                    if h in encontrados and encontrados[h].total_stock > 0]
+
+    if not vit.get("piezas"):
         ya = {p.id for p in adelante}
         lista = adelante + [p for p in destacados if p.id not in ya]
-        home_cfg = {**home_cfg, "vitrina": {**home_cfg.get("vitrina", {}),
-                                            "piezas": _vitrina_desde_catalogo(
-                                                lista, genero_fijado=genero_fijado)}}
+        piezas = _vitrina_desde_catalogo(lista, genero_fijado=genero_fijado)
+    elif adelante:
+        curadas = list(vit["piezas"])
+        # Si la pieza fijada YA la puso Diego a mano, no se duplica: manda la
+        # suya, que trae su texto escrito.
+        links = {(c.get("link") or "").rstrip("/") for c in curadas}
+        nuevas = [n for n in _vitrina_desde_catalogo(
+                      adelante, limite=len(adelante), genero_fijado=genero_fijado)
+                  if (n.get("link") or "").rstrip("/") not in links]
+        piezas = nuevas + curadas
+    else:
+        piezas = vit["piezas"]
+
+    home_cfg = {**home_cfg, "vitrina": {**vit, "piezas": piezas}}
 
     return templates.TemplateResponse(
         request, "home.html",
