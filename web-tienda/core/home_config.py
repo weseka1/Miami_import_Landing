@@ -125,7 +125,7 @@ DEFAULTS: dict[str, Any] = {
             {"nombre": "PALM ANGELS", "link": "/categoria/palm-angels",
              "imagen": "/static/images/category-palm-angels-cut.webp"},
             {"nombre": "BALMAIN", "link": "/categoria/balmain",
-             "imagen": "/static/images/category-balmain-cut.webp"},
+             "imagen": "/static/images/category-balmain-cut-v2.webp"},
             {"nombre": "HUGO BOSS", "link": "/categoria/hugo-boss",
              "imagen": "/static/images/category-hugo-boss-cut-v2.webp"},
             {"nombre": "PRADA", "link": "/categoria/prada",
