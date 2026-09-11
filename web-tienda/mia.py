@@ -85,9 +85,17 @@ def _linea_promo() -> str:
     if not promo.vigente():
         return ""
     pct = promo.porcentaje()
+    # 🔴 El motivo NO se escribe acá: sale de promo.py, que es donde Diego lo
+    # cambia. Estuvo hardcodeado como "mientras Diego está de viaje comprando"
+    # y el 11-sep el sentido se invirtió (ahora corre HASTA que salgan): la
+    # asistente habría seguido diciéndole al cliente que Diego está en Milán
+    # cuando está acá. Un dato viejo en el prompt es un dato que el modelo
+    # afirma con total seguridad.
+    # La bajada ya dice "En toda la tienda…", así que el prefijo no lo repite.
+    motivo = (promo.datos().get("bajada") or "").strip().rstrip(".")
+    cola = f"{motivo}.\n" if motivo else "en TODA la tienda.\n"
     return (
-        f"\nPROMO VIGENTE: {pct}% de descuento en TODA la tienda, "
-        f"mientras Diego está de viaje comprando.\n"
+        f"\nPROMO VIGENTE: {pct}% de descuento. {cola}"
         f"🔴 Los precios del catálogo de abajo YA TIENEN el descuento aplicado: "
         f"son los que se pagan. NO les vuelvas a restar nada ni calcules el "
         f"porcentaje vos — si lo hacés, cotizás de menos y Diego cobra menos de "

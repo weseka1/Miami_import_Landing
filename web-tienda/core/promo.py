@@ -47,25 +47,42 @@ from decimal import ROUND_HALF_UP, Decimal
 # --------------------------------------------------------------------------- #
 PROMO: dict = {
     "activa": True,
-    # Entero, en por ciento. 15 = quince por ciento de descuento.
-    "porcentaje": 15,
-    "titulo": "15% OFF",
-    # La bajada dice POR QUÉ hay descuento, y eso no es adorno: un "15% OFF"
+    # Entero, en por ciento. 20 = veinte por ciento de descuento.
+    # 🔴 Subido de 15 a 20 el 10-sep por decisión de Diego. Este número es el
+    # ÚNICO lugar donde vive el porcentaje: la cinta, el cartel, la barra, las
+    # 229 tarjetas, el carrito, el checkout y el mail lo leen de acá. No lo
+    # escribas en una plantilla ni para "probar".
+    "porcentaje": 20,
+    "titulo": "20% OFF",
+    # La bajada dice POR QUÉ hay descuento, y eso no es adorno: un "20% OFF"
     # pelado y permanente se lee como que el precio de antes estaba inflado.
-    # Con el motivo —Diego está de viaje comprando— el descuento tiene una
-    # causa verdadera, se entiende que es una ventana, y encima refuerza lo
-    # único que esta tienda tiene y las demás no: que él viaja y compra.
-    "bajada": "En toda la tienda, mientras Diego está de viaje",
+    # Con el motivo, el descuento tiene una causa verdadera, se entiende que es
+    # una ventana, y encima refuerza lo único que esta tienda tiene y las demás
+    # no: que Diego viaja y compra pieza por pieza.
+    #
+    # 🔴 Cambió el sentido el 10-sep, y el detalle importa: antes decía
+    # "mientras Diego está de viaje" —la promo corría PORQUE estaba afuera—.
+    # Diego pidió textual que sea "hasta que hagamos el próximo viaje": ahora
+    # corre hasta que SALGAN. Son opuestos. Si alguien restaura el texto viejo
+    # sin mirar, la web va a decir que Diego está en Milán cuando está acá.
+    "bajada": "En toda la tienda, hasta nuestro próximo viaje a Milán",
     # Fecha de fin (AAAA-MM-DD) o None → la promo se apaga sola al pasar.
     #
-    # 🔴 HOY VA SIN FECHA, por decisión de Juani (10-sep): "descuento en TODO,
-    # hasta que Diego vuelve de viaje… indefinido". Se le advirtió el riesgo y
-    # lo confirmó, así que queda así.
+    # 🔴 VA SIN FECHA, por decisión de Juani (10-sep) y ahora de Diego (11-sep,
+    # al subir a 20): el final es "hasta que hagamos el próximo viaje", que es
+    # un evento del negocio y no una fecha de calendario. Se advirtió el riesgo
+    # y se confirmó, así que queda así.
+    #
     # El riesgo, escrito para el que lo lea en dos meses: una promo prendida
     # demasiado tiempo deja de ser promo y pasa a ser el precio — y ahí el
     # "antes" tachado se vuelve un precio que ya nadie paga, que es
-    # exactamente lo que se mira en un reclamo de Defensa del Consumidor.
-    # Cuando Diego vuelva: `activa: False`, o poner acá la fecha.
+    # exactamente lo que se mira en un reclamo de Defensa del Consumidor. Con
+    # el 20% el "antes" es un 25% más caro que el precio real, así que la
+    # exposición subió, no bajó.
+    #
+    # Cómo se apaga cuando salgan de viaje: `activa: False` acá, o poner la
+    # fecha del vuelo en este mismo campo y se apaga sola. Es UNA línea, y es
+    # lo único que hay que acordarse de hacer.
     "hasta": None,
 }
 
