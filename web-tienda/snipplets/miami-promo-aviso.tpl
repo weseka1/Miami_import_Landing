@@ -12,10 +12,50 @@
       tapa el hero justo cuando está cargando.
    4. Los medios de pago son los que la tienda cobra DE VERDAD: tarjeta,
       transferencia y efectivo. 🔴 NO dice cuotas: `installments` no está
-      configurado en Stripe. Prometer cuotas que no se pueden cobrar es la
-      misma trampa que el descuento que no se aplica.
+      configurado en Stripe, y 🔴 ya NO dice "transferencia con descuento
+      adicional": ese segundo descuento se prometía sin número en cuatro
+      lugares distintos y nadie definió si se suma al de la promo. Un
+      descuento sin número apilado sobre otro es la misma trampa que el
+      descuento que no se aplica.
    5. Modal propio, no `window.confirm` — el nativo bloquea el hilo (regla de
       la casa) y no se puede maquetar.
+
+   ── EL REDISEÑO (11-sep) ────────────────────────────────────────────────────
+   Antes era una caja de vidrio centrada de 420 px: seis bloques apilados del
+   mismo peso, con un recuadro gris de viñetas en el medio. O sea, el lenguaje
+   visual de un aviso de cookies. Juani: "que sea más llamativo, no tan
+   básico, que realmente sea profesional".
+
+   Lo que lo cambia no es el color: es la FOTO y la ESCALA.
+   · Dos columnas. A la izquierda una foto real de adentro de una tienda de
+     Milán, a sangre. Es el activo que ninguna competencia tiene —onekickz,
+     la referencia que puso Diego, hace exactamente esto pero con una foto de
+     su local de Buenos Aires— y es la prueba de lo que el texto afirma.
+   · La cifra pasa de 76 px a ~120 px. "Llamativo" se gana con tamaño y
+     contraste, no subiendo la saturación.
+
+   ── EL MOVIMIENTO ───────────────────────────────────────────────────────────
+   Juani preguntó si podía tener "algún efecto súper exclusivo extra". Sí, y
+   el criterio es uno: lo caro se siente cuando las cosas entran ORDENADAS y
+   se ASIENTAN, no cuando parpadean. Todo lo de acá es una sola vez —nada en
+   loop, porque el loop es justamente lo que abarata—:
+
+     1. La caja no hace fade: entra desenfocada y se ENFOCA (blur 14→0 con
+        scale .94→1). Es el gesto de un objeto que se acerca, no de una capa
+        que aparece.
+     2. La foto arranca en scale 1.14 y se asienta en 1 durante 1,6 s, como
+        una cámara que se estabiliza. Sigue moviéndose un rato después de que
+        el resto ya paró: eso es lo que da la sensación de peso.
+     3. Los dígitos del número se revelan de a uno por clip-path, subiendo
+        desde su propia línea de base, con 90 ms entre cada uno. No es un
+        fade: es tipografía que se descubre.
+     4. UNA sola pasada de luz cruza la cifra cuando termina de armarse.
+        Una. En loop sería un banner de casino.
+     5. El resto entra escalonado detrás (eyebrow → cifra → bajada → pagos →
+        CTA). El escalonado es el efecto; el resto es decoración.
+
+   Todo esto se apaga entero con `prefers-reduced-motion`, y el cartel queda
+   perfectamente legible sin una sola animación.
 ============================================================================ #}
 {% set pr = promo() %}
 {% set ruta = request.url.path %}
@@ -24,24 +64,48 @@
 <div class="mi-aviso" id="mi-aviso" role="dialog" aria-modal="true"
      aria-labelledby="mi-aviso-t" aria-describedby="mi-aviso-d" hidden>
   <div class="mi-aviso__fondo" data-cerrar></div>
+
   <div class="mi-aviso__caja" tabindex="-1">
-    <button type="button" class="mi-aviso__x" data-cerrar aria-label="Cerrar el aviso">×</button>
+    <button type="button" class="mi-aviso__x" data-cerrar aria-label="Cerrar el aviso">&times;</button>
 
-    <p class="mi-aviso__eyebrow">Milano → Buenos Aires</p>
-    <p class="mi-aviso__cifra" id="mi-aviso-t">{{ pr.porcentaje }}<span>%</span> OFF</p>
-    <p class="mi-aviso__bajada" id="mi-aviso-d">{{ pr.bajada }}.</p>
+    {# La foto es DECORATIVA: lo que dice ya está en el texto de al lado, así
+       que va con alt vacío para que el lector de pantalla no lo lea dos
+       veces. `loading=lazy` + prioridad baja porque el cartel recién aparece
+       a los 1,2 s: no tiene que pelear con el hero por el ancho de banda. #}
+    <figure class="mi-aviso__foto">
+      <img src="{{ '/static/images/promo-vitrina.webp' | media_url }}" alt=""
+           loading="lazy" fetchpriority="low" decoding="async" width="900" height="1200"/>
+      <figcaption>Milán · adentro de la tienda</figcaption>
+    </figure>
 
-    <div class="mi-aviso__pagos">
-      <p class="mi-aviso__pagos-t">Cómo se paga</p>
-      <ul>
-        <li><strong>Tarjeta</strong><span>Crédito o débito, en la web</span></li>
-        <li><strong>Transferencia</strong><span>Con descuento adicional</span></li>
-        <li><strong>Efectivo</strong><span>En la entrega, CABA y GBA</span></li>
+    <div class="mi-aviso__cuerpo">
+      <p class="mi-aviso__eyebrow mi-aviso__e1">Milano <span aria-hidden="true">→</span> Buenos Aires</p>
+
+      {# Los dígitos van en spans para poder revelarlos de a uno. El número
+         completo queda en aria-label: un lector de pantalla tiene que oír
+         "20% OFF", no "2, 0, %". #}
+      <p class="mi-aviso__cifra mi-aviso__e2" id="mi-aviso-t"
+         aria-label="{{ pr.porcentaje }}% OFF">
+        <span aria-hidden="true">
+          {%- for d in pr.porcentaje|string -%}
+            <b style="--i:{{ loop.index0 }}">{{ d }}</b>
+          {%- endfor -%}
+          <i style="--i:{{ pr.porcentaje|string|length }}">%</i>
+        </span>
+        <em aria-hidden="true" style="--i:{{ pr.porcentaje|string|length + 1 }}">OFF</em>
+      </p>
+
+      <p class="mi-aviso__bajada mi-aviso__e3" id="mi-aviso-d">{{ pr.bajada }}.</p>
+
+      <ul class="mi-aviso__pagos mi-aviso__e4">
+        <li>Tarjeta</li>
+        <li>Transferencia</li>
+        <li>Efectivo</li>
       </ul>
-    </div>
 
-    <a class="mi-aviso__cta" href="/productos" data-cerrar>Ver el catálogo →</a>
-    <button type="button" class="mi-aviso__seguir" data-cerrar>Seguir mirando</button>
+      <a class="mi-aviso__cta mi-aviso__e5" href="/productos" data-cerrar>Ver el catálogo <span aria-hidden="true">→</span></a>
+      <button type="button" class="mi-aviso__seguir mi-aviso__e5" data-cerrar>Seguir mirando</button>
+    </div>
   </div>
 </div>
 
@@ -49,76 +113,136 @@
   .mi-aviso{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;
     justify-content:center;padding:20px}
   .mi-aviso[hidden]{display:none}
-  .mi-aviso__fondo{position:absolute;inset:0;background:rgba(21,22,26,.42);
-    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
-    animation:mi-aviso-fondo .45s var(--mi-ease) both}
+  .mi-aviso__fondo{position:absolute;inset:0;background:rgba(21,22,26,.52);
+    -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+    animation:mi-av-fondo .5s var(--mi-ease) both}
+
+  /* Caja SÓLIDA, no vidrio: el vidrio sobre una foto ensucia los dos. */
+  .mi-aviso__caja{position:relative;display:grid;grid-template-columns:44% 56%;
+    width:min(940px,100%);max-height:calc(100svh - 40px);overflow:hidden;
+    border-radius:26px;background:var(--mi-bg-2);border:1px solid var(--mi-line);
+    box-shadow:0 40px 90px rgba(0,0,0,.28);
+    animation:mi-av-caja .75s cubic-bezier(.16,1,.3,1) both}
   .mi-aviso__caja:focus{outline:none}
-  .mi-aviso__caja{position:relative;width:min(420px,100%);max-height:calc(100svh - 40px);
-    overflow:auto;overscroll-behavior:contain;
-    padding:34px 30px 26px;border-radius:28px;text-align:center;
-    background:var(--mi-glass-strong);border:1px solid var(--mi-line);
-    border-top-color:var(--mi-glass-line);
-    -webkit-backdrop-filter:blur(var(--mi-blur)) saturate(170%);
-    backdrop-filter:blur(var(--mi-blur)) saturate(170%);
-    box-shadow:var(--mi-shadow-lift);
-    animation:mi-aviso-caja .5s var(--mi-ease) both}
-  @keyframes mi-aviso-fondo{from{opacity:0}to{opacity:1}}
-  @keyframes mi-aviso-caja{from{opacity:0;transform:translateY(18px) scale(.97)}
-                           to{opacity:1;transform:none}}
 
-  .mi-aviso__x{position:absolute;top:12px;right:12px;width:36px;height:36px;
-    border:0;border-radius:999px;background:none;color:var(--mi-ink-mute);
-    font-size:22px;line-height:1;cursor:pointer}
-  .mi-aviso__x:hover{background:var(--mi-bg-3);color:var(--mi-ink)}
-  .mi-aviso__x:focus-visible{outline:2px solid var(--mi-accent);outline-offset:2px}
+  @keyframes mi-av-fondo{from{opacity:0}to{opacity:1}}
+  /* Entra DESENFOCADA y se enfoca. No es un fade. */
+  @keyframes mi-av-caja{
+    from{opacity:0;transform:translateY(26px) scale(.94);filter:blur(14px)}
+    to{opacity:1;transform:none;filter:blur(0)}}
 
-  .mi-aviso__eyebrow{margin:0 0 14px;font-size:10.5px;letter-spacing:.24em;
+  /* ---- la foto ---- */
+  .mi-aviso__foto{position:relative;margin:0;overflow:hidden;background:var(--mi-bg-3)}
+  .mi-aviso__foto img{width:100%;height:100%;object-fit:cover;display:block;
+    transform-origin:50% 42%;
+    /* 1,6 s: sigue asentándose cuando el texto ya paró. Ahí está el peso. */
+    animation:mi-av-foto 1.6s cubic-bezier(.22,1,.28,1) both}
+  @keyframes mi-av-foto{from{transform:scale(1.14)}to{transform:scale(1)}}
+  .mi-aviso__foto figcaption{position:absolute;left:14px;bottom:14px;
+    padding:7px 12px;border-radius:999px;font-size:10.5px;letter-spacing:.14em;
+    text-transform:uppercase;color:#fff;background:rgba(21,22,26,.62);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    animation:mi-av-sube .7s cubic-bezier(.16,1,.3,1) .75s both}
+
+  /* ---- el cuerpo ---- */
+  .mi-aviso__cuerpo{padding:40px 38px 30px;display:flex;flex-direction:column;
+    justify-content:center;min-width:0}
+  .mi-aviso__e1,.mi-aviso__e2,.mi-aviso__e3,.mi-aviso__e4,.mi-aviso__e5{
+    animation:mi-av-sube .72s cubic-bezier(.16,1,.3,1) both}
+  .mi-aviso__e1{animation-delay:.16s}
+  .mi-aviso__e2{animation-delay:.22s}
+  .mi-aviso__e3{animation-delay:.46s}
+  .mi-aviso__e4{animation-delay:.54s}
+  .mi-aviso__e5{animation-delay:.62s}
+  @keyframes mi-av-sube{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  .mi-aviso__eyebrow{margin:0 0 16px;font-size:10.5px;letter-spacing:.24em;
     text-transform:uppercase;color:var(--mi-ink-mute)}
-  /* El número es el que tiene que leerse desde el otro lado de la habitación:
-     ahí está lo "llamativo", en el tamaño, no en un color chillón. */
-  .mi-aviso__cifra{margin:0;font-size:clamp(54px,15vw,76px);line-height:.9;
-    font-weight:800;letter-spacing:-.045em;color:var(--mi-promo);
-    font-variant-numeric:tabular-nums}
-  .mi-aviso__cifra span{font-size:.5em;vertical-align:super;margin-left:2px}
-  .mi-aviso__bajada{margin:12px 0 0;font-size:15px;line-height:1.55;
-    color:var(--mi-ink);max-width:30ch;margin-inline:auto}
 
-  .mi-aviso__pagos{margin:24px 0 22px;padding:18px 16px;border-radius:20px;
-    background:var(--mi-bg-3);text-align:left}
-  .mi-aviso__pagos-t{margin:0 0 12px;font-size:10.5px;letter-spacing:.2em;
-    text-transform:uppercase;color:var(--mi-ink-mute)}
-  .mi-aviso__pagos ul{list-style:none;margin:0;padding:0;display:grid;gap:9px}
-  .mi-aviso__pagos li{display:flex;flex-direction:column;gap:1px;
-    padding-left:14px;position:relative}
-  /* Un punto, no un emoji: los emojis como íconos están vetados en la casa. */
-  .mi-aviso__pagos li::before{content:"";position:absolute;left:0;top:7px;
-    width:5px;height:5px;border-radius:999px;background:var(--mi-ink)}
-  .mi-aviso__pagos strong{font-size:14px;font-weight:600;color:var(--mi-ink)}
-  .mi-aviso__pagos span{font-size:12.5px;color:var(--mi-ink-soft)}
+  /* La cifra es lo que se lee desde el otro lado de la habitación. */
+  .mi-aviso__cifra{margin:0;line-height:.86;font-weight:800;
+    letter-spacing:-.05em;color:var(--mi-promo);
+    font-size:clamp(66px,9vw,120px);font-variant-numeric:tabular-nums;
+    display:flex;align-items:baseline;gap:.1em;flex-wrap:wrap}
+  .mi-aviso__cifra span{display:inline-flex;align-items:baseline}
+  /* Cada dígito se descubre subiendo desde su línea de base, de a uno. */
+  .mi-aviso__cifra b,.mi-aviso__cifra i,.mi-aviso__cifra em{
+    display:inline-block;font-style:normal;font-weight:inherit;
+    animation:mi-av-digito .78s cubic-bezier(.16,1,.3,1) both;
+    animation-delay:calc(.26s + var(--i) * .09s)}
+  .mi-aviso__cifra i{font-size:.46em;margin-left:.04em}
+  .mi-aviso__cifra em{font-size:.62em;letter-spacing:-.03em;margin-left:.12em;
+    color:var(--mi-ink)}
+  @keyframes mi-av-digito{
+    from{clip-path:inset(105% 0 -10% 0);transform:translateY(.14em)}
+    to{clip-path:inset(-25% 0 -10% 0);transform:none}}
 
-  .mi-aviso__cta{display:block;padding:15px 20px;border-radius:999px;
+  /* UNA pasada de luz, cuando el número terminó de armarse. Una sola. */
+  .mi-aviso__cifra::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.55) 50%,transparent 62%);
+    mix-blend-mode:overlay;opacity:0;
+    animation:mi-av-brillo 1.1s cubic-bezier(.3,0,.2,1) .95s both}
+  .mi-aviso__cifra{position:relative;overflow:hidden}
+  @keyframes mi-av-brillo{
+    0%{opacity:0;transform:translateX(-58%)}
+    22%{opacity:1}
+    100%{opacity:0;transform:translateX(58%)}}
+
+  .mi-aviso__bajada{margin:16px 0 0;font-size:15.5px;line-height:1.55;
+    color:var(--mi-ink-soft);max-width:34ch}
+
+  /* Tira horizontal con separadores, no una caja de viñetas. */
+  .mi-aviso__pagos{list-style:none;display:flex;flex-wrap:wrap;align-items:center;
+    gap:8px 14px;margin:22px 0 26px;padding:16px 0 0;
+    border-top:1px solid var(--mi-line)}
+  .mi-aviso__pagos li{font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--mi-ink-mute);display:flex;align-items:center;gap:14px}
+  .mi-aviso__pagos li+li::before{content:"";width:3px;height:3px;border-radius:999px;
+    background:var(--mi-line);flex:none;margin-left:-8px}
+
+  .mi-aviso__cta{display:inline-flex;align-items:center;justify-content:center;
+    gap:8px;padding:16px 26px;border-radius:999px;
     background:var(--mi-accent);color:var(--mi-bg-2);
     font-size:13px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
-    transition:transform .4s var(--mi-ease),box-shadow .4s var(--mi-ease)}
+    transition:transform .45s var(--mi-ease),box-shadow .45s var(--mi-ease)}
   .mi-aviso__cta:hover{transform:translateY(-2px);box-shadow:var(--mi-shadow-lift)}
   .mi-aviso__cta:focus-visible,.mi-aviso__seguir:focus-visible{
     outline:2px solid var(--mi-accent);outline-offset:3px}
-  .mi-aviso__seguir{display:block;width:100%;margin-top:12px;padding:6px;
+  .mi-aviso__seguir{display:block;width:100%;margin-top:12px;padding:8px;
     border:0;background:none;cursor:pointer;
     font-size:12.5px;color:var(--mi-ink-mute);letter-spacing:.04em}
   .mi-aviso__seguir:hover{color:var(--mi-ink)}
 
-  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
-    .mi-aviso__caja{background:var(--mi-bg-2)}
-    .mi-aviso__fondo{background:rgba(21,22,26,.6)}
-  }
-  @media (prefers-reduced-motion:reduce){
-    .mi-aviso__fondo,.mi-aviso__caja{animation:none}
-    .mi-aviso__cta{transition:none}
-  }
-  @media (max-width:420px){
+  .mi-aviso__x{position:absolute;top:12px;right:12px;z-index:2;width:38px;height:38px;
+    border:0;border-radius:999px;background:var(--mi-bg-2);color:var(--mi-ink-mute);
+    font-size:22px;line-height:1;cursor:pointer;
+    box-shadow:0 2px 10px rgba(0,0,0,.12)}
+  .mi-aviso__x:hover{color:var(--mi-ink)}
+  .mi-aviso__x:focus-visible{outline:2px solid var(--mi-accent);outline-offset:2px}
+
+  /* ---- mobile: una columna, la foto pasa a franja ---- */
+  @media (max-width:760px){
     .mi-aviso{padding:14px}
-    .mi-aviso__caja{padding:30px 22px 22px;border-radius:24px}
+    .mi-aviso__caja{grid-template-columns:1fr;width:min(440px,100%);
+      overflow-y:auto;overscroll-behavior:contain}
+    /* Franja corta: la foto no se pierde —es la prueba— pero no empuja el
+       CTA fuera de la pantalla en un teléfono chico. */
+    .mi-aviso__foto{height:132px}
+    .mi-aviso__foto img{transform-origin:50% 46%}
+    .mi-aviso__cuerpo{padding:24px 22px 20px}
+    .mi-aviso__cifra{font-size:clamp(58px,17vw,78px)}
+    .mi-aviso__bajada{font-size:14.5px;margin-top:12px}
+    .mi-aviso__pagos{margin:16px 0 18px;padding-top:13px}
+  }
+
+  /* Movimiento apagado: se ve TODO, sin una sola animación. */
+  @media (prefers-reduced-motion:reduce){
+    .mi-aviso__fondo,.mi-aviso__caja,.mi-aviso__foto img,
+    .mi-aviso__foto figcaption,.mi-aviso__cifra b,.mi-aviso__cifra i,
+    .mi-aviso__cifra em,.mi-aviso__e1,.mi-aviso__e2,.mi-aviso__e3,
+    .mi-aviso__e4,.mi-aviso__e5{animation:none}
+    .mi-aviso__cifra::after{display:none}
+    .mi-aviso__cta{transition:none}
   }
 </style>
 
@@ -126,7 +250,11 @@
 (function(){
   var aviso = document.getElementById('mi-aviso');
   if (!aviso) return;
-  var LLAVE = 'mi_aviso_promo_{{ pr.porcentaje }}';
+  // La llave lleva el porcentaje Y la versión del diseño: al cambiar
+  // cualquiera de los dos, el que ya lo había cerrado vuelve a verlo. Es lo
+  // que se quiere cuando cambia la OFERTA; sin esto, el que cerró el cartel
+  // del 15% nunca se entera de que ahora es 20%.
+  var LLAVE = 'mi_aviso_promo_{{ pr.porcentaje }}_v2';
   var DIAS  = 3;
 
   // localStorage puede tirar excepción (modo privado viejo, cookies de sitio
@@ -161,7 +289,7 @@
     previo = document.activeElement;
     aviso.hidden = false;
     document.addEventListener('keydown', porTecla);
-    // El foco va a la CAJA, no al boton: enfocar el CTA le dibuja el anillo
+    // El foco va a la CAJA, no al botón: enfocar el CTA le dibuja el anillo
     // encima y se ve como un borde doble, igual que si estuviera roto. La caja
     // tiene tabindex="-1" para poder recibirlo sin entrar en el tabulado.
     var caja = aviso.querySelector('.mi-aviso__caja');
