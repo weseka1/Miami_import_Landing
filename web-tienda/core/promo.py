@@ -84,6 +84,24 @@ PROMO: dict = {
     # fecha del vuelo en este mismo campo y se apaga sola. Es UNA línea, y es
     # lo único que hay que acordarse de hacer.
     "hasta": None,
+
+    # --- La foto del cartel ------------------------------------------------ #
+    # Una POV real de adentro de una tienda de Milán. Es la prueba de lo que
+    # dice el texto de al lado, y el activo que ninguna competencia tiene.
+    "foto": "/static/images/promo-vitrina.webp",
+    "foto_pie": "Milán · adentro de la tienda",
+    # 🔴 La foto LINKEA al producto que se ve en ella, por pedido de Juani
+    # (11-sep): "que se pueda entrar al producto mostrado". Si Diego cambia la
+    # foto, hay que cambiar este handle también — si no, el cliente hace clic
+    # en una zapatilla y le abre otra cosa, que es peor que no linkear nada.
+    #
+    # Si el producto se despublica, NO da 404: `product_detail` redirige al
+    # catálogo (app.py:670, verificado en producción). O sea que el peor caso
+    # es que el cliente caiga en /productos, no en un error — por eso el link
+    # puede vivir acá sin una consulta a la base por request.
+    # Dejarlo vacío ("") apaga el link y la foto vuelve a ser decorativa.
+    "foto_link": "/productos/nike-nike-mind-001",
+    "foto_producto": "Nike Mind 001",
 }
 
 
@@ -144,4 +162,8 @@ def datos() -> dict:
         "titulo": PROMO.get("titulo") or f"{porcentaje()}% OFF",
         "bajada": PROMO.get("bajada") or "",
         "hasta": PROMO.get("hasta"),
+        "foto": PROMO.get("foto") or "",
+        "foto_pie": PROMO.get("foto_pie") or "",
+        "foto_link": PROMO.get("foto_link") or "",
+        "foto_producto": PROMO.get("foto_producto") or "",
     }
