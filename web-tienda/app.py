@@ -286,8 +286,13 @@ def nav_tipos(db: Session) -> list[dict]:
 def base_context(request: Request, db: Session, **extra) -> dict:
     ctx = {
         "request": request,
-        # Dominio real (no settings.STORE_BASE_URL, que en prod apunta al host
-        # viejo de Render). Lo usan los links de WhatsApp de las fichas.
+        # El dominio con el que ENTRÓ la petición, no el de la variable. Lo usan
+        # los links de WhatsApp de las fichas.
+        # (Histórico: se puso así porque STORE_BASE_URL apuntaba al host viejo
+        # de Render. Se corrigió el 15-sep-2026 y ahora vale miamiimport.com.ar
+        # — pero esto se queda igual, porque es lo correcto de todos modos:
+        # sobrevive a un cambio de dominio y al subdominio de prueba de la
+        # migración a Hostinger sin tocar una variable.)
         "tienda_url": f"{request.url.scheme}://{request.url.netloc}".rstrip("/"),
         "nav_categories": nav_categories(db),
         "nav_tipos": nav_tipos(db),
@@ -1047,10 +1052,16 @@ def nosotros(request: Request, db: Session = Depends(get_db)):
 def _base_publica(request: Request) -> str:
     """Dominio real desde el que se está sirviendo la tienda.
 
-    NO usar settings.STORE_BASE_URL: en producción quedó apuntando al host
-    viejo de Render, y el sitemap publicaba las 261 fichas como
-    miami-import-landing.onrender.com — todo el SEO se lo llevaba el dominio
-    provisorio en vez de miamiimport.com.ar.
+    Sale de la petición, no de `settings.STORE_BASE_URL`, y se queda así.
+
+    Por qué nació: STORE_BASE_URL apuntaba al host viejo de Render y el sitemap
+    publicaba las 261 fichas como `miami-import-landing.onrender.com` — todo el
+    SEO se lo llevaba el dominio provisorio.
+    ✅ Esa variable se corrigió el 15-sep-2026 (ahora vale miamiimport.com.ar),
+    pero esto NO vuelve a leerla: el dominio de la petición es correcto siempre,
+    aguanta un cambio de dominio y sirve igual desde el subdominio de prueba de
+    la migración a Hostinger. Una variable de entorno que hay que acordarse de
+    actualizar es una que en algún momento va a estar mal.
     """
     return f"{request.url.scheme}://{request.url.netloc}".rstrip("/")
 

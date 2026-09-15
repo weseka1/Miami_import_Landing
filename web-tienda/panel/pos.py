@@ -61,9 +61,11 @@ def _qr_svg(url: str) -> str:
 def _base_publica(request) -> str:
     """El dominio con el que entro la peticion, no el de la variable.
 
-    Mismo criterio que el sitemap (app.py): en produccion STORE_BASE_URL quedo
-    apuntando a miami-import-landing.onrender.com, y ese no es un dominio para
-    mostrarle a un cliente que escanea el QR.
+    Mismo criterio que el sitemap (app.py). Nacio porque STORE_BASE_URL apuntaba
+    a miami-import-landing.onrender.com, que no es un dominio para mostrarle a
+    un cliente que escanea un QR de cobro.
+    ✅ Corregida el 15-sep-2026, pero esto se queda: el dominio de la peticion
+    es correcto siempre y sobrevive a la migracion a Hostinger sin tocar nada.
     """
     try:
         proto = request.headers.get("x-forwarded-proto") or request.url.scheme
@@ -255,9 +257,8 @@ def crear_venta(body: dict, request: Request, db: Session = Depends(get_db),
                               for n, pr, q in sueltos]}))
     db.commit()
 
-    # El dominio sale de la peticion, no de la variable: en produccion
-    # STORE_BASE_URL apunta a miami-import-landing.onrender.com (verificado
-    # 23-ago) y ese no es un dominio para mostrarle a un cliente en un QR.
+    # El dominio sale de la peticion (ver _base_publica): el QR lo escanea un
+    # cliente parado enfrente, y tiene que decir miamiimport.com.ar.
     base = _base_publica(request)
     url_pago = f"{base}/pagar/{orden.number}?t={orden.public_token}"
     return {
