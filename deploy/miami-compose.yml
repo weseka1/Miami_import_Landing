@@ -1,0 +1,82 @@
+# ============================================================================
+#  MIAMI IMPORT en el VPS de Hostinger (srv1972060 · Boston · KVM 2)
+# ============================================================================
+#  Se despliega con la API de Hostinger (VPS_createNewProjectV1): este archivo
+#  va como `content` y las variables como `environment`.
+#
+#  🔴 Acá NO va ni un valor secreto. Todo se inyecta al desplegar. Si alguna
+#  vez ves una clave escrita en este archivo, está mal: este archivo va al repo.
+#
+#  ── Por qué `ports:` y no una red compartida ────────────────────────────────
+#  El Traefik de este VPS corre con `network_mode: host`, así que NO está en
+#  ninguna red bridge de Docker y no puede resolver contenedores por nombre.
+#  Llega a ellos por el puerto que publican en el host. Por eso va `ports:` con
+#  el puerto del contenedor y SIN puerto de host: Docker elige uno libre al
+#  azar y Traefik lo descubre por el provider. Es el mismo patrón que ya usa
+#  n8n en esta máquina — copiado de ahí, no inventado.
+# ============================================================================
+services:
+  tienda:
+    image: ghcr.io/weseka1/miami_import_landing/tienda:latest
+    restart: unless-stopped
+
+    ports:
+      - "8000"          # sin host port: lo asigna Docker, Traefik lo descubre
+
+    environment:
+      # --- base y almacenamiento (siguen en Supabase, NO se migran) ---
+      DATABASE_URL:            ${DATABASE_URL}
+      SUPABASE_URL:            ${SUPABASE_URL}
+      SUPABASE_SECRET_KEY:     ${SUPABASE_SECRET_KEY}
+      SUPABASE_BUCKET:         ${SUPABASE_BUCKET}
+
+      # --- seguridad ---
+      SECRET_KEY:              ${SECRET_KEY}
+      COOKIE_SECURE:           "true"
+      DEV_MODE:                "false"
+
+      # --- pagos (Stripe REAL: cobra plata de verdad) ---
+      STRIPE_PUBLISHABLE_KEY:  ${STRIPE_PUBLISHABLE_KEY}
+      STRIPE_SECRET_KEY:       ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET:   ${STRIPE_WEBHOOK_SECRET}
+      CHECKOUT_CURRENCY:       ${CHECKOUT_CURRENCY}
+      USD_TO_ARS_RATE:         ${USD_TO_ARS_RATE}
+
+      # --- dominios ---
+      # 🔴 En la prueba apuntan al subdominio del VPS. Se cambian a
+      # miamiimport.com.ar RECIÉN cuando el DNS ya apunte acá: si la app se
+      # cree servida en un dominio que todavía no la sirve, arma mal los links
+      # del mail y el retorno de Stripe.
+      STORE_BASE_URL:          ${STORE_BASE_URL}
+      PANEL_BASE_URL:          ${PANEL_BASE_URL}
+
+      # --- correo ---
+      SMTP_USER:               ${SMTP_USER}
+      SMTP_PASS:               ${SMTP_PASS}
+
+      # --- IA y probador (el probador GASTA plata por uso: FASHN por fal.ai) ---
+      ANTHROPIC_API_KEY:       ${ANTHROPIC_API_KEY}
+      GEMINI_API_KEY:          ${GEMINI_API_KEY}
+      FAL_KEY:                 ${FAL_KEY}
+      TRYON_TOPE_DIARIO:       ${TRYON_TOPE_DIARIO}
+
+      # --- medición ---
+      META_PIXEL_ID:           ${META_PIXEL_ID}
+
+      PORT: "8000"
+      TZ:   ${TZ}
+
+    labels:
+      - traefik.enable=true
+      # HOST_RULE se arma al desplegar. En la prueba es un Host() solo; cuando
+      # se mueva el dominio real pasa a incluir también el www.
+      - traefik.http.routers.miami.rule=${HOST_RULE}
+      - traefik.http.routers.miami.entrypoints=websecure
+      - traefik.http.routers.miami.tls.certresolver=letsencrypt
+      - traefik.http.services.miami.loadbalancer.server.port=8000
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"      # que los logs no se coman los 100 GB del disco
+        max-file: "3"

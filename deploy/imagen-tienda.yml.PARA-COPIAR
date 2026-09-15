@@ -1,0 +1,68 @@
+# ============================================================================
+#  Publica la imagen de la tienda en GitHub Container Registry
+# ============================================================================
+#  Reemplaza al auto-deploy de Render: cada push a `main` que toque
+#  `web-tienda/` construye la imagen y la sube a ghcr.io. El VPS de Hostinger
+#  después hace pull de ahí.
+#
+#  🔴 La imagen es PRIVADA (hereda la visibilidad del repo). Para que el VPS
+#  pueda bajarla hay que hacer UNA vez, dentro del VPS:
+#      docker login ghcr.io -u <usuario> -p <PAT con read:packages>
+#  Si la imagen fuera pública, el código de la tienda —y con él la forma de
+#  sus endpoints— quedaría a la vista de cualquiera.
+# ============================================================================
+name: Imagen de la tienda
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web-tienda/**'
+      - '.github/workflows/imagen-tienda.yml'
+  workflow_dispatch:      # para poder republicar a mano sin tocar el código
+
+env:
+  REGISTRY: ghcr.io
+  IMAGEN: ${{ github.repository }}/tienda
+
+jobs:
+  construir:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write     # sin esto el push a ghcr.io da 403
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Entrar a ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}   # lo da Actions, no hay que cargarlo
+
+      - name: Etiquetas
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGEN }}
+          # `latest` es la que corre en el VPS; el sha queda para poder volver
+          # a una versión anterior sin depender de que alguien la haya tagueado.
+          tags: |
+            type=raw,value=latest
+            type=sha,format=long
+
+      - name: Construir y publicar
+        uses: docker/build-push-action@v5
+        with:
+          context: ./web-tienda
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # La caché entre corridas baja el build de ~4 min a ~40 s: sin esto
+          # cada push recompila libsass y argon2 desde cero.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

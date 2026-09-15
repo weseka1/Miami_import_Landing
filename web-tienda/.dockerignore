@@ -1,0 +1,37 @@
+# Lo que NO entra a la imagen.
+# 🔴 El primero es el que importa: un .env adentro de la imagen es un secreto
+# publicado. Las variables se inyectan al correr el contenedor, nunca se copian.
+.env
+.env.*
+!.env.example
+
+# bases locales de prueba — seed_local.py las crea y no van a producción
+*.db
+*.sqlite
+*.sqlite3
+local_*.db
+
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+.git/
+.github/
+.gitignore
+.vscode/
+.idea/
+
+# documentación nuestra: no está en el repo ni tiene por qué viajar
+*.md
+!README.md
+
+# el venv local de Windows no sirve adentro de un contenedor Linux
+venv/
+.venv/
+node_modules/
+
+# scripts de verificación: se corren desde afuera contra la URL, no adentro
+scripts/
